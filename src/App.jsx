@@ -75,7 +75,8 @@ async function fetchFinnhubPrice(id, apiKey) {
   if(!d.c || d.c === 0) return null;
   const price = d.c;
   const prev = d.pc;
-  const chg = prev ? ((price - prev) / prev * 100) : 0;
+  // Use dp (day percent) directly if available — matches Finnhub website
+  const chg = d.dp !== undefined ? d.dp : (prev ? ((price - prev) / prev * 100) : 0);
   const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
   return {
     price: price.toFixed(isFx ? 4 : 2),
@@ -1134,8 +1135,8 @@ export default function HybridDashboard() {
     }
     if(breakingNews?.length>0) macroCtx += " Breaking: "+breakingNews.slice(0,3).map(n=>n.headline).join("; ");
 
-    // Analyseer elke asset apart parallel
-    const results = await Promise.allSettled(assets.map(async (asset) => {
+    // Analyseer elke asset apart — met retry bij falen
+    async function analyseAsset(asset, attempt=1) {
       const p = freshPrices[asset.id];
       const t = techData[asset.id];
       const prev = prevBias[asset.id];
@@ -1151,20 +1152,23 @@ ${prevLine}
 Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper):
 {"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
 
-      const body = {
-        model:"claude-sonnet-4-20250514",
-        max_tokens:800,
-        system:ANALYSIS_SYSTEM,
-        messages:[{role:"user",content:usr}]
-      };
-
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
+
+      if(res.status===429 && attempt < 3) {
+        await new Promise(r=>setTimeout(r, attempt * 15000));
+        return analyseAsset(asset, attempt+1);
+      }
       if(!res.ok) throw new Error(`${asset.id}: API fout ${res.status}`);
       const data = await res.json();
       const text = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
-      const parsed = robustParse(text);
-      return { id: asset.id, data: parsed };
-    }));
+      return { id: asset.id, data: robustParse(text) };
+    }
+
+    // Stagger calls 500ms uit elkaar om rate limits te vermijden
+    const results = await Promise.allSettled(assets.map((asset, i) =>
+      new Promise(resolve => setTimeout(() => analyseAsset(asset).then(resolve).catch(resolve), i * 500))
+    ));
 
     // Combineer resultaten
     const combined = {
