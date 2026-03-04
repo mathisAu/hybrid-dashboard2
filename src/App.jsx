@@ -711,7 +711,7 @@ export default function HybridDashboard() {
   const [deepRefreshing,setDeepRefreshing]= useState(false);
   const [calFilter,     setCalFilter]     = useState("all");
   const [accent,        setAccent]        = useState(DEFAULT_ACCENT);
-  const [apiKey,        setApiKey]        = useState(() => localStorage.getItem("hd_apikey")||"");
+  const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
   const [showKey,       setShowKey]       = useState(false);
   const [showAccent,    setShowAccent]    = useState(false);
   const [assets,        setAssets]        = useState(BASE_ASSETS);
@@ -796,23 +796,18 @@ export default function HybridDashboard() {
 
   async function callApi(sys, usr, setResult, setError, setStatus) {
     setStatus("loading");
+    const headers = {"Content-Type":"application/json"};
+    if(apiKey.trim()) { headers["x-api-key"] = apiKey.trim(); headers["anthropic-version"] = "2023-06-01"; headers["anthropic-dangerous-direct-browser-access"] = "true"; }
     const maxRetries = 2;
     for(let attempt=1; attempt<=maxRetries; attempt++) {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            model:"claude-sonnet-4-20250514",
-            max_tokens:4000,
-            system:sys,
-            tools:[{type:"web_search_20250305",name:"web_search"}],
-            messages:[{role:"user",content:usr}]
-          })
+          method:"POST", headers,
+          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:4000, system:sys, tools:[{type:"web_search_20250305",name:"web_search"}], messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
           if(attempt<maxRetries){ await new Promise(r=>setTimeout(r,8000)); continue; }
-          throw new Error("API limiet bereikt — sluit dit chatvenster even of wacht 1 minuut en probeer opnieuw");
+          throw new Error("API limiet bereikt — wacht 1 minuut en probeer opnieuw");
         }
         if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API fout: ${res.status}`);}
         const data=await res.json();
@@ -839,7 +834,8 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
 {"session":"London","session_time":"07:00-16:00 CET","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","watch_levels":"1 zin"}`;
     const usr = `Pre-sessie voor VANDAAG (${dateStr}): ${assetList}. Retourneer alleen JSON.`;
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,system:sys,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:usr}]})});
+      const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,system:sys,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -854,7 +850,8 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
     try {
       const now = new Date();
       const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:ANALYSIS_SYSTEM,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:`VANDAAG: ${dateStr}. Analyseer ALLEEN ${asset.label}. Gebruik web search voor live prijs. Retourneer JSON met alleen het ${asset.id} asset object (geen wrapper).`}]})});
+      const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:ANALYSIS_SYSTEM,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:`VANDAAG: ${dateStr}. Analyseer ALLEEN ${asset.label}. Gebruik web search voor live prijs. Retourneer JSON met alleen het ${asset.id} asset object (geen wrapper).`}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -940,6 +937,28 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
         </div>
 
         <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {/* API Key */}
+          <div style={{position:"relative"}}>
+            <button onClick={()=>setShowKey(s=>!s)} style={{background:apiKey?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",border:`1px solid ${apiKey?"#22c55e44":"#ef444444"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:10}}>{apiKey?"🔑":"⚠️"}</span>
+              <span style={{fontSize:9,color:apiKey?"#22c55e":"#ef4444",letterSpacing:"0.08em"}}>{apiKey?"API ACTIEF":"API KEY"}</span>
+            </button>
+            {showKey&&(
+              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111214",border:"1px solid #1f2023",borderRadius:8,padding:"14px",zIndex:100,minWidth:300}}>
+                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>ANTHROPIC API KEY</div>
+                <div style={{fontSize:9,color:"#4b5563",marginBottom:8,lineHeight:1.6}}>Haal je key op via <span style={{color:"#6366f1"}}>console.anthropic.com</span> → API Keys. Wordt lokaal opgeslagen in je browser.</div>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={e=>{ setApiKey(e.target.value); try{localStorage.setItem("hd_apikey",e.target.value);}catch(_){} }}
+                  placeholder="sk-ant-api03-..."
+                  style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",marginBottom:8,outline:"none"}}
+                />
+                {apiKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Key opgeslagen — dashboard gebruikt je eigen account</div>}
+                <button onClick={()=>setShowKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
+              </div>
+            )}
+          </div>
           {/* Colour picker */}
           <div style={{position:"relative"}}>
             <button onClick={()=>setShowAccent(s=>!s)} style={{background:"rgba(255,255,255,0.03)",border:"1px solid #1f2023",borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
