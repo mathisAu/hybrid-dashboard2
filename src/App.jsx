@@ -724,24 +724,27 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen — Twelve Data max 8/min, dus elke 60s ophalen met spreiding
+  // Live prijzen — Twelve Data max 8/min, requests spreiden
   useEffect(()=>{
     const allIds = [...assets.map(a=>a.id), "DXY","VIX","US10Y"];
     let idx = 0;
+    let t = null;
     function fetchNext() {
       const id = allIds[idx % allIds.length];
       fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
       idx++;
     }
-    // Fetch all at start (staggered 1s apart)
+    // Fetch all at start staggered 8s apart — dan pas interval starten
     allIds.forEach((id, i) => {
       setTimeout(()=>{
         fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
-      }, i * 1500);
+        // Start rolling interval pas na laatste initiële fetch
+        if(i === allIds.length - 1) {
+          t = setInterval(fetchNext, 8000);
+        }
+      }, i * 8000);
     });
-    // Then refresh one per 7s (= ~8/min, within free limit)
-    const t = setInterval(fetchNext, 7000);
-    return()=>clearInterval(t);
+    return()=>{ if(t) clearInterval(t); };
   },[assets, tdKey]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
