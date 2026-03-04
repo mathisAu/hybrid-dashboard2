@@ -3,9 +3,7 @@ import { useState, useEffect, useRef } from "react";
 // ── Live prijzen via Yahoo Finance (geen API key, gratis) ─────────────────────
 const YAHOO_MAP = {
   XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F",
-  EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
-  BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X",
-  USDCHF:"CHF=X", USOIL:"CL=F", SPX:"^GSPC",
+  EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X", USOIL:"CL=F", SPX:"^GSPC",
 };
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
@@ -514,28 +512,6 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots }) {
         <div style={{fontSize:11,color:"#9ca3af",flex:1}}>{data.dominant_driver}</div>
       </div>
 
-      {/* Snapshot grid */}
-      <div>
-        <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:8}}>MARKET SNAPSHOT</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8}}>
-          {Object.entries(snap).map(([key,val])=>{
-            if(!val) return null;
-            const col = val.direction==="up"?"#22c55e":"#ef4444";
-            const arrow = val.direction==="up"?"↑":"↓";
-            return (
-              <div key={key} style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:7,padding:"10px 12px"}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:4}}>{snapLabels[key]||key.toUpperCase()}</div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:3}}>
-                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:700,color:"#e5e7eb"}}>{val.price}</span>
-                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:600,color:col}}>{arrow}{val.change}</span>
-                </div>
-                {val.note&&<div style={{fontSize:10,color:"#4b5563",lineHeight:1.4}}>{val.note}</div>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Yield analysis */}
       {data.yield_analysis&&(
         <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
@@ -626,7 +602,9 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots }) {
           <div style={{display:"grid",gridTemplateColumns:"1fr",gap:10}}>
             {data.risk_radar&&(
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:8}}>RISK RADAR</div>
+                <InfoTooltip text="Samengestelde risicoscore van 0-100 op basis van macro-omgeving, volatiliteit en cross-asset signalen. Groen (0-40) = laag risico, Oranje (40-70) = verhoogd, Rood (70-100) = hoog risico." color="#6b7280">
+                  <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:8}}>RISK RADAR</div>
+                </InfoTooltip>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
                   <div style={{position:"relative",width:48,height:48,flexShrink:0}}>
                     <svg width="48" height="48" viewBox="0 0 48 48">
