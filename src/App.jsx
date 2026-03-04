@@ -837,7 +837,13 @@ export default function HybridDashboard() {
       if(c==="{")depth++;
       else if(c==="}"){depth--;if(depth===0){end=i;break;}}
     }
-    if(end===-1) throw new Error("Geen sluitende } gevonden");
+    if(end===-1) {
+      // JSON werd afgekapt — probeer te sluiten door ontbrekende } toe te voegen
+      const opens = (s.match(/{/g)||[]).length - (s.match(/}/g)||[]).length;
+      const closeArr = (s.match(/\[/g)||[]).length - (s.match(/\]/g)||[]).length;
+      s = s + "]".repeat(Math.max(0,closeArr)) + "}".repeat(Math.max(0,opens));
+      end = s.length - 1;
+    }
     s = s.slice(start, end+1);
 
     // Quick fix trailing commas
@@ -889,7 +895,7 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:sys, messages:[{role:"user",content:usr}] })
+          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:3000, system:sys, messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
           const waitSec = attempt * 20;
