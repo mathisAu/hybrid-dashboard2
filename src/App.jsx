@@ -1135,34 +1135,6 @@ Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourn
         {/* ANALYSE PAGE */}
         {page==="analyse"&&(
           <>
-            {/* ── Live prijzen ticker ── */}
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10,padding:"8px 14px",background:"#080909",border:"1px solid #111214",borderRadius:7,alignItems:"center"}}>
-              <span style={{fontSize:9,color:"#1f2937",letterSpacing:"0.12em",marginRight:2}}>LIVE</span>
-              {assets.map(a => {
-                const p = livePrices[a.id];
-                return (
-                  <div key={a.id} style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.02)",borderRadius:4,padding:"3px 8px"}}>
-                    <span style={{fontSize:9,color:"#374151",letterSpacing:"0.06em"}}>{a.label}</span>
-                    {p ? <>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:"#e5e7eb"}}>{p.price}</span>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:600,color:p.direction==="up"?"#22c55e":"#ef4444"}}>{p.direction==="up"?"↑":"↓"}{p.change}</span>
-                    </> : <span style={{fontSize:9,color:"#1f2937"}}>laden...</span>}
-                  </div>
-                );
-              })}
-              <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:9,color:"#1f2937"}}>AUTO</span>
-                <button onClick={()=>setAutoRefresh(s=>!s)} style={{background:autoRefresh?`${accent}22`:"rgba(255,255,255,0.03)",border:`1px solid ${autoRefresh?accent:"#1f2023"}`,borderRadius:4,padding:"3px 10px",cursor:"pointer",color:autoRefresh?accent:"#374151",fontSize:9,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>
-                  {autoRefresh?`AAN (${autoInterval}m)`:"UIT"}
-                </button>
-                {autoRefresh&&(
-                  <select value={autoInterval} onChange={e=>setAutoInterval(Number(e.target.value))} style={{background:"#0d0e10",border:"1px solid #1f2023",borderRadius:4,color:"#6b7280",fontSize:9,padding:"2px 4px"}}>
-                    {[15,30,60,120].map(m=><option key={m} value={m}>{m}min</option>)}
-                  </select>
-                )}
-              </div>
-            </div>
-
             {aStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{aError}</div>}
 
             {/* Macro bar */}
