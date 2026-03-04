@@ -104,7 +104,14 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Institutioneel intraday trading analist. Live prijzen worden aangeleverd in de prompt — gebruik deze direct, doe GEEN web search.
+const ANALYSIS_SYSTEM = `Institutioneel intraday trading analist. Live prijzen worden aangeleverd — gebruik deze direct, doe GEEN web search.
+
+HYBRID METHODE — analyseer in deze volgorde:
+1. MACRO: yield regime, DXY richting, risk-on/off sentiment
+2. FUNDAMENTEEL: wat drijft dit asset vandaag? (earnings, centrale bank, macro data, geopolitiek)
+3. TECHNISCH: RSI, EMA positie, intraday structuur (HH/HL of LH/LL), trend karakter
+4. FLOW: institutionele participatie, volume karakter, momentum kwaliteit
+5. SYNTHESE: bias alleen als macro + fundamenteel + technisch aligned zijn
 
 REGELS:
 - Bias: Bullish/Bearish/Neutraal/Fragiel. Fragiel alleen bij confidence <70.
@@ -113,6 +120,8 @@ REGELS:
 - DXY/Goud anomalie: max confidence 65%.
 - technical_trend: Strong Uptrend/Choppy Up/Strong Downtrend/Choppy Down/Ranging/Compressing
 - yield_regime: Risk-On/Risk-Off/Stagflatie/Neutraal
+- dominant_mechanisme: de FUNDAMENTELE drijfveer, NIET de prijsbeweging zelf
+- deep_summary: minimaal 3 zinnen — macro context, fundamentele driver, technische bevestiging
 - GEEN apostrofs of aanhalingstekens in string-waarden. Alleen JSON, geen markdown.
 
 JSON structuur:
@@ -453,8 +462,8 @@ function AssetCard({ asset, data, index, loading, onClick, accent, livePrice }) 
   const priceUp = livePrice ? livePrice.direction === "up" : data?.price_direction === "up";
 
   return (
-    <div onClick={data ? onClick : undefined} style={{background:"linear-gradient(145deg,#111214,#0d0e10)",border:`1px solid ${data?.bias?c.border+"44":"#1a1b1e"}`,borderRadius:8,padding:"16px 18px",opacity:vis?1:0,transform:vis?"translateY(0)":"translateY(10px)",transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",position:"relative",overflow:"hidden",cursor:data?"pointer":"default"}}>
-      {data?.bias&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${c.border},transparent)`}}/>}
+    <div onClick={data ? onClick : undefined} style={{background:"linear-gradient(145deg,#111214,#0d0e10)",border:`1px solid ${data?.bias?c.border+"44":"#1a1b1e"}`,borderRadius:8,padding:"16px 18px",opacity:vis?1:0,transform:vis?"translateY(0)":"translateY(10px)",transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",position:"relative",overflow:"visible",cursor:data?"pointer":"default"}}>
+      {data?.bias&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${c.border},transparent)`,borderRadius:"8px 8px 0 0"}}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
         <div>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2,flexWrap:"wrap"}}>
