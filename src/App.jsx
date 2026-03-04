@@ -1,5 +1,33 @@
 import { useState, useEffect, useRef } from "react";
 
+// ── Live prijzen via Yahoo Finance (geen API key, gratis) ─────────────────────
+const YAHOO_MAP = {
+  XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F",
+  EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
+  BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X",
+  USDCHF:"CHF=X", USOIL:"CL=F", SPX:"^GSPC",
+};
+async function fetchYahooPrice(id) {
+  const sym = YAHOO_MAP[id] || id;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const res = await fetch(proxy, { signal: AbortSignal.timeout(7000) });
+  const json = await res.json();
+  const data = JSON.parse(json.contents);
+  const q = data?.chart?.result?.[0];
+  if (!q) return null;
+  const price = q.meta.regularMarketPrice;
+  const prev  = q.meta.chartPreviousClose || q.meta.previousClose;
+  const chg   = prev ? ((price - prev) / prev * 100) : 0;
+  const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+  return {
+    price: price?.toFixed(isFx ? 4 : 2),
+    change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
+    direction: chg >= 0 ? "up" : "down",
+    raw: chg,
+  };
+}
+
 // ── Accent colour (user-configurable) ─────────────────────────────────────────
 const DEFAULT_ACCENT = "#089981";
 
@@ -713,13 +741,52 @@ export default function HybridDashboard() {
   const [accent,        setAccent]        = useState(DEFAULT_ACCENT);
   const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
   const [showKey,       setShowKey]       = useState(false);
+  const [livePrices,    setLivePrices]    = useState({});
+  const [autoRefresh,   setAutoRefresh]   = useState(false);
+  const [autoInterval,  setAutoInterval]  = useState(30);
+  const autoRef = useRef(null);
+
+  // Live prijzen elke 15 seconden ophalen via Yahoo Finance
+  useEffect(() => {
+    function fetchAll() {
+      assets.forEach(a => {
+        fetchYahooPrice(a.id).then(p => {
+          if(p) setLivePrices(prev => ({...prev, [a.id]: p}));
+        }).catch(()=>{});
+      });
+    }
+    fetchAll();
+    const t = setInterval(fetchAll, 15000);
+    return () => clearInterval(t);
+  }, [assets]);
+
+  // Auto-refresh analyse
+  useEffect(() => {
+    if(autoRef.current) clearInterval(autoRef.current);
+    if(autoRefresh) {
+      autoRef.current = setInterval(() => runAnalysis(), autoInterval * 60 * 1000);
+    }
+    return () => { if(autoRef.current) clearInterval(autoRef.current); };
+  }, [autoRefresh, autoInterval, assets]);
+
+  const [showKeyVal,    setShowKeyVal]    = useState(false);
   const [showAccent,    setShowAccent]    = useState(false);
   const [assets,        setAssets]        = useState(BASE_ASSETS);
   const [showAddPair,   setShowAddPair]   = useState(false);
   const [newPairLabel,  setNewPairLabel]  = useState("");
-  const [newPairFull,   setNewPairFull,]  = useState("");
+  const [newPairFull,   setNewPairFull]   = useState("");
   const [presession,    setPresession]    = useState(null);
   const [psStatus,      setPsStatus]      = useState("idle");
+  // Breaking news
+  const [breakingNews,  setBreakingNews]  = useState([]);
+  const [bnLoading,     setBnLoading]     = useState(false);
+  const [seenHeadlines, setSeenHeadlines] = useState(new Set());
+  // Auto-refresh
+  const [autoRefresh,   setAutoRefresh]   = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(30); // minutes
+  const autoRefreshRef = useRef(null);
+  const [nextRefreshIn, setNextRefreshIn] = useState(null);
+  const countdownRef = useRef(null);
 
   useEffect(()=>{
     if(aStatus==="loading"||iStatus==="loading"||psStatus==="loading"){
@@ -727,6 +794,107 @@ export default function HybridDashboard() {
       return()=>clearInterval(t);
     }
   },[aStatus,iStatus,psStatus]);
+
+  // ── Breaking News via RSS proxy ──────────────────────────────────────────────
+  const RSS_FEEDS = [
+    { url:"https://feeds.bbci.co.uk/news/business/rss.xml",          src:"BBC Business" },
+    { url:"https://www.ft.com/?format=rss",                           src:"Financial Times" },
+    { url:"https://feeds.reuters.com/reuters/businessNews",           src:"Reuters" },
+    { url:"https://feeds.marketwatch.com/marketwatch/topstories/",    src:"MarketWatch" },
+  ];
+  const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yields","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","crypto","bitcoin","recession","tariff","bank","powell","lagarde","treasury","bond","equity","stock","market","economy","trade","forex","currency"];
+
+  async function fetchBreakingNews() {
+    setBnLoading(true);
+    const allItems = [];
+    await Promise.allSettled(RSS_FEEDS.map(async ({url, src}) => {
+      try {
+        const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        const res = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
+        const json = await res.json();
+        const xml = new DOMParser().parseFromString(json.contents, "text/xml");
+        const items = Array.from(xml.querySelectorAll("item")).slice(0,8);
+        items.forEach(item => {
+          const title = item.querySelector("title")?.textContent?.trim() || "";
+          const link  = item.querySelector("link")?.textContent?.trim() || "";
+          const pubDate = item.querySelector("pubDate")?.textContent?.trim() || "";
+          const desc  = item.querySelector("description")?.textContent?.trim() || "";
+          const lower = (title+" "+desc).toLowerCase();
+          const relevant = MARKET_KEYWORDS.some(k => lower.includes(k));
+          if(relevant && title) {
+            const time = pubDate ? new Date(pubDate) : new Date();
+            allItems.push({ headline: title, source: src, url: link, time, timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}), isNew: !seenHeadlines.has(title) });
+          }
+        });
+      } catch(_) {}
+    }));
+    // Sort newest first
+    allItems.sort((a,b) => b.time - a.time);
+    const top = allItems.slice(0, 20);
+    // Notify for new HIGH-impact items
+    const newItems = top.filter(n => n.isNew);
+    if(newItems.length > 0 && seenHeadlines.size > 0) {
+      newItems.forEach(item => sendNotification("📰 Breaking News", item.headline, item.url));
+    }
+    setSeenHeadlines(new Set(top.map(n => n.headline)));
+    setBreakingNews(top);
+    setBnLoading(false);
+  }
+
+  // Fetch breaking news on mount and every 5 min
+  useEffect(() => {
+    fetchBreakingNews();
+    const t = setInterval(fetchBreakingNews, 5*60*1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // ── Browser Notifications ────────────────────────────────────────────────────
+  function requestNotifPermission() {
+    if("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }
+  function sendNotification(title, body, url) {
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+    const n = new Notification(title, { body: body.slice(0,100), icon: "https://cdn-icons-png.flaticon.com/512/2103/2103633.png" });
+    if(url) n.onclick = () => window.open(url, "_blank");
+  }
+  useEffect(() => { requestNotifPermission(); }, []);
+
+  // ── Auto-refresh ─────────────────────────────────────────────────────────────
+  function startAutoRefresh() {
+    clearInterval(autoRefreshRef.current);
+    clearInterval(countdownRef.current);
+    const ms = refreshInterval * 60 * 1000;
+    let remaining = ms / 1000;
+    setNextRefreshIn(remaining);
+    countdownRef.current = setInterval(() => {
+      remaining -= 1;
+      setNextRefreshIn(remaining);
+    }, 1000);
+    autoRefreshRef.current = setInterval(() => {
+      runAnalysis();
+      const ni = ms / 1000;
+      remaining = ni;
+      setNextRefreshIn(ni);
+    }, ms);
+  }
+  function stopAutoRefresh() {
+    clearInterval(autoRefreshRef.current);
+    clearInterval(countdownRef.current);
+    setNextRefreshIn(null);
+  }
+  useEffect(() => {
+    if(autoRefresh) startAutoRefresh();
+    else stopAutoRefresh();
+    return () => { clearInterval(autoRefreshRef.current); clearInterval(countdownRef.current); };
+  }, [autoRefresh, refreshInterval]);
+
+  const fmtCountdown = (s) => {
+    if(s===null) return "";
+    const m = Math.floor(s/60), sec = Math.floor(s%60);
+    return `${m}:${String(sec).padStart(2,"0")}`;
+  };
 
   function robustParse(text) {
     // Strip all markdown artifacts
@@ -874,9 +1042,21 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
     const now = new Date();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
     const ids = assets.map(a=>a.id).join(", ");
-    const usr = `VANDAAG is ${dateStr}. Analyseer: ${ids}. Gebruik web search voor LIVE prijzen en % verandering van vandaag voor elk asset. Retourneer alleen JSON.`;
+    // Inject live prices from Yahoo Finance directly into the prompt
+    const priceLines = assets.map(a => {
+      const p = livePrices[a.id];
+      return p ? `${a.id}: prijs=${p.price}, verandering=${p.change} (${p.direction})` : `${a.id}: prijs onbekend`;
+    }).join("\n");
+    const usr = `VANDAAG is ${dateStr}. Analyseer: ${ids}.
+
+LIVE PRIJZEN (gebruik deze exacte data, zoek NIET opnieuw op):
+${priceLines}
+
+De bias MOET overeenkomen met de price direction. Als direction=up dan bias=Bullish of Neutraal, NIET Bearish.
+Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourneer alleen JSON.`;
     setAError(""); callApi(ANALYSIS_SYSTEM, usr, setAResult, setAError, setAStatus);
   };
+
 
   const runIntel = () => {
     setIError("");
@@ -946,18 +1126,32 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
             {showKey&&(
               <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111214",border:"1px solid #1f2023",borderRadius:8,padding:"14px",zIndex:100,minWidth:300}}>
                 <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>ANTHROPIC API KEY</div>
-                <div style={{fontSize:9,color:"#4b5563",marginBottom:8,lineHeight:1.6}}>Haal je key op via <span style={{color:"#6366f1"}}>console.anthropic.com</span> → API Keys. Wordt lokaal opgeslagen in je browser.</div>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={e=>{ setApiKey(e.target.value); try{localStorage.setItem("hd_apikey",e.target.value);}catch(_){} }}
-                  placeholder="sk-ant-api03-..."
-                  style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",marginBottom:8,outline:"none"}}
-                />
-                {apiKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Key opgeslagen — dashboard gebruikt je eigen account</div>}
+                <div style={{fontSize:9,color:"#4b5563",marginBottom:8,lineHeight:1.6}}>Haal je key op via <span style={{color:"#6366f1"}}>console.anthropic.com</span> → API Keys.</div>
+                <div style={{position:"relative",marginBottom:8}}>
+                  <input
+                    type={showKeyVal?"text":"password"}
+                    value={apiKey}
+                    onChange={e=>{ setApiKey(e.target.value); try{localStorage.setItem("hd_apikey",e.target.value);}catch(_){} }}
+                    placeholder="sk-ant-api03-..."
+                    style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 36px 7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none"}}
+                  />
+                  <button onClick={()=>setShowKeyVal(v=>!v)} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",fontSize:13}}>
+                    {showKeyVal?"🙈":"👁️"}
+                  </button>
+                </div>
+                {apiKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Key opgeslagen</div>}
                 <button onClick={()=>setShowKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
               </div>
             )}
+          </div>
+          {/* Auto-refresh */}
+          <div style={{position:"relative"}}>
+            <button onClick={()=>setAutoRefresh(v=>!v)} style={{background:autoRefresh?"rgba(99,102,241,0.12)":"rgba(255,255,255,0.03)",border:`1px solid ${autoRefresh?"#6366f1":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:10,animation:autoRefresh?"spin 2s linear infinite":"none",display:"inline-block"}}>⟳</span>
+              <span style={{fontSize:9,color:autoRefresh?"#818cf8":"#4b5563",letterSpacing:"0.08em"}}>
+                {autoRefresh ? (nextRefreshIn!==null ? fmtCountdown(nextRefreshIn) : "AUTO") : "AUTO"}
+              </span>
+            </button>
           </div>
           {/* Colour picker */}
           <div style={{position:"relative"}}>
@@ -1011,6 +1205,34 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
         {/* ANALYSE PAGE */}
         {page==="analyse"&&(
           <>
+            {/* ── Live prijzen ticker ── */}
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10,padding:"8px 14px",background:"#080909",border:"1px solid #111214",borderRadius:7,alignItems:"center"}}>
+              <span style={{fontSize:9,color:"#1f2937",letterSpacing:"0.12em",marginRight:2}}>LIVE</span>
+              {assets.map(a => {
+                const p = livePrices[a.id];
+                return (
+                  <div key={a.id} style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.02)",borderRadius:4,padding:"3px 8px"}}>
+                    <span style={{fontSize:9,color:"#374151",letterSpacing:"0.06em"}}>{a.label}</span>
+                    {p ? <>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:"#e5e7eb"}}>{p.price}</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:600,color:p.direction==="up"?"#22c55e":"#ef4444"}}>{p.direction==="up"?"↑":"↓"}{p.change}</span>
+                    </> : <span style={{fontSize:9,color:"#1f2937"}}>laden...</span>}
+                  </div>
+                );
+              })}
+              <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:9,color:"#1f2937"}}>AUTO</span>
+                <button onClick={()=>setAutoRefresh(s=>!s)} style={{background:autoRefresh?`${accent}22`:"rgba(255,255,255,0.03)",border:`1px solid ${autoRefresh?accent:"#1f2023"}`,borderRadius:4,padding:"3px 10px",cursor:"pointer",color:autoRefresh?accent:"#374151",fontSize:9,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>
+                  {autoRefresh?`AAN (${autoInterval}m)`:"UIT"}
+                </button>
+                {autoRefresh&&(
+                  <select value={autoInterval} onChange={e=>setAutoInterval(Number(e.target.value))} style={{background:"#0d0e10",border:"1px solid #1f2023",borderRadius:4,color:"#6b7280",fontSize:9,padding:"2px 4px"}}>
+                    {[15,30,60,120].map(m=><option key={m} value={m}>{m}min</option>)}
+                  </select>
+                )}
+              </div>
+            </div>
+
             {aStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{aError}</div>}
 
             {/* Macro bar */}
@@ -1081,6 +1303,40 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
                 <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i} loading={aStatus==="loading"} accent={accent}
                   onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}/>
               ))}
+            </div>
+
+            {/* BREAKING NEWS */}
+            <div style={{marginTop:8,background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"10px 16px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                <div style={{display:"flex",alignItems:"center",gap:7}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 8px #ef4444",animation:"pulse 1.5s infinite"}}/>
+                  <span style={{fontSize:10,fontWeight:700,color:"#ef4444",letterSpacing:"0.12em"}}>BREAKING NEWS</span>
+                </div>
+                <span style={{fontSize:9,color:"#374151"}}>Reuters · Bloomberg · FT · MarketWatch — elke 5 min</span>
+                {bnLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto"}}>⟳ refreshing...</span>}
+                <button onClick={fetchBreakingNews} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺ nu laden</button>
+              </div>
+              <div style={{maxHeight:340,overflowY:"auto",padding:"10px 16px",display:"flex",flexDirection:"column",gap:8}}>
+                {breakingNews.length===0&&!bnLoading&&(
+                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>Nieuws laden... (even wachten)</div>
+                )}
+                {breakingNews.map((n,i)=>(
+                  <div key={i} onClick={()=>n.url&&window.open(n.url,"_blank")}
+                    style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 10px",background:n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)",borderRadius:6,border:n.isNew&&i<3?"1px solid rgba(239,68,68,0.15)":"1px solid transparent",cursor:n.url?"pointer":"default",transition:"background 0.2s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.04)"}
+                    onMouseLeave={e=>e.currentTarget.style.background=n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)"}>
+                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#374151",flexShrink:0,marginTop:2}}>{n.timeStr}</span>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
+                        <Badge label={n.source} color="#6b7280"/>
+                        {n.isNew&&i<3&&<Badge label="NIEUW" color="#ef4444"/>}
+                      </div>
+                      <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5}}>{n.headline}</div>
+                    </div>
+                    {n.url&&<span style={{fontSize:9,color:"#374151",flexShrink:0,marginTop:2}}>↗</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
