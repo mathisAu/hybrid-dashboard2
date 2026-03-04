@@ -40,7 +40,7 @@ async function fetchYahooPrice(id) {
   ];
   for(const proxy of proxies) {
     try {
-      const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(4000) });
       const json = await res.json();
       const raw = typeof json === "string" ? json : json.contents || JSON.stringify(json);
       const data = JSON.parse(raw);
@@ -1076,18 +1076,14 @@ export default function HybridDashboard() {
     const headers = {"Content-Type":"application/json"};
     if(apiKey.trim()){ headers["x-api-key"]=apiKey.trim(); headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
 
-    // Forceer verse prijzen voor alle assets direct op
+    // Forceer verse prijzen — max 5s wachten totaal
     const freshPrices = {...livePrices};
-    await Promise.allSettled(assets.map(async a => {
+    await Promise.allSettled([...assets.map(a=>a.id), "DXY","VIX","US10Y"].map(async id => {
       try {
-        const p = await fetchLivePrice(a.id, tdKey);
-        if(p) { freshPrices[a.id] = p; setLivePrices(prev=>({...prev,[a.id]:p})); }
-      } catch(_) {}
-    }));
-    // Ook DXY/VIX/US10Y vers ophalen
-    await Promise.allSettled(["DXY","VIX","US10Y"].map(async id => {
-      try {
-        const p = await fetchLivePrice(id, tdKey);
+        const p = await Promise.race([
+          fetchLivePrice(id, tdKey),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),5000))
+        ]);
         if(p) { freshPrices[id] = p; setLivePrices(prev=>({...prev,[id]:p})); }
       } catch(_) {}
     }));
@@ -1132,8 +1128,6 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
         system:ANALYSIS_SYSTEM,
         messages:[{role:"user",content:usr}]
       };
-      // Web search alleen als fallback voor prijs
-      if(useWebSearch) body.tools = [{type:"web_search_20250305",name:"web_search"}];
 
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(!res.ok) throw new Error(`${asset.id}: API fout ${res.status}`);
