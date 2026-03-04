@@ -61,8 +61,35 @@ async function fetchYahooPrice(id) {
   return null;
 }
 
-async function fetchLivePrice(id, tdKey) {
-  if(tdKey) {
+const FINNHUB_MAP = {
+  XAUUSD:"OANDA:XAU_USD", US30:"OANDA:US30_USD", US100:"OANDA:NAS100_USD",
+  EURUSD:"OANDA:EUR_USD", GBPUSD:"OANDA:GBP_USD", BTCUSD:"BINANCE:BTCUSDT",
+  USDJPY:"OANDA:USD_JPY", USDCHF:"OANDA:USD_CHF", USOIL:"OANDA:WTICO_USD",
+  DXY:"OANDA:USD_BASKET", VIX:"CBOE:VIX", US10Y:"TVC:US10Y", SPX:"OANDA:SPX500_USD",
+};
+async function fetchFinnhubPrice(id, apiKey) {
+  const sym = FINNHUB_MAP[id] || id;
+  const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${apiKey}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  const d = await res.json();
+  if(!d.c || d.c === 0) return null;
+  const price = d.c;
+  const prev = d.pc;
+  const chg = prev ? ((price - prev) / prev * 100) : 0;
+  const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+  return {
+    price: price.toFixed(isFx ? 4 : 2),
+    change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
+    direction: chg >= 0 ? "up" : "down",
+    raw: chg,
+  };
+}
+
+async function fetchLivePrice(id, tdKey, fhKey, priceSource) {
+  if(priceSource === "finnhub" && fhKey) {
+    try { const p = await fetchFinnhubPrice(id, fhKey); if(p) return p; } catch(_) {}
+  }
+  if(priceSource !== "finnhub" && tdKey) {
     try { const p = await fetchTwelvePrice(id, tdKey); if(p) return p; } catch(_) {}
   }
   return fetchYahooPrice(id);
@@ -730,6 +757,8 @@ export default function HybridDashboard() {
   const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
   const [showKey,       setShowKey]       = useState(false);
   const [tdKey,         setTdKey]         = useState(() => { try { return localStorage.getItem("hd_tdkey")||""; } catch(_){ return ""; }});
+  const [fhKey,         setFhKey]         = useState(() => { try { return localStorage.getItem("hd_fhkey")||""; } catch(_){ return ""; }});
+  const [priceSource,   setPriceSource]   = useState(() => { try { return localStorage.getItem("hd_psource")||"twelvedata"; } catch(_){ return "twelvedata"; }});
   const [showTdKey,     setShowTdKey]     = useState(false);
   const [livePrices,    setLivePrices]    = useState({});
 
@@ -766,13 +795,13 @@ export default function HybridDashboard() {
     let t = null;
     function fetchNext() {
       const id = allIds[idx % allIds.length];
-      fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+      fetchLivePrice(id, tdKey, fhKey, priceSource).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
       idx++;
     }
     // Fetch all at start staggered 8s apart — dan pas interval starten
     allIds.forEach((id, i) => {
       setTimeout(()=>{
-        fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+        fetchLivePrice(id, tdKey, fhKey, priceSource).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
         // Start rolling interval pas na laatste initiële fetch
         if(i === allIds.length - 1) {
           t = setInterval(fetchNext, 8000);
@@ -780,7 +809,7 @@ export default function HybridDashboard() {
       }, i * 8000);
     });
     return()=>{ if(t) clearInterval(t); };
-  },[assets, tdKey]);
+  },[assets, tdKey, fhKey, priceSource]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
   const RSS_FEEDS = [
@@ -1081,7 +1110,7 @@ export default function HybridDashboard() {
     await Promise.allSettled([...assets.map(a=>a.id), "DXY","VIX","US10Y"].map(async id => {
       try {
         const p = await Promise.race([
-          fetchLivePrice(id, tdKey),
+          fetchLivePrice(id, tdKey, fhKey, priceSource),
           new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),5000))
         ]);
         if(p) { freshPrices[id] = p; setLivePrices(prev=>({...prev,[id]:p})); }
@@ -1253,25 +1282,57 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
               </div>
             )}
           </div>
-          {/* Twelve Data Key */}
+          {/* Prijs bron selector */}
           <div style={{position:"relative"}}>
-            <button onClick={()=>setShowTdKey(s=>!s)} style={{background:tdKey?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.03)",border:`1px solid ${tdKey?"#22c55e44":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+            <button onClick={()=>setShowTdKey(s=>!s)} style={{background:(tdKey||fhKey)?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.03)",border:`1px solid ${(tdKey||fhKey)?"#22c55e44":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
               <span style={{fontSize:10}}>📈</span>
-              <span style={{fontSize:9,color:tdKey?"#22c55e":"#4b5563",letterSpacing:"0.08em"}}>{tdKey?"LIVE DATA":"PRIJS DATA"}</span>
+              <span style={{fontSize:9,color:(tdKey||fhKey)?"#22c55e":"#4b5563",letterSpacing:"0.08em"}}>
+                {(tdKey||fhKey) ? priceSource.toUpperCase().replace("TWELVEDATA","12DATA") : "PRIJS DATA"}
+              </span>
             </button>
             {showTdKey&&(
               <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111214",border:"1px solid #1f2023",borderRadius:8,padding:"14px",zIndex:100,minWidth:300}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>TWELVE DATA API KEY</div>
-                <div style={{fontSize:9,color:"#4b5563",marginBottom:8,lineHeight:1.6}}>Gratis key via <span style={{color:"#6366f1"}}>twelvedata.com</span>. Geeft real-time prijzen zonder vertraging.</div>
-                <input
-                  type="password"
-                  value={tdKey}
-                  onChange={e=>{ setTdKey(e.target.value); try{localStorage.setItem("hd_tdkey",e.target.value);}catch(_){} }}
-                  placeholder="your_twelve_data_key"
-                  style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:8}}
-                />
-                {tdKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Real-time data actief</div>}
-                {!tdKey&&<div style={{fontSize:9,color:"#4b5563",marginBottom:8}}>Zonder key: Yahoo Finance (15 min vertraging op futures)</div>}
+                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:10}}>PRIJS DATA BRON</div>
+
+                {/* Source selector */}
+                <div style={{display:"flex",gap:6,marginBottom:12}}>
+                  {["twelvedata","finnhub","yahoo"].map(src=>(
+                    <button key={src} onClick={()=>{ setPriceSource(src); try{localStorage.setItem("hd_psource",src);}catch(_){} }}
+                      style={{flex:1,padding:"5px 0",fontSize:9,letterSpacing:"0.08em",borderRadius:5,border:`1px solid ${priceSource===src?"#22c55e44":"#1f2023"}`,background:priceSource===src?"rgba(34,197,94,0.1)":"transparent",color:priceSource===src?"#22c55e":"#4b5563",cursor:"pointer"}}>
+                      {src==="twelvedata"?"12DATA":src.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Twelve Data key */}
+                {priceSource==="twelvedata"&&(
+                  <>
+                    <div style={{fontSize:9,color:"#4b5563",marginBottom:6,lineHeight:1.6}}>Gratis key via <span style={{color:"#6366f1"}}>twelvedata.com</span> — 800 requests/dag.</div>
+                    <input type="password" value={tdKey}
+                      onChange={e=>{ setTdKey(e.target.value); try{localStorage.setItem("hd_tdkey",e.target.value);}catch(_){} }}
+                      placeholder="your_twelve_data_key"
+                      style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:8}}/>
+                    {tdKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Twelve Data actief</div>}
+                  </>
+                )}
+
+                {/* Finnhub key */}
+                {priceSource==="finnhub"&&(
+                  <>
+                    <div style={{fontSize:9,color:"#4b5563",marginBottom:6,lineHeight:1.6}}>Gratis key via <span style={{color:"#6366f1"}}>finnhub.io</span> — 60 requests/minuut, real-time.</div>
+                    <input type="password" value={fhKey}
+                      onChange={e=>{ setFhKey(e.target.value); try{localStorage.setItem("hd_fhkey",e.target.value);}catch(_){} }}
+                      placeholder="your_finnhub_key"
+                      style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:8}}/>
+                    {fhKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Finnhub actief — real-time data</div>}
+                  </>
+                )}
+
+                {/* Yahoo */}
+                {priceSource==="yahoo"&&(
+                  <div style={{fontSize:9,color:"#4b5563",lineHeight:1.6,marginBottom:8}}>Yahoo Finance — gratis, geen key nodig. Futures 15 min vertraging, forex real-time.</div>
+                )}
+
                 <button onClick={()=>setShowTdKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
               </div>
             )}
