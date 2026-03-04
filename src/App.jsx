@@ -742,32 +742,6 @@ export default function HybridDashboard() {
   const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
   const [showKey,       setShowKey]       = useState(false);
   const [livePrices,    setLivePrices]    = useState({});
-  const [autoRefresh,   setAutoRefresh]   = useState(false);
-  const [autoInterval,  setAutoInterval]  = useState(30);
-  const autoRef = useRef(null);
-
-  // Live prijzen elke 15 seconden ophalen via Yahoo Finance
-  useEffect(() => {
-    function fetchAll() {
-      assets.forEach(a => {
-        fetchYahooPrice(a.id).then(p => {
-          if(p) setLivePrices(prev => ({...prev, [a.id]: p}));
-        }).catch(()=>{});
-      });
-    }
-    fetchAll();
-    const t = setInterval(fetchAll, 15000);
-    return () => clearInterval(t);
-  }, [assets]);
-
-  // Auto-refresh analyse
-  useEffect(() => {
-    if(autoRef.current) clearInterval(autoRef.current);
-    if(autoRefresh) {
-      autoRef.current = setInterval(() => runAnalysis(), autoInterval * 60 * 1000);
-    }
-    return () => { if(autoRef.current) clearInterval(autoRef.current); };
-  }, [autoRefresh, autoInterval, assets]);
 
   const [showKeyVal,    setShowKeyVal]    = useState(false);
   const [showAccent,    setShowAccent]    = useState(false);
@@ -794,6 +768,18 @@ export default function HybridDashboard() {
       return()=>clearInterval(t);
     }
   },[aStatus,iStatus,psStatus]);
+
+  // Live prijzen elke 15s via Yahoo Finance
+  useEffect(()=>{
+    function fetchAll(){
+      assets.forEach(a=>{
+        fetchYahooPrice(a.id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[a.id]:p})); }).catch(()=>{});
+      });
+    }
+    fetchAll();
+    const t=setInterval(fetchAll,15000);
+    return()=>clearInterval(t);
+  },[assets]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
   const RSS_FEEDS = [
@@ -966,7 +952,7 @@ export default function HybridDashboard() {
     setStatus("loading");
     const headers = {"Content-Type":"application/json"};
     if(apiKey.trim()) { headers["x-api-key"] = apiKey.trim(); headers["anthropic-version"] = "2023-06-01"; headers["anthropic-dangerous-direct-browser-access"] = "true"; }
-    const maxRetries = 2;
+    const maxRetries = 3;
     for(let attempt=1; attempt<=maxRetries; attempt++) {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
@@ -974,8 +960,14 @@ export default function HybridDashboard() {
           body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:4000, system:sys, tools:[{type:"web_search_20250305",name:"web_search"}], messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
-          if(attempt<maxRetries){ await new Promise(r=>setTimeout(r,8000)); continue; }
-          throw new Error("API limiet bereikt — wacht 1 minuut en probeer opnieuw");
+          const waitSec = attempt * 20;
+          if(attempt<maxRetries){
+            setStatus(`waiting-${waitSec}`);
+            await new Promise(r=>setTimeout(r, waitSec*1000));
+            setStatus("loading");
+            continue;
+          }
+          throw new Error("API limiet bereikt — wacht 1-2 minuten en probeer opnieuw");
         }
         if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API fout: ${res.status}`);}
         const data=await res.json();
@@ -985,7 +977,7 @@ export default function HybridDashboard() {
         return;
       } catch(e){
         if(attempt===maxRetries){ setError(e.message||"Onbekende fout"); setStatus("error"); }
-        else await new Promise(r=>setTimeout(r,5000));
+        else await new Promise(r=>setTimeout(r,10000));
       }
     }
   }
@@ -1192,7 +1184,7 @@ Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourn
           </div>
 
           {page==="analyse"
-            ? <button onClick={runAnalysis} disabled={aStatus==="loading"} style={btnStyle(aStatus==="loading",accent)}><span>{aStatus==="loading"?"⬤":"▶"}</span>{aStatus==="loading"?`ANALYSEREN${".".repeat(dots)}`:"ANALYSE UITVOEREN"}</button>
+            ? <button onClick={runAnalysis} disabled={aStatus==="loading"||aStatus?.startsWith("waiting")} style={btnStyle(aStatus==="loading"||aStatus?.startsWith("waiting"),accent)}><span>{aStatus==="loading"||aStatus?.startsWith("waiting")?"⬤":"▶"}</span>{aStatus==="loading"?`ANALYSEREN${".".repeat(dots)}`:aStatus?.startsWith("waiting")?`WACHT ${aStatus.split("-")[1]}s...`:"ANALYSE UITVOEREN"}</button>
             : page==="intel" ? <button onClick={runIntel} disabled={iStatus==="loading"} style={btnStyle(iStatus==="loading",accent)}><span>{iStatus==="loading"?"⬤":"↺"}</span>{iStatus==="loading"?`LADEN${".".repeat(dots)}`:"INTEL LADEN"}</button>
             : <button onClick={runIntel} disabled={iStatus==="loading"} style={btnStyle(iStatus==="loading",accent)}><span>{iStatus==="loading"?"⬤":"↺"}</span>{iStatus==="loading"?`LADEN${".".repeat(dots)}`:"KALENDER LADEN"}</button>
           }
