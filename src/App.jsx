@@ -108,23 +108,26 @@ const ANALYSIS_SYSTEM = `Institutioneel intraday trading analist. Live prijzen w
 
 HYBRID METHODE — analyseer in deze volgorde:
 1. MACRO: yield regime, DXY richting, risk-on/off sentiment
-2. FUNDAMENTEEL: wat drijft dit asset vandaag? (earnings, centrale bank, macro data, geopolitiek)
-3. TECHNISCH: RSI, EMA positie, intraday structuur (HH/HL of LH/LL), trend karakter
-4. FLOW: institutionele participatie, volume karakter, momentum kwaliteit
-5. SYNTHESE: bias alleen als macro + fundamenteel + technisch aligned zijn
+2. FUNDAMENTEEL: wat drijft dit asset vandaag? (centrale bank, macro data, geopolitiek, earnings)
+3. TECHNISCH: RSI positie, EMA richting, intraday structuur (HH/HL of LH/LL)
+4. FLOW: institutionele participatie, momentum kwaliteit
+5. SYNTHESE: bias alleen als minimaal 3 van 4 lagen aligned zijn
+
+BIAS STABILITEIT — KRITISCH:
+- Wijk NOOIT af van vorige bias tenzij er een concrete fundamentele reden is (nieuw macro nieuws, RSI >75 of <25, EMA crossover)
+- Kleine prijsschommelingen (<0.3%) rechtvaardigen GEEN biaswisseling
+- Confidence mag maximaal 10 punten per run veranderen tenzij groot nieuws
+- Bij twijfel: houd vorige bias aan met lagere confidence, gebruik Fragiel
 
 REGELS:
-- Bias: Bullish/Bearish/Neutraal/Fragiel. Fragiel alleen bij confidence <70.
-- Bias MOET overeenkomen met price_direction (up=Bullish/Neutraal, down=Bearish/Neutraal).
-- Confidence 0-100. Hold_confidence nooit hoger dan confidence.
-- DXY/Goud anomalie: max confidence 65%.
-- technical_trend: Strong Uptrend/Choppy Up/Strong Downtrend/Choppy Down/Ranging/Compressing
-- yield_regime: Risk-On/Risk-Off/Stagflatie/Neutraal
-- dominant_mechanisme: de FUNDAMENTELE drijfveer, NIET de prijsbeweging zelf
-- deep_summary: minimaal 3 zinnen — macro context, fundamentele driver, technische bevestiging
-- GEEN apostrofs of aanhalingstekens in string-waarden. Alleen JSON, geen markdown.
+- Bias: Bullish/Bearish/Neutraal/Fragiel. Fragiel = voorzichtig, niet zeker
+- Bias MOET overeenkomen met price_direction
+- DXY/Goud anomalie: max confidence 65%
+- mini_summary: 2 zinnen — WAAROM deze bias fundamenteel + wat bevestigt het technisch
+- dominant_mechanisme: de FUNDAMENTELE drijfveer, NIET de prijsbeweging
+- GEEN apostrofs of aanhalingstekens in strings. Alleen JSON.
 
-JSON structuur:
+JSON:
 {"timestamp":"ISO","yield_regime":"","yield_regime_explanation":"","dxy_change":"","dxy_direction":"up","vix_level":"","us10y":"","market_context":"","session":"","assets":{"ASSETID":{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[{"headline":"","source":"","direction":"","time":"","url":""}]}}}`;
 
 
@@ -179,7 +182,11 @@ function InfoTooltip({ text, color="#6b7280", children }) {
   const handleEnter = () => {
     if(ref.current) {
       const r = ref.current.getBoundingClientRect();
-      setPos({top: r.top - 8, left: r.left + r.width/2});
+      const tooltipW = 240;
+      let left = r.left + r.width/2;
+      // Clamp horizontally so it never goes off screen
+      left = Math.max(tooltipW/2 + 8, Math.min(window.innerWidth - tooltipW/2 - 8, left));
+      setPos({top: r.top - 12, left});
     }
     setShow(true);
   };
@@ -189,7 +196,7 @@ function InfoTooltip({ text, color="#6b7280", children }) {
       {children}
       <span style={{fontSize:9,color:color,opacity:0.6,cursor:"help",lineHeight:1}}>ⓘ</span>
       {show&&text&&(
-        <div style={{position:"fixed",top:pos.top,left:pos.left,transform:"translate(-50%,-100%)",zIndex:9999,background:"#1a1b1e",border:`1px solid ${color}44`,borderRadius:7,padding:"9px 13px",minWidth:200,maxWidth:260,fontSize:11,color:"#d1d5db",lineHeight:1.55,boxShadow:"0 6px 24px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
+        <div style={{position:"fixed",top:pos.top,left:pos.left,transform:"translate(-50%,-100%)",zIndex:9999,background:"#1a1b1e",border:`1px solid ${color}44`,borderRadius:7,padding:"9px 13px",minWidth:200,maxWidth:240,fontSize:11,color:"#d1d5db",lineHeight:1.55,boxShadow:"0 6px 24px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
           {text}
           <div style={{position:"absolute",bottom:-5,left:"50%",transform:"translateX(-50%) rotate(45deg)",width:8,height:8,background:"#1a1b1e",borderRight:`1px solid ${color}44`,borderBottom:`1px solid ${color}44`}}/>
         </div>
@@ -509,7 +516,13 @@ function AssetCard({ asset, data, index, loading, onClick, accent, livePrice }) 
             )}
             {data.yield_regime&&data.yield_regime!=="n.v.t."&&<YieldTooltip regime={data.yield_regime} explanation={data.yield_regime_explanation}/>}
           </div>
-          <div style={{marginBottom:6}}><div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:2}}>ANALYSE</div><div style={{fontSize:11,color:"#6b7280",lineHeight:1.55}}>{data.mini_summary}</div></div>
+          <div style={{marginBottom:8,background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.12)",borderRadius:6,padding:"9px 11px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5}}>
+              <span style={{fontSize:10,color:"#6366f1"}}>✦</span>
+              <span style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",fontWeight:600}}>AI ANALYSE</span>
+            </div>
+            <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{data.mini_summary||"—"}</div>
+          </div>
           <div style={{background:`${acc}09`,border:`1px solid ${acc}18`,borderRadius:5,padding:"7px 10px",marginBottom:6}}><div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:1}}>HOLD ADVIES</div><div style={{fontSize:11,color:"#d1d5db"}}>{data.hold_advies}</div></div>
           <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:5,padding:"7px 10px"}}><div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:1}}>FAIL CONDITION</div><div style={{fontSize:11,color:"#6b7280"}}>{data.fail_condition}</div></div>
         </>
