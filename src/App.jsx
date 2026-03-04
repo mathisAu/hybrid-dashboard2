@@ -724,18 +724,23 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen elke 10s — Twelve Data als key aanwezig, anders Yahoo
+  // Live prijzen — Twelve Data max 8/min, dus elke 60s ophalen met spreiding
   useEffect(()=>{
-    function fetchAll(){
-      assets.forEach(a=>{
-        fetchLivePrice(a.id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[a.id]:p})); }).catch(()=>{});
-      });
-      ["DXY","VIX","US10Y"].forEach(id=>{
-        fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
-      });
+    const allIds = [...assets.map(a=>a.id), "DXY","VIX","US10Y"];
+    let idx = 0;
+    function fetchNext() {
+      const id = allIds[idx % allIds.length];
+      fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+      idx++;
     }
-    fetchAll();
-    const t=setInterval(fetchAll,10000);
+    // Fetch all at start (staggered 1s apart)
+    allIds.forEach((id, i) => {
+      setTimeout(()=>{
+        fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+      }, i * 1500);
+    });
+    // Then refresh one per 7s (= ~8/min, within free limit)
+    const t = setInterval(fetchNext, 7000);
     return()=>clearInterval(t);
   },[assets, tdKey]);
 
