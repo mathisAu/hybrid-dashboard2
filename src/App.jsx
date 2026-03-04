@@ -1,13 +1,35 @@
 import { useState, useEffect, useRef } from "react";
 
-// ── Live prijzen via Yahoo Finance (geen API key, gratis) ─────────────────────
-const YAHOO_MAP = {
-  XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F",
-  EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
-  BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X",
-  USDCHF:"CHF=X", USOIL:"CL=F", SPX:"^GSPC",
-  DXY:"DX-Y.NYB", VIX:"^VIX", US10Y:"^TNX",
+// ── Live prijzen via Twelve Data (real-time) met Yahoo fallback ───────────────
+const TWELVE_MAP = {
+  XAUUSD:"XAU/USD", US30:"DJ30", US100:"NDX", EURUSD:"EUR/USD",
+  GBPUSD:"GBP/USD", BTCUSD:"BTC/USD", ETHUSD:"ETH/USD", USDJPY:"USD/JPY",
+  USDCHF:"USD/CHF", USOIL:"WTI", SPX:"SPX", DXY:"DXY", VIX:"VIX", US10Y:"TNX",
 };
+const YAHOO_MAP = {
+  XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F", EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
+  BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X", USDCHF:"CHF=X",
+  USOIL:"CL=F", SPX:"^GSPC", DXY:"DX-Y.NYB", VIX:"^VIX", US10Y:"^TNX",
+};
+
+async function fetchTwelvePrice(id, apiKey) {
+  const sym = TWELVE_MAP[id] || id;
+  const url = `https://api.twelvedata.com/quote?symbol=${sym}&apikey=${apiKey}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  const d = await res.json();
+  if(d.status==="error" || !d.close) return null;
+  const price = parseFloat(d.close);
+  const prev  = parseFloat(d.previous_close);
+  const chg   = prev ? ((price - prev) / prev * 100) : 0;
+  const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+  return {
+    price: price.toFixed(isFx ? 4 : 2),
+    change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
+    direction: chg >= 0 ? "up" : "down",
+    raw: chg,
+  };
+}
+
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
@@ -27,6 +49,13 @@ async function fetchYahooPrice(id) {
     direction: chg >= 0 ? "up" : "down",
     raw: chg,
   };
+}
+
+async function fetchLivePrice(id, tdKey) {
+  if(tdKey) {
+    try { const p = await fetchTwelvePrice(id, tdKey); if(p) return p; } catch(_) {}
+  }
+  return fetchYahooPrice(id);
 }
 
 // ── Accent colour (user-configurable) ─────────────────────────────────────────
@@ -665,6 +694,8 @@ export default function HybridDashboard() {
   const [accent,        setAccent]        = useState(DEFAULT_ACCENT);
   const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
   const [showKey,       setShowKey]       = useState(false);
+  const [tdKey,         setTdKey]         = useState(() => { try { return localStorage.getItem("hd_tdkey")||""; } catch(_){ return ""; }});
+  const [showTdKey,     setShowTdKey]     = useState(false);
   const [livePrices,    setLivePrices]    = useState({});
 
   const [showKeyVal,    setShowKeyVal]    = useState(false);
@@ -693,20 +724,20 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen elke 10s via Yahoo Finance
+  // Live prijzen elke 10s — Twelve Data als key aanwezig, anders Yahoo
   useEffect(()=>{
     function fetchAll(){
       assets.forEach(a=>{
-        fetchYahooPrice(a.id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[a.id]:p})); }).catch(()=>{});
+        fetchLivePrice(a.id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[a.id]:p})); }).catch(()=>{});
       });
       ["DXY","VIX","US10Y"].forEach(id=>{
-        fetchYahooPrice(id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+        fetchLivePrice(id, tdKey).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
       });
     }
     fetchAll();
     const t=setInterval(fetchAll,10000);
     return()=>clearInterval(t);
-  },[assets]);
+  },[assets, tdKey]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
   const RSS_FEEDS = [
@@ -1068,6 +1099,29 @@ Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourn
                 </div>
                 {apiKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Key opgeslagen</div>}
                 <button onClick={()=>setShowKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
+              </div>
+            )}
+          </div>
+          {/* Twelve Data Key */}
+          <div style={{position:"relative"}}>
+            <button onClick={()=>setShowTdKey(s=>!s)} style={{background:tdKey?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.03)",border:`1px solid ${tdKey?"#22c55e44":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:10}}>📈</span>
+              <span style={{fontSize:9,color:tdKey?"#22c55e":"#4b5563",letterSpacing:"0.08em"}}>{tdKey?"LIVE DATA":"PRIJS DATA"}</span>
+            </button>
+            {showTdKey&&(
+              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111214",border:"1px solid #1f2023",borderRadius:8,padding:"14px",zIndex:100,minWidth:300}}>
+                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>TWELVE DATA API KEY</div>
+                <div style={{fontSize:9,color:"#4b5563",marginBottom:8,lineHeight:1.6}}>Gratis key via <span style={{color:"#6366f1"}}>twelvedata.com</span>. Geeft real-time prijzen zonder vertraging.</div>
+                <input
+                  type="password"
+                  value={tdKey}
+                  onChange={e=>{ setTdKey(e.target.value); try{localStorage.setItem("hd_tdkey",e.target.value);}catch(_){} }}
+                  placeholder="your_twelve_data_key"
+                  style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:8}}
+                />
+                {tdKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Real-time data actief</div>}
+                {!tdKey&&<div style={{fontSize:9,color:"#4b5563",marginBottom:8}}>Zonder key: Yahoo Finance (15 min vertraging op futures)</div>}
+                <button onClick={()=>setShowTdKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
               </div>
             )}
           </div>
