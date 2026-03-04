@@ -33,22 +33,32 @@ async function fetchTwelvePrice(id, apiKey) {
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
-  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const res = await fetch(proxy, { signal: AbortSignal.timeout(7000) });
-  const json = await res.json();
-  const data = JSON.parse(json.contents);
-  const q = data?.chart?.result?.[0];
-  if (!q) return null;
-  const price = q.meta.regularMarketPrice;
-  const prev  = q.meta.chartPreviousClose || q.meta.previousClose;
-  const chg   = prev ? ((price - prev) / prev * 100) : 0;
-  const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
-  return {
-    price: price?.toFixed(isFx ? 4 : 2),
-    change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
-    direction: chg >= 0 ? "up" : "down",
-    raw: chg,
-  };
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  for(const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+      const json = await res.json();
+      const raw = typeof json === "string" ? json : json.contents || JSON.stringify(json);
+      const data = JSON.parse(raw);
+      const q = data?.chart?.result?.[0];
+      if (!q) continue;
+      const price = q.meta.regularMarketPrice;
+      const prev  = q.meta.chartPreviousClose || q.meta.previousClose;
+      const chg   = prev ? ((price - prev) / prev * 100) : 0;
+      const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+      return {
+        price: price?.toFixed(isFx ? 4 : 2),
+        change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
+        direction: chg >= 0 ? "up" : "down",
+        raw: chg,
+      };
+    } catch(_) { continue; }
+  }
+  return null;
 }
 
 async function fetchLivePrice(id, tdKey) {
@@ -1105,15 +1115,12 @@ export default function HybridDashboard() {
       const t = techData[asset.id];
       const prev = prevBias[asset.id];
 
-      let priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : null;
+      let priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : `prijs tijdelijk niet beschikbaar`;
       if(t) priceLine += `, RSI=${t.rsi}(${t.rsiSignal}), ${t.priceVsEma}`;
-
-      // Als geen prijs: web search gebruiken als fallback
-      const useWebSearch = !p;
       const prevLine = prev ? `Vorige bias: ${prev.bias} (${prev.confidence}%) — wijk alleen af bij concrete reden.` : "";
 
       const usr = `VANDAAG ${dateStr}. Analyseer ALLEEN: ${asset.label} (${asset.id}).
-${priceLine ? priceLine : `Gebruik web search om de huidige prijs en % verandering van ${asset.label} op te zoeken.`}
+${priceLine}
 ${macroCtx ? "Macro context: "+macroCtx : ""}
 ${prevLine}
 Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper):
