@@ -1023,7 +1023,7 @@ export default function HybridDashboard() {
     } catch(_) { return null; }
   }
 
-
+  function addCustomPair() {
     if(!newPairLabel.trim()) return;
     const id = newPairLabel.replace("/","").toUpperCase();
     setAssets(prev=>[...prev,{id,label:newPairLabel.toUpperCase(),full:newPairFull||newPairLabel.toUpperCase(),group:"custom",searchTerms:newPairLabel}]);
