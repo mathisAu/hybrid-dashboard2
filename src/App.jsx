@@ -404,13 +404,16 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 }
 
-function AssetCard({ asset, data, index, loading, onClick, accent }) {
+function AssetCard({ asset, data, index, loading, onClick, accent, livePrice }) {
   const [vis, setVis] = useState(false);
   const acc = accent || DEFAULT_ACCENT;
   useEffect(()=>{const t=setTimeout(()=>setVis(true),index*80);return()=>clearTimeout(t);},[data,loading]);
   const bias = resolveBias(data?.bias, data?.confidence);
   const c = biasColors[bias] || biasColors.Neutraal;
-  const priceUp = data?.price_direction === "up";
+  // Gebruik Yahoo live prijs als die beschikbaar is, anders AI data
+  const displayPrice  = livePrice?.price  || data?.price_today        || null;
+  const displayChange = livePrice?.change || data?.price_change_today || null;
+  const priceUp = livePrice ? livePrice.direction === "up" : data?.price_direction === "up";
 
   return (
     <div onClick={data ? onClick : undefined} style={{background:"linear-gradient(145deg,#111214,#0d0e10)",border:`1px solid ${data?.bias?c.border+"44":"#1a1b1e"}`,borderRadius:8,padding:"16px 18px",opacity:vis?1:0,transform:vis?"translateY(0)":"translateY(10px)",transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",position:"relative",overflow:"hidden",cursor:data?"pointer":"default"}}>
@@ -420,9 +423,10 @@ function AssetCard({ asset, data, index, loading, onClick, accent }) {
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2,flexWrap:"wrap"}}>
             <span style={{flexShrink:0}}><AssetLogo id={asset.id} size={22}/></span>
             <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:700,color:"#e5e7eb",letterSpacing:"0.05em"}}>{asset.label}</span>
-            {data?.price_change_today&&(
+            {displayPrice&&<span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,fontWeight:700,color:"#e5e7eb"}}>{displayPrice}</span>}
+            {displayChange&&(
               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:priceUp?"#22c55e":"#ef4444"}}>
-                {priceUp?"↑":"↓"}{data.price_change_today}
+                {priceUp?"↑":"↓"}{displayChange}
               </span>
             )}
           </div>
@@ -1202,7 +1206,7 @@ Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourn
             {/* ASSET GRID */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:10}}>
               {assets.map((asset,i)=>(
-                <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i} loading={aStatus==="loading"} accent={accent}
+                <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i} loading={aStatus==="loading"} accent={accent} livePrice={livePrices[asset.id]||null}
                   onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}/>
               ))}
             </div>
