@@ -1059,11 +1059,14 @@ export default function HybridDashboard() {
   }
 
   const runAnalysis = async () => {
+    setAStatus("loading");
+    setAError("");
     const now = new Date();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-    const ids = assets.map(a=>a.id).join(", ");
+    const headers = {"Content-Type":"application/json"};
+    if(apiKey.trim()){ headers["x-api-key"]=apiKey.trim(); headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
 
-    // Technische data ophalen (alleen als Twelve Data key aanwezig)
+    // Technische data ophalen
     const techData = {};
     if(tdKey) {
       await Promise.allSettled(assets.map(async a => {
@@ -1072,61 +1075,64 @@ export default function HybridDashboard() {
       }));
     }
 
-    // Live prijzen
-    const priceLines = assets.map(a => {
-      const p = livePrices[a.id];
-      const t = techData[a.id];
-      let line = p ? `${a.id}: prijs=${p.price}, verandering=${p.change} (${p.direction})` : `${a.id}: prijs onbekend`;
-      if(t) line += `, RSI=${t.rsi}(${t.rsiSignal}), ${t.priceVsEma}, EMA20=${t.ema20}`;
-      return line;
-    }).join("\n");
-
-    // Vorige bias als geheugen
-    const prevLines = Object.keys(prevBias).length > 0
-      ? "\nVORIGE ANALYSE (gebruik als anker, wijk alleen af bij sterke reden):\n" +
-        assets.map(a => prevBias[a.id] ? `${a.id}: bias=${prevBias[a.id].bias}, confidence=${prevBias[a.id].confidence}` : "").filter(Boolean).join("\n")
-      : "";
-
-    // Fundamentele context van Intel (als beschikbaar) + breaking news
-    let fundamentalContext = "";
+    // Macro context van Intel + breaking news
+    let macroCtx = "";
     if(iResult) {
-      fundamentalContext += `\nMACRO CONTEXT (van Intel analyse):
-- Regime: ${iResult.macro_regime||""}
-- Driver: ${iResult.dominant_driver||""}
-- Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}) — ${iResult.yield_analysis?.implication||""}
-- Desk view: ${iResult.desk_view||""}`;
-      if(iResult.news_items?.length > 0) {
-        const topNews = iResult.news_items.slice(0,5).map(n=>`  [${n.source}] ${n.headline} (${n.direction})`).join("\n");
-        fundamentalContext += `\nTOP NIEUWS VANDAAG:\n${topNews}`;
-      }
+      macroCtx = `Macro regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
+      if(iResult.news_items?.length>0) macroCtx += " Nieuws: "+iResult.news_items.slice(0,3).map(n=>`${n.headline}(${n.direction})`).join("; ");
     }
-    // Breaking news meesturen als extra context
-    if(breakingNews?.length > 0) {
-      const bnLines = breakingNews.slice(0,5).map(n=>`  [${n.source}] ${n.headline}`).join("\n");
-      fundamentalContext += `\nBREAKING NEWS (RSS feeds Fed/ECB/BoE/Reuters):\n${bnLines}`;
-    }
+    if(breakingNews?.length>0) macroCtx += " Breaking: "+breakingNews.slice(0,3).map(n=>n.headline).join("; ");
 
-    const usr = `VANDAAG is ${dateStr}. Analyseer: ${ids}.
+    // Analyseer elke asset apart — betrouwbaardere JSON, betere bias
+    const results = await Promise.allSettled(assets.map(async (asset) => {
+      const p = livePrices[asset.id];
+      const t = techData[asset.id];
+      const prev = prevBias[asset.id];
 
-LIVE PRIJZEN EN TECHNISCHE DATA:
-${priceLines}
-${fundamentalContext}
-${prevLines}
+      let priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : "prijs onbekend";
+      if(t) priceLine += `, RSI=${t.rsi}(${t.rsiSignal}), ${t.priceVsEma}`;
+      const prevLine = prev ? `Vorige bias: ${prev.bias} (${prev.confidence}%) — wijk alleen af bij concrete reden.` : "";
 
-Gebruik de macro context en nieuws voor een FUNDAMENTELE bias. Wijk NIET af van vorige bias tenzij nieuws of RSI/EMA dit rechtvaardigt.
-Retourneer alleen JSON.`;
-    setAError("");
-    callApi(ANALYSIS_SYSTEM, usr, (result) => {
-      // Sla bias op als geheugen voor volgende run
-      if(result?.assets) {
-        const newBias = {};
-        assets.forEach(a => {
-          if(result.assets[a.id]) newBias[a.id] = { bias: result.assets[a.id].bias, confidence: result.assets[a.id].confidence };
-        });
-        setPrevBias(newBias);
+      const usr = `VANDAAG ${dateStr}. Analyseer ALLEEN: ${asset.label} (${asset.id}).
+${priceLine}
+${macroCtx ? "Macro context: "+macroCtx : ""}
+${prevLine}
+Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper, geen assets key):
+{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
+
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
+      if(!res.ok) throw new Error(`${asset.id}: API fout ${res.status}`);
+      const data = await res.json();
+      const text = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
+      const parsed = robustParse(text);
+      return { id: asset.id, data: parsed };
+    }));
+
+    // Combineer resultaten
+    const combined = { timestamp: new Date().toISOString(), assets: {} };
+    const newBias = {...prevBias};
+    results.forEach(r => {
+      if(r.status==="fulfilled" && r.value) {
+        const { id, data } = r.value;
+        combined.assets[id] = data;
+        if(data.bias) newBias[id] = { bias: data.bias, confidence: data.confidence };
+        // Haal macro velden van eerste asset
+        if(!combined.yield_regime && data.yield_regime) {
+          combined.yield_regime = data.yield_regime;
+          combined.yield_regime_explanation = data.yield_regime_explanation;
+          combined.dxy_change = livePrices.DXY?.change || "";
+          combined.dxy_direction = livePrices.DXY?.direction || "up";
+          combined.vix_level = livePrices.VIX?.price || "";
+          combined.us10y = livePrices.US10Y?.price || "";
+          combined.market_context = iResult?.desk_view || "";
+          combined.session = iResult?.session_context || "";
+        }
       }
-      setAResult(result);
-    }, setAError, setAStatus);
+    });
+    setPrevBias(newBias);
+    setAResult(combined);
+    setAStatus("done");
   };
 
 
