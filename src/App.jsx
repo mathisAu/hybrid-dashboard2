@@ -997,30 +997,88 @@ export default function HybridDashboard() {
     setDeepRefreshing(false);
   }
 
-  function addCustomPair() {
+  const [prevBias, setPrevBias] = useState({}); // geheugen vorige bias per asset
+
+  // Haal technische indicatoren op van Twelve Data (RSI, EMA)
+  async function fetchTechnicals(id) {
+    if(!tdKey) return null;
+    const sym = TWELVE_MAP[id] || id;
+    try {
+      const [rsiRes, emaRes] = await Promise.all([
+        fetch(`https://api.twelvedata.com/rsi?symbol=${sym}&interval=1h&time_period=14&apikey=${tdKey}&outputsize=1`),
+        fetch(`https://api.twelvedata.com/ema?symbol=${sym}&interval=1h&time_period=20&apikey=${tdKey}&outputsize=1`),
+      ]);
+      const rsiData = await rsiRes.json();
+      const emaData = await emaRes.json();
+      const rsi = parseFloat(rsiData?.values?.[0]?.rsi);
+      const ema20 = parseFloat(emaData?.values?.[0]?.ema);
+      const price = parseFloat(livePrices[id]?.price);
+      if(!rsi) return null;
+      return {
+        rsi: rsi.toFixed(1),
+        ema20: ema20?.toFixed(2),
+        priceVsEma: price && ema20 ? (price > ema20 ? "boven EMA20" : "onder EMA20") : null,
+        rsiSignal: rsi > 70 ? "overbought" : rsi < 30 ? "oversold" : "neutraal",
+      };
+    } catch(_) { return null; }
+  }
+
+
     if(!newPairLabel.trim()) return;
     const id = newPairLabel.replace("/","").toUpperCase();
     setAssets(prev=>[...prev,{id,label:newPairLabel.toUpperCase(),full:newPairFull||newPairLabel.toUpperCase(),group:"custom",searchTerms:newPairLabel}]);
     setNewPairLabel(""); setNewPairFull(""); setShowAddPair(false);
   }
 
-  const runAnalysis = () => {
+  const runAnalysis = async () => {
     const now = new Date();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
     const ids = assets.map(a=>a.id).join(", ");
-    // Inject live prices from Yahoo Finance directly into the prompt
+
+    // Technische data ophalen (alleen als Twelve Data key aanwezig)
+    const techData = {};
+    if(tdKey) {
+      await Promise.allSettled(assets.map(async a => {
+        const t = await fetchTechnicals(a.id);
+        if(t) techData[a.id] = t;
+      }));
+    }
+
+    // Live prijzen
     const priceLines = assets.map(a => {
       const p = livePrices[a.id];
-      return p ? `${a.id}: prijs=${p.price}, verandering=${p.change} (${p.direction})` : `${a.id}: prijs onbekend`;
+      const t = techData[a.id];
+      let line = p ? `${a.id}: prijs=${p.price}, verandering=${p.change} (${p.direction})` : `${a.id}: prijs onbekend`;
+      if(t) line += `, RSI=${t.rsi}(${t.rsiSignal}), ${t.priceVsEma}, EMA20=${t.ema20}`;
+      return line;
     }).join("\n");
+
+    // Vorige bias als geheugen
+    const prevLines = Object.keys(prevBias).length > 0
+      ? "\nVORIGE ANALYSE (gebruik als anker, wijk alleen af bij sterke reden):\n" +
+        assets.map(a => prevBias[a.id] ? `${a.id}: bias=${prevBias[a.id].bias}, confidence=${prevBias[a.id].confidence}` : "").filter(Boolean).join("\n")
+      : "";
+
     const usr = `VANDAAG is ${dateStr}. Analyseer: ${ids}.
 
-LIVE PRIJZEN (gebruik deze exacte data, zoek NIET opnieuw op):
+LIVE PRIJZEN EN TECHNISCHE DATA:
 ${priceLines}
+${prevLines}
 
-De bias MOET overeenkomen met de price direction. Als direction=up dan bias=Bullish of Neutraal, NIET Bearish.
-Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourneer alleen JSON.`;
-    setAError(""); callApi(ANALYSIS_SYSTEM, usr, setAResult, setAError, setAStatus);
+Bias MOET overeenkomen met price direction. Wijk NIET af van vorige bias tenzij RSI of EMA dit rechtvaardigt.
+Retourneer alleen JSON.`;
+    setAError("");
+    callApi(ANALYSIS_SYSTEM, usr, (result) => {
+      // Sla bias op als geheugen voor volgende run
+      if(result?.assets) {
+        const newBias = {};
+        assets.forEach(a => {
+          if(result.assets[a.id]) newBias[a.id] = { bias: result.assets[a.id].bias, confidence: result.assets[a.id].confidence };
+        });
+        setPrevBias(newBias);
+      }
+      setAResult(result);
+    }, setAError, setAStatus);
   };
 
 
