@@ -129,9 +129,12 @@ JSON structuur:
 
 
 const INTEL_SYSTEM = `Macro market intelligence analist. Gebruik web search voor actuele data van vandaag.
+Focus op: Fed/ECB/BoE statements, CPI/NFP/GDP data, geopolitieke events, institutionele flows.
+Zoek specifiek naar: centrale bank nieuws, macro data releases, market moving events van VANDAAG.
 GEEN apostrofs of aanhalingstekens in strings. Alleen JSON, geen markdown.
 
-{"timestamp":"ISO","market_snapshot":{"gold":{"price":"","change":"","direction":"up","note":""},"us30":{"price":"","change":"","direction":"","note":""},"us100":{"price":"","change":"","direction":"","note":""},"eurusd":{"price":"","change":"","direction":"","note":""},"gbpusd":{"price":"","change":"","direction":"","note":""}},"macro_regime":"Risk-On","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"09:30","source":"","category":"","headline":"","impact":"high","direction":"bullish","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"","verdict":"","effect":""}]}`;
+{"timestamp":"ISO","macro_regime":"Risk-On","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"09:30","source":"","category":"","headline":"","impact":"high","direction":"bullish","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"","verdict":"","effect":""}]}`;
+
 
 
 function INTEL_USER_NOW(assetLabels) {
@@ -758,10 +761,13 @@ export default function HybridDashboard() {
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
   const RSS_FEEDS = [
-    { url:"https://feeds.bbci.co.uk/news/business/rss.xml",          src:"BBC Business" },
-    { url:"https://www.ft.com/?format=rss",                           src:"Financial Times" },
-    { url:"https://feeds.reuters.com/reuters/businessNews",           src:"Reuters" },
-    { url:"https://feeds.marketwatch.com/marketwatch/topstories/",    src:"MarketWatch" },
+    { url:"https://feeds.bbci.co.uk/news/business/rss.xml",                                    src:"BBC Business" },
+    { url:"https://feeds.reuters.com/reuters/businessNews",                                     src:"Reuters" },
+    { url:"https://feeds.marketwatch.com/marketwatch/topstories/",                              src:"MarketWatch" },
+    { url:"https://www.federalreserve.gov/feeds/press_all.xml",                                 src:"Federal Reserve" },
+    { url:"https://www.ecb.europa.eu/rss/press.html",                                           src:"ECB" },
+    { url:"https://www.bankofengland.co.uk/rss/news",                                           src:"Bank of England" },
+    { url:"https://financialjuice.com/feed",                                                    src:"FinancialJuice" },
   ];
   const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yields","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","crypto","bitcoin","recession","tariff","bank","powell","lagarde","treasury","bond","equity","stock","market","economy","trade","forex","currency"];
 
@@ -1068,13 +1074,33 @@ export default function HybridDashboard() {
         assets.map(a => prevBias[a.id] ? `${a.id}: bias=${prevBias[a.id].bias}, confidence=${prevBias[a.id].confidence}` : "").filter(Boolean).join("\n")
       : "";
 
+    // Fundamentele context van Intel (als beschikbaar) + breaking news
+    let fundamentalContext = "";
+    if(iResult) {
+      fundamentalContext += `\nMACRO CONTEXT (van Intel analyse):
+- Regime: ${iResult.macro_regime||""}
+- Driver: ${iResult.dominant_driver||""}
+- Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}) — ${iResult.yield_analysis?.implication||""}
+- Desk view: ${iResult.desk_view||""}`;
+      if(iResult.news_items?.length > 0) {
+        const topNews = iResult.news_items.slice(0,5).map(n=>`  [${n.source}] ${n.headline} (${n.direction})`).join("\n");
+        fundamentalContext += `\nTOP NIEUWS VANDAAG:\n${topNews}`;
+      }
+    }
+    // Breaking news meesturen als extra context
+    if(breakingNews?.length > 0) {
+      const bnLines = breakingNews.slice(0,5).map(n=>`  [${n.source}] ${n.headline}`).join("\n");
+      fundamentalContext += `\nBREAKING NEWS (RSS feeds Fed/ECB/BoE/Reuters):\n${bnLines}`;
+    }
+
     const usr = `VANDAAG is ${dateStr}. Analyseer: ${ids}.
 
 LIVE PRIJZEN EN TECHNISCHE DATA:
 ${priceLines}
+${fundamentalContext}
 ${prevLines}
 
-Bias MOET overeenkomen met price direction. Wijk NIET af van vorige bias tenzij RSI of EMA dit rechtvaardigt.
+Gebruik de macro context en nieuws voor een FUNDAMENTELE bias. Wijk NIET af van vorige bias tenzij nieuws of RSI/EMA dit rechtvaardigt.
 Retourneer alleen JSON.`;
     setAError("");
     callApi(ANALYSIS_SYSTEM, usr, (result) => {
