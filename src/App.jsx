@@ -180,15 +180,20 @@ GEEN apostrofs of aanhalingstekens in strings. Alleen JSON, geen markdown.
 
 function INTEL_USER_NOW(assetLabels) {
   const now = new Date();
-  const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",dag:"numeric",month:"long",year:"numeric"});
   const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
+  const dayAfter = new Date(now); dayAfter.setDate(now.getDate()+2);
+  const fmt = d => d.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long"});
   return `VANDAAG is ${dateStr}, huidige tijd: ${timeStr} CET.
-Haal live marktdata en nieuws van VANDAAG op via web search.
-Live prijzen: goud, US30, US100, EURUSD, GBPUSD.
-Minimaal 5 nieuwsitems van vandaag. Economische kalender van vandaag.
+Haal live marktdata en nieuws op via web search.
+Minimaal 5 nieuwsitems van vandaag.
+ECONOMISCHE KALENDER: geef events voor VANDAAG + ${fmt(tomorrow)} + ${fmt(dayAfter)}.
+Voeg aan elk calendar event een "date" veld toe: "today", "tomorrow", of "day_after".
+Zoek specifiek naar: Fed sprekers, ECB/BoE beslissingen, CPI, NFP, GDP, PMI, retail sales komende 3 dagen.
 BELANGRIJK: Gebruik in assets_affected ALLEEN: ${assetLabels.join(", ")}.
 Gebruik voor alle tijden het formaat HH:MM (bijv. 09:30, 14:30).
-Sorteer news_items en economic_calendar op tijd — NIEUWSTE EERST (hoogste tijd bovenaan).
+Sorteer news_items op tijd — NIEUWSTE EERST. Sorteer economic_calendar op datum dan tijd.
 Retourneer alleen JSON.`;
 }
 
@@ -754,6 +759,7 @@ export default function HybridDashboard() {
   const [deepAsset,     setDeepAsset]     = useState(null);
   const [deepRefreshing,setDeepRefreshing]= useState(false);
   const [calFilter,     setCalFilter]     = useState("all");
+  const [calDayFilter,  setCalDayFilter]  = useState("all");
   const [accent,        setAccent]        = useState(DEFAULT_ACCENT);
   const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
   const [showKey,       setShowKey]       = useState(false);
@@ -1053,12 +1059,25 @@ export default function HybridDashboard() {
       const now = new Date();
       const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
       const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:`VANDAAG: ${dateStr}. Analyseer ALLEEN ${asset.label}. Live prijs: ${livePrices[asset.id]?.price||"onbekend"}, verandering: ${livePrices[asset.id]?.change||"onbekend"} (${livePrices[asset.id]?.direction||"onbekend"}). Retourneer JSON met alleen het ${asset.id} asset object (geen wrapper).`}]})});
+      const p = livePrices[asset.id];
+      const prev = prevBias[asset.id];
+      let macroCtx = "";
+      if(iResult) macroCtx = `Macro regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. ${iResult.desk_view||""}`;
+      if(breakingNews?.length>0) macroCtx += " Breaking: "+breakingNews.slice(0,3).map(n=>n.headline).join("; ");
+      const priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : "prijs tijdelijk niet beschikbaar";
+      const prevLine = prev ? `Vorige bias: ${prev.bias} (${prev.confidence}%) — wijk alleen af bij concrete reden.` : "";
+      const usr = `VANDAAG ${dateStr}. Analyseer ALLEEN: ${asset.label} (${asset.id}).
+${priceLine}
+${macroCtx ? "Macro context: "+macroCtx : ""}
+${prevLine}
+Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper):
+{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
-      const parsed=robustParse(text);
-      const newData=parsed.assets?.[asset.id]||parsed;
+      const newData=robustParse(text);
+      if(newData.bias) setPrevBias(prev=>({...prev,[asset.id]:{bias:newData.bias,confidence:newData.confidence}}));
       setAResult(prev=>prev?{...prev,assets:{...prev.assets,[asset.id]:newData}}:prev);
       setDeepAsset({asset,data:newData});
     } catch(e){ console.error(e); }
@@ -1165,10 +1184,17 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
       return { id: asset.id, data: robustParse(text) };
     }
 
-    // Stagger calls 500ms uit elkaar om rate limits te vermijden
-    const results = await Promise.allSettled(assets.map((asset, i) =>
-      new Promise(resolve => setTimeout(() => analyseAsset(asset).then(resolve).catch(resolve), i * 500))
-    ));
+    // Stagger calls 600ms uit elkaar, wacht op alle resultaten
+    const results = [];
+    for(let i = 0; i < assets.length; i++) {
+      if(i > 0) await new Promise(r => setTimeout(r, 600));
+      try {
+        const r = await analyseAsset(assets[i]);
+        results.push({ status:"fulfilled", value: r });
+      } catch(e) {
+        results.push({ status:"rejected", reason: e });
+      }
+    }
 
     // Combineer resultaten
     const combined = {
@@ -1209,10 +1235,15 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
 
   const RELEVANT_ASSETS = assets.flatMap(a=>[a.label,a.id]);
   const parseTime = t => { if(!t) return 0; const m=String(t).match(/(\d{1,2}):(\d{2})/); return m ? parseInt(m[1])*60+parseInt(m[2]) : 0; };
-  const calendarItems = (iResult?.economic_calendar||[]).slice().sort((a,b)=>parseTime(b.time)-parseTime(a.time));
+  const calendarItems = (iResult?.economic_calendar||[]).slice().sort((a,b)=>{
+    const dayOrder = {today:0,tomorrow:1,day_after:2};
+    const da = dayOrder[a.date]??0, db = dayOrder[b.date]??0;
+    if(da!==db) return da-db;
+    return parseTime(a.time)-parseTime(b.time);
+  });
   const newsItems = (iResult?.news_items||[]).map(n=>({...n,assets_affected:(n.assets_affected||[]).filter(a=>RELEVANT_ASSETS.some(r=>a.includes(r)||r.includes(a)))})).slice().sort((a,b)=>parseTime(b.time)-parseTime(a.time));
-  const filteredCal  = calFilter==="all" ? calendarItems : calendarItems.filter(e=>e.impact===calFilter);
-  const filteredNews = calFilter==="all" ? newsItems      : newsItems.filter(n=>n.impact===calFilter);
+  const filteredCal  = calendarItems.filter(e=>(calFilter==="all"||e.impact===calFilter)&&(calDayFilter==="all"||e.date===calDayFilter));
+  const filteredNews = calFilter==="all" ? newsItems : newsItems.filter(n=>n.impact===calFilter);
 
   const moodColor = (m) => { if(!m) return "#6b7280"; const l=m.toLowerCase(); if(l.includes("bull")) return "#22c55e"; if(l.includes("bear")) return "#ef4444"; if(l.includes("chop")||l.includes("vol")) return accent; return "#6b7280"; };
 
@@ -1547,14 +1578,19 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
             {(iResult||iStatus==="loading")&&(
               <>
                 <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.1em"}}>FILTER:</span>
+                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.1em"}}>IMPACT:</span>
                   {["all","high","medium","low"].map(f=>(
                     <button key={f} onClick={()=>setCalFilter(f)} style={{background:calFilter===f?`${accent}22`:"rgba(255,255,255,0.03)",border:`1px solid ${calFilter===f?accent:"rgba(255,255,255,0.07)"}`,borderRadius:5,color:calFilter===f?accent:"#4b5563",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:700,letterSpacing:"0.08em",padding:"5px 12px",cursor:"pointer"}}>
                       {f==="all"?"ALLES":f==="high"?"🔴 HIGH":f==="medium"?"🟡 MEDIUM":"⚪ LOW"}
                     </button>
                   ))}
+                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.1em",marginLeft:8}}>DAG:</span>
+                  {["all","today","tomorrow","day_after"].map(d=>(
+                    <button key={d} onClick={()=>setCalDayFilter(d)} style={{background:calDayFilter===d?`rgba(99,102,241,0.15)`:"rgba(255,255,255,0.03)",border:`1px solid ${calDayFilter===d?"#6366f1":"rgba(255,255,255,0.07)"}`,borderRadius:5,color:calDayFilter===d?"#818cf8":"#4b5563",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:700,letterSpacing:"0.08em",padding:"5px 12px",cursor:"pointer"}}>
+                      {d==="all"?"ALLES":d==="today"?"VANDAAG":d==="tomorrow"?"MORGEN":"OVERMORGEN"}
+                    </button>
+                  ))}
                   <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
-                    <span style={{fontSize:9,color:"#374151",letterSpacing:"0.06em"}}>↓ NIEUWSTE EERST</span>
                     {iResult?.timestamp&&<span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date(iResult.timestamp).toLocaleString("nl-NL")}</span>}
                   </div>
                 </div>
@@ -1571,6 +1607,7 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,flexWrap:"wrap",gap:6}}>
                             <div style={{display:"flex",gap:7,alignItems:"center"}}>
                               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:accent,fontWeight:700}}>{e.time}</span>
+                              {e.date&&e.date!=="today"&&<span style={{fontSize:9,color:"#6366f1",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.08em"}}>{e.date==="tomorrow"?"MORGEN":"OVERMORGEN"}</span>}
                               <span style={{fontSize:12,fontWeight:700,color:"#e5e7eb"}}>{e.event}</span>
                             </div>
                             <Badge label={(e.impact||"?").toUpperCase()} color={impactColor[e.impact]||"#6b7280"}/>
