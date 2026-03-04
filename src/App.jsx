@@ -3,7 +3,10 @@ import { useState, useEffect, useRef } from "react";
 // ── Live prijzen via Yahoo Finance (geen API key, gratis) ─────────────────────
 const YAHOO_MAP = {
   XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F",
-  EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X", USOIL:"CL=F", SPX:"^GSPC",
+  EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
+  BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X",
+  USDCHF:"CHF=X", USOIL:"CL=F", SPX:"^GSPC",
+  DXY:"DX-Y.NYB", VIX:"^VIX", US10Y:"^TNX",
 };
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
@@ -130,15 +133,22 @@ const dirColor    = { bullish:"#22c55e", bearish:"#ef4444", neutraal:"#6b7280", 
 // Tooltip with ⓘ icon
 function InfoTooltip({ text, color="#6b7280", children }) {
   const [show, setShow] = useState(false);
+  const [pos, setPos] = useState({top:0,left:0});
   const ref = useRef(null);
+  const handleEnter = () => {
+    if(ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({top: r.top - 8, left: r.left + r.width/2});
+    }
+    setShow(true);
+  };
   return (
     <div ref={ref} style={{position:"relative",display:"inline-flex",alignItems:"center",gap:4}}
-      onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)}>
+      onMouseEnter={handleEnter} onMouseLeave={()=>setShow(false)}>
       {children}
       <span style={{fontSize:9,color:color,opacity:0.6,cursor:"help",lineHeight:1}}>ⓘ</span>
       {show&&text&&(
-        <div style={{position:"absolute",bottom:"calc(100% + 7px)",left:"50%",transform:"translateX(-50%)",zIndex:300,background:"#1a1b1e",border:`1px solid ${color}44`,borderRadius:7,padding:"9px 13px",minWidth:200,maxWidth:260,fontSize:11,color:"#d1d5db",lineHeight:1.55,boxShadow:"0 6px 24px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
-          <div style={{fontSize:9,color,letterSpacing:"0.1em",marginBottom:4,fontWeight:700}}>{typeof children==="string"?children:""}</div>
+        <div style={{position:"fixed",top:pos.top,left:pos.left,transform:"translate(-50%,-100%)",zIndex:9999,background:"#1a1b1e",border:`1px solid ${color}44`,borderRadius:7,padding:"9px 13px",minWidth:200,maxWidth:260,fontSize:11,color:"#d1d5db",lineHeight:1.55,boxShadow:"0 6px 24px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
           {text}
           <div style={{position:"absolute",bottom:-5,left:"50%",transform:"translateX(-50%) rotate(45deg)",width:8,height:8,background:"#1a1b1e",borderRight:`1px solid ${color}44`,borderBottom:`1px solid ${color}44`}}/>
         </div>
@@ -683,15 +693,18 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen elke 15s via Yahoo Finance
+  // Live prijzen elke 10s via Yahoo Finance
   useEffect(()=>{
     function fetchAll(){
       assets.forEach(a=>{
         fetchYahooPrice(a.id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[a.id]:p})); }).catch(()=>{});
       });
+      ["DXY","VIX","US10Y"].forEach(id=>{
+        fetchYahooPrice(id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+      });
     }
     fetchAll();
-    const t=setInterval(fetchAll,15000);
+    const t=setInterval(fetchAll,10000);
     return()=>clearInterval(t);
   },[assets]);
 
@@ -908,14 +921,16 @@ export default function HybridDashboard() {
     const now = new Date();
     const hourUTC = now.getUTCHours();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
     const sessionCtx = hourUTC>=22||hourUTC<8 ? "Aziatische sessie" : hourUTC>=6&&hourUTC<16 ? "Londense sessie" : "New Yorkse sessie";
-    const sys = `Je bent een pre-sessie trading analist. VANDAAG is ${dateStr}. Actieve sessie: ${sessionCtx}.
-Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retourneer ALLEEN JSON:
+    // Inject live prices so no web search needed
+    const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} ${p.change}`:a.label; }).join(", ");
+    const sys = `Pre-sessie analist. Geen web search nodig. Geen apostrofs in strings. Alleen JSON:
 {"session":"London","session_time":"07:00-16:00 CET","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","watch_levels":"1 zin"}`;
-    const usr = `Pre-sessie voor VANDAAG (${dateStr}): ${assetList}. Retourneer alleen JSON.`;
+    const usr = `VANDAAG ${dateStr} ${timeStr}, ${sessionCtx}. Live prijzen: ${priceLines}. Geef pre-sessie breakdown. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,system:sys,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1123,9 +1138,9 @@ Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourn
             {aResult&&(
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14,padding:"10px 16px",background:"#0f1011",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,alignItems:"center"}}>
                 <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
-                {aResult.dxy_change&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:aResult.dxy_direction==="up"?"#22c55e":"#ef4444"}}>{aResult.dxy_change}</span></div>}
-                {aResult.vix_level&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:parseFloat(aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{aResult.vix_level}</span></div>}
-                {aResult.us10y&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:accent}}>{aResult.us10y}</span></div>}
+                {(livePrices.DXY||aResult.dxy_change)&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span></div>}
+                {(livePrices.VIX||aResult.vix_level)&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{livePrices.VIX?.price||aResult.vix_level}</span></div>}
+                {(livePrices.US10Y||aResult.us10y)&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span></div>}
                 {aResult.session&&<Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>}
                 {aResult.market_context&&<div style={{flex:1,minWidth:140,fontSize:11,color:"#6b7280"}}>{aResult.market_context}</div>}
                 {aResult.timestamp&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginLeft:"auto"}}>{new Date(aResult.timestamp).toLocaleString("nl-NL")}</div>}
