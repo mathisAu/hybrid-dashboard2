@@ -74,93 +74,25 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Je bent een institutioneel intraday trading analist die de HYBRID PROMPT v6.3 methode gebruikt.
-Haal ALTIJD actuele marktdata op via web search voordat je analyseert.
+const ANALYSIS_SYSTEM = `Institutioneel intraday trading analist. Live prijzen worden aangeleverd in de prompt — gebruik deze direct, doe GEEN web search.
 
 REGELS:
-- Yield check VERPLICHT voor alle assets
-- Yield regime: Risk-On / Risk-Off / Stagflatie / Neutraal
-- Bias: Bullish / Bearish / Neutraal / Fragiel
-- Fragiel ALLEEN bij confidence onder 70%. Bij 70% of hoger: gebruik Bullish of Bearish.
-- Confidence: 0-100, Hold confidence: 0-100, NOOIT hoger dan confidence
-- DXY/Goud anomalie: max confidence 65%, meer dan 2 sessies max 55%
-- technical_trend: Strong Uptrend / Choppy Up / Strong Downtrend / Choppy Down / Ranging / Compressing
-- GEEN aanhalingstekens of apostrofs binnen string-waarden
-- Retourneer ALLEEN geldige JSON, geen markdown, geen tekst buiten JSON
+- Bias: Bullish/Bearish/Neutraal/Fragiel. Fragiel alleen bij confidence <70.
+- Bias MOET overeenkomen met price_direction (up=Bullish/Neutraal, down=Bearish/Neutraal).
+- Confidence 0-100. Hold_confidence nooit hoger dan confidence.
+- DXY/Goud anomalie: max confidence 65%.
+- technical_trend: Strong Uptrend/Choppy Up/Strong Downtrend/Choppy Down/Ranging/Compressing
+- yield_regime: Risk-On/Risk-Off/Stagflatie/Neutraal
+- GEEN apostrofs of aanhalingstekens in string-waarden. Alleen JSON, geen markdown.
 
-Formaat voor XAUUSD, US30, US100, EURUSD, GBPUSD:
-{
-  "timestamp": "ISO-string",
-  "yield_regime": "Risk-On",
-  "yield_regime_explanation": "korte uitleg",
-  "dxy_change": "+0.3%",
-  "dxy_direction": "up",
-  "vix_level": "18.2",
-  "us10y": "4.42%",
-  "market_context": "korte context",
-  "session": "London",
-  "assets": {
-    "XAUUSD": {
-      "bias": "Bullish",
-      "confidence": 75,
-      "hold_confidence": 60,
-      "price_today": "2345.50",
-      "price_change_today": "+0.8%",
-      "price_direction": "up",
-      "correlatie_status": "Normaal",
-      "dominant_mechanisme": "korte uitleg",
-      "yield_regime": "Risk-Off",
-      "yield_regime_explanation": "korte uitleg",
-      "intraday_structuur": "HH/HL",
-      "intraday_structuur_explanation": "korte uitleg",
-      "market_regime": "trend",
-      "market_regime_explanation": "korte uitleg",
-      "trend_driver": "yields",
-      "technical_trend": "Choppy Up",
-      "technical_trend_explanation": "korte uitleg",
-      "mini_summary": "2 zinnen analyse",
-      "deep_summary": "uitgebreide analyse zonder apostrofs of aanhalingstekens",
-      "hold_advies": "instructie",
-      "fail_condition": "conditie",
-      "macro_alignment": 80,
-      "structure_integrity": 75,
-      "flow_participation": 70,
-      "volatility_regime": 65,
-      "key_confluences": ["factor 1", "factor 2"],
-      "news_items": [{"headline": "nieuwstitel", "source": "Reuters", "direction": "bullish", "time": "09:30", "url": ""}]
-    },
-    "US30": {"bias":"Bullish","confidence":70,"hold_confidence":60,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"Risk-On","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"trend","market_regime_explanation":"","trend_driver":"risk","technical_trend":"Choppy Up","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":75,"structure_integrity":70,"flow_participation":65,"volatility_regime":60,"key_confluences":[],"news_items":[]},
-    "US100": {"bias":"Bullish","confidence":70,"hold_confidence":60,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"Risk-On","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"trend","market_regime_explanation":"","trend_driver":"risk","technical_trend":"Choppy Up","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":75,"structure_integrity":70,"flow_participation":65,"volatility_regime":60,"key_confluences":[],"news_items":[]},
-    "EURUSD": {"bias":"Neutraal","confidence":55,"hold_confidence":45,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"Neutraal","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"range","market_regime_explanation":"","trend_driver":"USD","technical_trend":"Ranging","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":60,"structure_integrity":55,"flow_participation":50,"volatility_regime":50,"key_confluences":[],"news_items":[]},
-    "GBPUSD": {"bias":"Neutraal","confidence":55,"hold_confidence":45,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"Neutraal","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"range","market_regime_explanation":"","trend_driver":"USD","technical_trend":"Ranging","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":60,"structure_integrity":55,"flow_participation":50,"volatility_regime":50,"key_confluences":[],"news_items":[]}
-  }
-}`;
+JSON structuur:
+{"timestamp":"ISO","yield_regime":"","yield_regime_explanation":"","dxy_change":"","dxy_direction":"up","vix_level":"","us10y":"","market_context":"","session":"","assets":{"ASSETID":{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[{"headline":"","source":"","direction":"","time":"","url":""}]}}}`;
 
-const INTEL_SYSTEM = `Je bent een institutioneel macro market intelligence analist.
-Gebruik web search om het volledige marktplaatje van VANDAAG op te halen.
-Haal minimaal 5 nieuwsitems op via web search.
-GEEN apostrofs of aanhalingstekens in string-waarden.
 
-Retourneer UITSLUITEND JSON, geen markdown:
-{
-  "timestamp": "ISO-string",
-  "market_snapshot": {
-    "gold":   {"price": "2345", "change": "+0.8%", "direction": "up", "note": "1 zin"},
-    "us30":   {"price": "38450", "change": "-0.2%", "direction": "down", "note": "1 zin"},
-    "us100":  {"price": "17820", "change": "+0.4%", "direction": "up", "note": "1 zin"},
-    "eurusd": {"price": "1.0842", "change": "-0.1%", "direction": "down", "note": "1 zin"},
-    "gbpusd": {"price": "1.2680", "change": "+0.2%", "direction": "up", "note": "1 zin"}
-  },
-  "macro_regime": "Risk-On",
-  "dominant_driver": "1 zin",
-  "session_context": "1 zin",
-  "yield_analysis": {"us10y_level": "4.42%", "us2y_level": "4.89%", "spread": "-47bp", "regime": "Inversie", "implication": "1 zin"},
-  "cross_asset_signals": [{"signal": "DXY + Gold", "type": "anomalie", "implication": "1 zin"}],
-  "risk_radar": {"score": 65, "label": "Elevated", "factors": ["factor 1", "factor 2"]},
-  "desk_view": "2 zinnen perspectief",
-  "news_items": [{"time": "09:30", "source": "Reuters", "category": "Fed", "headline": "nieuwstitel zonder apostrofs", "impact": "high", "direction": "bullish", "assets_affected": ["XAU/USD"]}],
-  "economic_calendar": [{"time": "14:30", "event": "US CPI", "actual": "3.2%", "expected": "3.1%", "previous": "3.4%", "impact": "high", "verdict": "hotter", "effect": "1 zin"}]
-}`;
+const INTEL_SYSTEM = `Macro market intelligence analist. Gebruik web search voor actuele data van vandaag.
+GEEN apostrofs of aanhalingstekens in strings. Alleen JSON, geen markdown.
+
+{"timestamp":"ISO","market_snapshot":{"gold":{"price":"","change":"","direction":"up","note":""},"us30":{"price":"","change":"","direction":"","note":""},"us100":{"price":"","change":"","direction":"","note":""},"eurusd":{"price":"","change":"","direction":"","note":""},"gbpusd":{"price":"","change":"","direction":"","note":""}},"macro_regime":"Risk-On","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"09:30","source":"","category":"","headline":"","impact":"high","direction":"bullish","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"","verdict":"","effect":""}]}`;
 
 
 function INTEL_USER_NOW(assetLabels) {
@@ -957,7 +889,7 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:4000, system:sys, tools:[{type:"web_search_20250305",name:"web_search"}], messages:[{role:"user",content:usr}] })
+          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:sys, messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
           const waitSec = attempt * 20;
@@ -1011,7 +943,7 @@ Gebruik web search voor nieuws van VANDAAG. Geen apostrofs in strings. Retournee
       const now = new Date();
       const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
       const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:ANALYSIS_SYSTEM,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:`VANDAAG: ${dateStr}. Analyseer ALLEEN ${asset.label}. Gebruik web search voor live prijs. Retourneer JSON met alleen het ${asset.id} asset object (geen wrapper).`}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:`VANDAAG: ${dateStr}. Analyseer ALLEEN ${asset.label}. Live prijs: ${livePrices[asset.id]?.price||"onbekend"}, verandering: ${livePrices[asset.id]?.change||"onbekend"} (${livePrices[asset.id]?.direction||"onbekend"}). Retourneer JSON met alleen het ${asset.id} asset object (geen wrapper).`}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
