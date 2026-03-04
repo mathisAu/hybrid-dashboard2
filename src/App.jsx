@@ -1066,6 +1066,22 @@ export default function HybridDashboard() {
     const headers = {"Content-Type":"application/json"};
     if(apiKey.trim()){ headers["x-api-key"]=apiKey.trim(); headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
 
+    // Forceer verse prijzen voor alle assets direct op
+    const freshPrices = {...livePrices};
+    await Promise.allSettled(assets.map(async a => {
+      try {
+        const p = await fetchLivePrice(a.id, tdKey);
+        if(p) { freshPrices[a.id] = p; setLivePrices(prev=>({...prev,[a.id]:p})); }
+      } catch(_) {}
+    }));
+    // Ook DXY/VIX/US10Y vers ophalen
+    await Promise.allSettled(["DXY","VIX","US10Y"].map(async id => {
+      try {
+        const p = await fetchLivePrice(id, tdKey);
+        if(p) { freshPrices[id] = p; setLivePrices(prev=>({...prev,[id]:p})); }
+      } catch(_) {}
+    }));
+
     // Technische data ophalen
     const techData = {};
     if(tdKey) {
@@ -1083,25 +1099,36 @@ export default function HybridDashboard() {
     }
     if(breakingNews?.length>0) macroCtx += " Breaking: "+breakingNews.slice(0,3).map(n=>n.headline).join("; ");
 
-    // Analyseer elke asset apart — betrouwbaardere JSON, betere bias
+    // Analyseer elke asset apart parallel
     const results = await Promise.allSettled(assets.map(async (asset) => {
-      const p = livePrices[asset.id];
+      const p = freshPrices[asset.id];
       const t = techData[asset.id];
       const prev = prevBias[asset.id];
 
-      let priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : "prijs onbekend";
+      let priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : null;
       if(t) priceLine += `, RSI=${t.rsi}(${t.rsiSignal}), ${t.priceVsEma}`;
+
+      // Als geen prijs: web search gebruiken als fallback
+      const useWebSearch = !p;
       const prevLine = prev ? `Vorige bias: ${prev.bias} (${prev.confidence}%) — wijk alleen af bij concrete reden.` : "";
 
       const usr = `VANDAAG ${dateStr}. Analyseer ALLEEN: ${asset.label} (${asset.id}).
-${priceLine}
+${priceLine ? priceLine : `Gebruik web search om de huidige prijs en % verandering van ${asset.label} op te zoeken.`}
 ${macroCtx ? "Macro context: "+macroCtx : ""}
 ${prevLine}
-Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper, geen assets key):
+Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper):
 {"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
 
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
+      const body = {
+        model:"claude-sonnet-4-20250514",
+        max_tokens:800,
+        system:ANALYSIS_SYSTEM,
+        messages:[{role:"user",content:usr}]
+      };
+      // Web search alleen als fallback voor prijs
+      if(useWebSearch) body.tools = [{type:"web_search_20250305",name:"web_search"}];
+
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(!res.ok) throw new Error(`${asset.id}: API fout ${res.status}`);
       const data = await res.json();
       const text = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1110,23 +1137,26 @@ Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper, geen assets key
     }));
 
     // Combineer resultaten
-    const combined = { timestamp: new Date().toISOString(), assets: {} };
+    const combined = {
+      timestamp: new Date().toISOString(),
+      yield_regime: "", yield_regime_explanation: "",
+      dxy_change: freshPrices.DXY?.change || "",
+      dxy_direction: freshPrices.DXY?.direction || "up",
+      vix_level: freshPrices.VIX?.price || "",
+      us10y: freshPrices.US10Y?.price || "",
+      market_context: iResult?.desk_view || "",
+      session: iResult?.session_context || "",
+      assets: {}
+    };
     const newBias = {...prevBias};
     results.forEach(r => {
       if(r.status==="fulfilled" && r.value) {
         const { id, data } = r.value;
         combined.assets[id] = data;
         if(data.bias) newBias[id] = { bias: data.bias, confidence: data.confidence };
-        // Haal macro velden van eerste asset
         if(!combined.yield_regime && data.yield_regime) {
           combined.yield_regime = data.yield_regime;
           combined.yield_regime_explanation = data.yield_regime_explanation;
-          combined.dxy_change = livePrices.DXY?.change || "";
-          combined.dxy_direction = livePrices.DXY?.direction || "up";
-          combined.vix_level = livePrices.VIX?.price || "";
-          combined.us10y = livePrices.US10Y?.price || "";
-          combined.market_context = iResult?.desk_view || "";
-          combined.session = iResult?.session_context || "";
         }
       }
     });
