@@ -1138,10 +1138,26 @@ Gebruik web search alleen voor macro context (DXY, VIX, yields, nieuws). Retourn
             {aResult&&(
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14,padding:"10px 16px",background:"#0f1011",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,alignItems:"center"}}>
                 <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
-                {(livePrices.DXY||aResult.dxy_change)&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span></div>}
-                {(livePrices.VIX||aResult.vix_level)&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{livePrices.VIX?.price||aResult.vix_level}</span></div>}
-                {(livePrices.US10Y||aResult.us10y)&&<div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span></div>}
-                {aResult.session&&<Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>}
+                {(livePrices.DXY||aResult.dxy_change)&&(
+                  <InfoTooltip text="Dollar Index — meet de sterkte van de USD tegen een mandje van 6 valuta. Stijgt de DXY? Dan dalen EUR/USD en GBP/USD meestal, en staat Goud onder druk." color="#6b7280">
+                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span></div>
+                  </InfoTooltip>
+                )}
+                {(livePrices.VIX||aResult.vix_level)&&(
+                  <InfoTooltip text="Volatility Index — de angstmeter van de markt. Onder 15 = rustig, 15-25 = normaal, boven 25 = verhoogde onzekerheid, boven 30 = angst/crisis. Hoge VIX = risk-off, laag VIX = risk-on." color="#6b7280">
+                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{livePrices.VIX?.price||aResult.vix_level}</span></div>
+                  </InfoTooltip>
+                )}
+                {(livePrices.US10Y||aResult.us10y)&&(
+                  <InfoTooltip text="Amerikaanse 10-jaars rente. Stijgende yields = USD sterker, druk op Goud en groei-aandelen. Dalende yields = risk-on, gunstig voor Goud en tech. Boven 4.5% = restrictief beleid." color="#6b7280">
+                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span></div>
+                  </InfoTooltip>
+                )}
+                {aResult.session&&(
+                  <InfoTooltip text="Actieve handelssessie. London (07:00-16:00 CET) = hoogste volume voor EUR/GBP. New York (13:00-22:00 CET) = hoogste volume voor USD-paren en equities. Overlap London/NY (13:00-16:00) = meest volatiel." color="#6366f1">
+                    <Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>
+                  </InfoTooltip>
+                )}
                 {aResult.market_context&&<div style={{flex:1,minWidth:140,fontSize:11,color:"#6b7280"}}>{aResult.market_context}</div>}
                 {aResult.timestamp&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginLeft:"auto"}}>{new Date(aResult.timestamp).toLocaleString("nl-NL")}</div>}
               </div>
