@@ -150,75 +150,45 @@ GEEN apostrofs. Alleen JSON:
 
 
 
-const INTEL_SYSTEM = `Macro market intelligence analist. Gebruik ALTIJD web search voor actuele data — geen training kennis gebruiken voor huidige marktdata.
+const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik ALTIJD web search — nooit trainingdata voor actuele markten.
 
-VERPLICHT bij elke run:
-1. Zoek naar echte marktdata van vandaag (DXY, yields, VIX, index futures)
-2. Zoek naar echte nieuwsheadlines van vandaag
-3. Rapporteer BEIDE kanten — bullish EN bearish signalen
-4. Als markt mixed is, zeg dat — niet automatisch Risk-On of Risk-Off kiezen
+ZOEK VERPLICHT (doe meerdere searches):
+1. Reuters markets/finance nieuws vandaag
+2. Bloomberg breaking news markets vandaag
+3. FinancialJuice.com breaking news
+4. Officieel: federalreserve.gov, ecb.europa.eu, bankofengland.co.uk
+5. ForexFactory high impact calendar events
+6. DXY, US10Y yield, VIX actuele niveaus
 
-INTEGRITEIT REGELS:
-- Hallucineeer NOOIT nieuws — alleen headlines die je echt gevonden hebt via search
-- Als geen nieuws gevonden: news_items = [] en leg uit in desk_view
-- macro_regime reflecteert de WERKELIJKE toestand, niet een aanname
-- Geef tegengestelde signalen altijd weer in cross_asset_signals
+Minimaal 6 news_items. Hallucineeer NOOIT.
+Beide kanten: bullish EN bearish signalen altijd vermelden.
+GEEN apostrofs. Alleen JSON, geen markdown.
 
-GEEN apostrofs of aanhalingstekens in strings. Alleen JSON, geen markdown.
-
-{"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"09:30","source":"","category":"","headline":"","impact":"high","direction":"bullish","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"","verdict":"","effect":"","date":"today"}]}`;
-
-// ── Lichte nieuws-only fetch (elke 15 min, ~200 tokens) ──────────────────────
-const NEWS_SYSTEM = `Je bent een markt nieuws monitor. Gebruik web search om de laatste breaking news te vinden.
-Zoek UITSLUITEND op deze bronnen: Reuters, Bloomberg, FinancialJuice, Walter Bloomberg, ForexFactory, Fed/ECB/BoE officieel.
-Hallucineeer NOOIT — alleen echte headlines die je gevonden hebt.
-GEEN apostrofs. Alleen JSON array, geen wrapper, geen markdown.
-[{"time":"HH:MM","source":"Reuters","headline":"...","direction":"bullish|bearish|neutraal","impact":"high|medium","assets":["XAU/USD","EUR/USD"]}]`;
-
-function NEWS_USER_NOW() {
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
-  const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-  return `${dateStr}, ${timeStr} CET. Zoek naar breaking financial news van de afgelopen 30 minuten.
-Zoektermen: "Reuters forex news today", "Bloomberg markets breaking", "Fed ECB news ${dateStr}", "gold dollar markets ${dateStr}".
-Geef max 8 items. Alleen high-impact macro nieuws. Geen crypto, geen bedrijfsnieuws tenzij marktbeweging.
-Retourneer ALLEEN JSON array.`;
-}
-
-
+{"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"bullish|bearish","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"HH:MM","source":"","headline":"","impact":"high|medium|low","direction":"bullish|bearish|neutraal","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"high|medium|low","verdict":"","effect":"","date":"today|tomorrow|day_after"}]}`;
 
 function INTEL_USER_NOW(assetLabels) {
   const now = new Date();
-  const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const dateStr = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
   const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
   const dayAfter = new Date(now); dayAfter.setDate(now.getDate()+2);
-  const fmt = d => d.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long"});
-  return `VANDAAG is ${dateStr}, huidige tijd: ${timeStr} CET.
+  const fmt = d => d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+  return `TODAY: ${dateStr}, ${timeStr} CET.
+Assets: ${assetLabels.join(", ")}.
 
-VERPLICHT: Gebruik web search om ECHTE data van vandaag op te halen. Geen aannames, geen historische data.
+Doe deze searches in volgorde:
+1. "Reuters market news ${dateStr}"
+2. "Bloomberg breaking markets today"
+3. "FinancialJuice breaking news"
+4. "Fed ECB BoE news ${dateStr}"
+5. "ForexFactory high impact events this week"
+6. "gold dollar euro pound market ${dateStr}"
 
-Zoek naar:
-1. "market news today ${now.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}" 
-2. Huidige DXY, US10Y yield, VIX waarden
-3. Fed sprekers vandaag of deze week
-4. ECB/BoE nieuws vandaag
-5. Economische data releases vandaag
-
-REGELS:
-- Elk news_item MOET een echte headline zijn van vandaag — geen generieke samenvattingen
-- Als je geen nieuws vindt voor vandaag, zeg dat expliciet in desk_view
-- Macro regime mag ALLEEN Risk-On zijn als er echte bewijzen zijn
-- Geef ook bearish/negatieve signalen als die er zijn — niet alleen positief nieuws
-
-KALENDER: events voor VANDAAG + ${fmt(tomorrow)} + ${fmt(dayAfter)}.
-Elk calendar event: "date" veld "today"/"tomorrow"/"day_after".
-Zoek: Fed/ECB/BoE, CPI, NFP, GDP, PMI, retail sales.
-
-assets_affected: ALLEEN ${assetLabels.join(", ")}.
-Tijden: HH:MM formaat. news_items NIEUWSTE EERST.
-Retourneer alleen JSON.`;
+Geef per news_item de impact op: ${assetLabels.join(", ")}.
+Economische kalender: today=vandaag, tomorrow=${fmt(tomorrow)}, day_after=${fmt(dayAfter)}.
+Minimaal 6 nieuws items. Alleen JSON.`;
 }
+
 
 function resolveBias(bias, confidence) {
   if (!bias) return bias;
@@ -994,73 +964,60 @@ export default function HybridDashboard() {
     return()=>clearInterval(t);
   },[assets, tdKey, fhKey, priceSource]);
 
-  // ── Breaking News via RSS proxy ──────────────────────────────────────────────
-  // ── Breaking News via AI web search (Reuters, Bloomberg, FinancialJuice etc) ──
+  // ── Breaking News via Finnhub (gratis, 0 tokens, geen CORS) ─────────────────
   const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yield","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","recession","tariff","powell","lagarde","treasury","bond","forex","currency","payroll","pmi"];
 
   async function fetchBreakingNews() {
-    if(!apiKey?.trim()) return; // Geen Anthropic key = geen nieuws
+    if(!fhKey?.trim()) return;
     setBnLoading(true);
     try {
-      const hdrs = {
-        "Content-Type":"application/json",
-        "x-api-key": apiKey.trim(),
-        "anthropic-version":"2023-06-01",
-        "anthropic-dangerous-direct-browser-access":"true",
-      };
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers: hdrs,
-        body: JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:600,
-          system: NEWS_SYSTEM,
-          tools:[{"type":"web_search_20250305","name":"web_search"}],
-          messages:[{role:"user", content: NEWS_USER_NOW()}],
-        }),
-        signal: AbortSignal.timeout(30000),
-      });
-      if(!res.ok) { setBnLoading(false); return; }
-      const data = await res.json();
-      const text = data.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
-      const clean = text.replace(/```json|```/g,"").trim();
-      // Verwacht JSON array
-      const start = clean.indexOf("[");
-      const end   = clean.lastIndexOf("]");
-      if(start===-1||end===-1) { setBnLoading(false); return; }
-      const arr = JSON.parse(clean.slice(start, end+1));
-      if(!Array.isArray(arr)) { setBnLoading(false); return; }
-
       const now = new Date();
-      const items = arr.map(n => ({
-        headline: n.headline || "",
-        source:   n.source   || "News",
-        url:      n.url      || "",
-        time:     now,
-        timeStr:  n.time     || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
-        direction:n.direction|| "neutraal",
-        impact:   n.impact   || "medium",
-        assets:   n.assets   || [],
-        isNew:    !seenHeadlines.has(n.headline),
-      })).filter(n => n.headline);
+      const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+      const res = await fetch(`https://finnhub.io/api/v1/news?category=general&minId=0&token=${fhKey.trim()}`, {signal:AbortSignal.timeout(8000)});
+      if(!res.ok) { setBnLoading(false); return; }
+      const items = await res.json();
+      if(!Array.isArray(items)) { setBnLoading(false); return; }
 
-      const newItems = items.filter(n => n.isNew);
-      if(newItems.length > 0 && seenHeadlines.size > 0) {
-        newItems.slice(0,2).forEach(item => sendNotification("📰 Breaking News", item.headline, item.url));
+      const filtered = items
+        .filter(n => {
+          const lower = (n.headline||"").toLowerCase();
+          const time = n.datetime ? new Date(n.datetime*1000) : null;
+          return MARKET_KEYWORDS.some(k=>lower.includes(k)) && n.headline && (!time || time >= todayStart);
+        })
+        .map(n => {
+          const time = new Date(n.datetime*1000);
+          return {
+            headline: n.headline,
+            source: n.source || "Finnhub",
+            url: n.url || "",
+            time,
+            timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+            direction: "neutraal",
+            impact: "medium",
+            assets: [],
+            isNew: !seenHeadlines.has(n.headline),
+          };
+        })
+        .sort((a,b) => b.time - a.time)
+        .slice(0, 25);
+
+      const newItems = filtered.filter(n=>n.isNew);
+      if(newItems.length>0 && seenHeadlines.size>0) {
+        newItems.slice(0,2).forEach(n=>sendNotification("📰 Breaking News", n.headline, n.url));
       }
-      setSeenHeadlines(new Set(items.map(n => n.headline)));
-      setBreakingNews(items);
-    } catch(e) { console.error("News fetch:", e); }
+      setSeenHeadlines(new Set(filtered.map(n=>n.headline)));
+      setBreakingNews(filtered);
+    } catch(e) { console.error("News:", e); }
     setBnLoading(false);
   }
 
-  // News auto-refresh: bij laden en elke 15 minuten
+  // Nieuws laden zodra Finnhub key beschikbaar, elke 10 min — 0 tokens
   useEffect(() => {
-    if(!apiKey?.trim()) return;
+    if(!fhKey?.trim()) return;
     fetchBreakingNews();
-    const t = setInterval(fetchBreakingNews, 15*60*1000);
+    const t = setInterval(fetchBreakingNews, 10*60*1000);
     return () => clearInterval(t);
-  }, [apiKey]);
+  }, [fhKey]);
 
   // ── Browser Notifications ────────────────────────────────────────────────────
   function requestNotifPermission() {
@@ -1191,7 +1148,7 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:3000, system:sys, messages:[{role:"user",content:usr}] })
+          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1500, system:sys, messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
           const waitSec = attempt * 20;
@@ -1286,30 +1243,6 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 
   const [prevBias, setPrevBias] = useState({}); // geheugen vorige bias per asset
 
-  // Haal technische indicatoren op van Twelve Data (RSI, EMA)
-  async function fetchTechnicals(id) {
-    if(!tdKey) return null;
-    const sym = TWELVE_MAP[id] || id;
-    try {
-      const [rsiRes, emaRes] = await Promise.all([
-        fetch(`https://api.twelvedata.com/rsi?symbol=${sym}&interval=1h&time_period=14&apikey=${tdKey}&outputsize=1`),
-        fetch(`https://api.twelvedata.com/ema?symbol=${sym}&interval=1h&time_period=20&apikey=${tdKey}&outputsize=1`),
-      ]);
-      const rsiData = await rsiRes.json();
-      const emaData = await emaRes.json();
-      const rsi = parseFloat(rsiData?.values?.[0]?.rsi);
-      const ema20 = parseFloat(emaData?.values?.[0]?.ema);
-      const price = parseFloat(livePrices[id]?.price);
-      if(!rsi) return null;
-      return {
-        rsi: rsi.toFixed(1),
-        ema20: ema20?.toFixed(2),
-        priceVsEma: price && ema20 ? (price > ema20 ? "boven EMA20" : "onder EMA20") : null,
-        rsiSignal: rsi > 70 ? "overbought" : rsi < 30 ? "oversold" : "neutraal",
-      };
-    } catch(_) { return null; }
-  }
-
   function addCustomPair() {
     if(!newPairLabel.trim()) return;
     const id = newPairLabel.replace("/","").toUpperCase();
@@ -1340,15 +1273,6 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
           const p = await fetchFinnhubPrice(id, fhKey);
           if(p) { freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); }
         } catch(_) {}
-      }));
-    }
-
-    // Technische data ophalen
-    const techData = {};
-    if(tdKey) {
-      await Promise.allSettled(assets.map(async a => {
-        const t = await fetchTechnicals(a.id);
-        if(t) techData[a.id] = t;
       }));
     }
 
@@ -1470,21 +1394,56 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
     const labels = assets.map(a=>a.label);
     callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), (result) => {
       setIResult(result);
-      // Sync breaking news vanuit Intel AI nieuws items
       if(result?.news_items?.length > 0) {
         const now = new Date();
         const items = result.news_items.map(n => ({
-          headline: n.headline,
-          source: n.source || "Intel",
-          url: n.url || "",
-          time: now,
-          timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
-          isNew: true,
-          direction: n.direction,
+          headline: n.headline, source: n.source || "Intel", url: n.url || "",
+          time: now, timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+          direction: n.direction, impact: n.impact, assets: n.assets_affected || [], isNew: true,
         }));
-        setBreakingNews(items);
+        setBreakingNews(prev => {
+          const existing = prev.filter(p => !items.some(i => i.headline === p.headline));
+          return [...items, ...existing].slice(0, 30);
+        });
       }
     }, setIError, setIStatus);
+  };
+
+  // ── HYBRID: Intel (nieuws) → Analyse (bias) in één klik ─────────────────────
+  const [hybridStatus, setHybridStatus] = useState("idle");
+  const runHybrid = async () => {
+    if(hybridStatus !== "idle" && hybridStatus !== "done") return;
+    setHybridStatus("intel");
+    setIError(""); setAError("");
+    const labels = assets.map(a=>a.label);
+
+    // Stap 1: Intel laden met echte nieuwscontext
+    let intelDone = false;
+    await new Promise(resolve => {
+      const origSet = (result) => {
+        setIResult(result);
+        if(result?.news_items?.length > 0) {
+          const now = new Date();
+          const items = result.news_items.map(n => ({
+            headline: n.headline, source: n.source || "Intel", url: n.url || "",
+            time: now, timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+            direction: n.direction, impact: n.impact, assets: n.assets_affected || [], isNew: true,
+          }));
+          setBreakingNews(prev => [...items, ...prev.filter(p => !items.some(i=>i.headline===p.headline))].slice(0,30));
+        }
+        if(!intelDone) { intelDone = true; resolve(result); }
+      };
+      callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), origSet, setIError, (s) => {
+        setIStatus(s);
+        if(s === "error" && !intelDone) { intelDone = true; resolve(null); }
+      });
+    });
+
+    // Stap 2: Analyse met verse Intel context
+    setHybridStatus("analyse");
+    await runAnalysis();
+    setHybridStatus("done");
+    setTimeout(() => setHybridStatus("idle"), 4000);
   };
   const loading = aStatus==="loading"||iStatus==="loading";
 
@@ -1675,9 +1634,27 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
             )}
           </div>
 
-          {page==="analyse"
-            ? <button onClick={runAnalysis} disabled={aStatus==="loading"||aStatus?.startsWith("waiting")} style={btnStyle(aStatus==="loading"||aStatus?.startsWith("waiting"),accent)}><span>{aStatus==="loading"||aStatus?.startsWith("waiting")?"⬤":"▶"}</span>{aStatus==="loading"?`ANALYSEREN${".".repeat(dots)}`:aStatus?.startsWith("waiting")?`WACHT ${aStatus.split("-")[1]}s...`:"ANALYSE UITVOEREN"}</button>
-            : page==="intel" ? <button onClick={runIntel} disabled={iStatus==="loading"} style={btnStyle(iStatus==="loading",accent)}><span>{iStatus==="loading"?"⬤":"↺"}</span>{iStatus==="loading"?`LADEN${".".repeat(dots)}`:"INTEL LADEN"}</button>
+          {page==="analyse" ? (
+            <div style={{display:"flex",gap:6}}>
+              <button onClick={runHybrid}
+                disabled={hybridStatus!=="idle"&&hybridStatus!=="done"}
+                style={{...btnStyle(hybridStatus!=="idle"&&hybridStatus!=="done", accent), flex:2}}>
+                <span style={{display:"inline-block",animation:hybridStatus==="intel"||hybridStatus==="analyse"?"spin 0.8s linear infinite":"none"}}>
+                  {hybridStatus==="done"?"✓":"⬤"}
+                </span>
+                {hybridStatus==="intel" ? `NIEUWS LADEN${".".repeat(dots)}` :
+                 hybridStatus==="analyse" ? `ANALYSEREN${".".repeat(dots)}` :
+                 hybridStatus==="done" ? "KLAAR" : "▶ HYBRID ANALYSE"}
+              </button>
+              <button onClick={runAnalysis}
+                disabled={aStatus==="loading"}
+                title="Alleen analyse (zonder nieuwe Intel)"
+                style={{...btnStyle(aStatus==="loading","#4b5563"), flex:1, fontSize:9}}>
+                {aStatus==="loading" ? `...` : "↺ ANALYSE"}
+              </button>
+            </div>
+          ) : page==="intel"
+            ? <button onClick={runIntel} disabled={iStatus==="loading"} style={btnStyle(iStatus==="loading",accent)}><span>{iStatus==="loading"?"⬤":"↺"}</span>{iStatus==="loading"?`LADEN${".".repeat(dots)}`:"INTEL LADEN"}</button>
             : <button onClick={runIntel} disabled={iStatus==="loading"} style={btnStyle(iStatus==="loading",accent)}><span>{iStatus==="loading"?"⬤":"↺"}</span>{iStatus==="loading"?`LADEN${".".repeat(dots)}`:"KALENDER LADEN"}</button>
           }
         </div>
