@@ -133,30 +133,19 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Je bent een Hybrid Market Intelligence Trader. Doe GEEN web search — context wordt aangeleverd.
+const ANALYSIS_SYSTEM = `Hybrid Market Intelligence Trader. Geen web search — context aangeleverd.
+Prijs/% = NOOIT bias input. Bias = fundamentele macro analyse.
 
-ABSOLUTE REGEL: Prijs en % bepalen NOOIT de bias. Bias = fundamentele macro analyse per asset.
+DXY↑: EUR/GBP bearish, goud bearish (tenzij anomalie), indices mixed
+DXY↓: EUR/GBP bullish, goud bullish
+VIX>20: indices Fragiel/Bearish, goud bullish (safe haven)
+Yields↑ sterk: goud bearish, US100 bearish, USD bullish
+XAU anomalie (DXY+goud BEIDE zelfde richting): max confidence 65%
 
-ANTI-HERD REGEL — verplicht: elke asset reageert ANDERS op hetzelfde macro regime:
-- Risk-On: US100 bullish, US30 bullish, MAAR EUR/USD bearish als Fed hawkisher dan ECB
-- Dovish Fed: goud bullish, dollar bearish, indices mogelijk al ingeprijsd (Neutraal)  
-- DXY stijgt: EUR/USD bearish, GBP/USD bearish, goud bearish (tenzij anomalie)
-- DXY daalt: EUR/USD bullish, GBP/USD bullish, goud bullish
-- VIX boven 20: indices Fragiel/Bearish, goud safe haven = bullish
-- Yields stijgen sterk: negatief voor goud en tech (US100), positief voor USD
-
-STAP 1 — DXY: richting en momentum?
-STAP 2 — Yields + VIX: wat zegt dit over het regime?
-STAP 3 — Correlatie XAU: DXY+Goud normaal of anomalie?
-STAP 4 — Nieuws: al ingeprijsd? Buy-the-rumor-sell-the-news risico?
-STAP 5 — Asset-specifieke synthese — verplicht VERSCHILLENDE conclusies per asset
-
-BIAS: Bullish/Bearish/Neutraal/Fragiel
-Confidence: 80+=sterk | 65-79=goed | 50-64=mixed | <50=gebruik Fragiel
-Hold: nooit hoger dan confidence, XAU anomalie max 60%
-
-GEEN apostrofs. Alleen JSON.
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
+Elke asset krijgt ANDERE bias — verplicht.
+mini_summary: max 12 woorden. hold_advies: max 6 woorden. fail_condition: max 6 woorden.
+GEEN apostrofs. Alleen JSON:
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
 
 
 
@@ -1275,29 +1264,18 @@ export default function HybridDashboard() {
         us10y ? `US10Y: ${us10y.price}% ${us10y.change}` : "US10Y: onbekend",
         xauP && asset.id!=="XAUUSD" ? `XAU/USD: ${xauP.price} ${xauP.change}` : "",
       ].filter(Boolean).join(" | ");
-      const priceCtx = p ? `${asset.label}: ${p.price} ${p.change}` : "Prijs niet beschikbaar";
-      const prevLine = prev ? `VORIGE BIAS: ${prev.bias} (${prev.confidence}%) — verander alleen bij fundamentele reden.` : "";
-      const usr = `VANDAAG ${dateStr}. Asset: ${asset.label} (${asset.id}).
-
-CROSS-ASSET: ${crossAsset}
-PRIJS (display only): ${priceCtx}
-
-FUNDAMENTELE CONTEXT:
-${macroCtx || "Geen macro context beschikbaar."}
-
-${prevLine}
-
-${asset.id==="XAUUSD" ? "Goud: Risk-On = doorgaans bearish tenzij inflatie. Check DXY richting." : ""}
-${["US30","US100"].includes(asset.id) ? "Index: Risk-On = bullish, maar yields >4.3% drukt waarderingen." : ""}
-${["EURUSD","GBPUSD"].includes(asset.id) ? "DXY stijgt = bearish voor dit pair." : ""}
-
-Retourneer ALLEEN JSON, geen wrapper:
-{"bias":"","confidence":0,"hold_confidence":0,"price_today":"${p?.price||""}","price_change_today":"${p?.change||""}","price_direction":"${p?.direction||"up"}","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
+      const newsCompact = macroCtx ? macroCtx.split("\n").slice(0,4).join(" | ") : "Geen context.";
+      const prevLine = prev ? `prev=${prev.bias}(${prev.confidence}%)` : "";
+      const usr = `${asset.id} | Cross-asset: ${crossAsset} | ${prevLine}
+Context: ${newsCompact}
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
       const newData=robustParse(text);
+      // Prijs van API injekten, niet van AI
+      if(p) { newData.price_today=p.price; newData.price_change_today=p.change; newData.price_direction=p.direction; }
       if(newData.bias) setPrevBias(prev=>({...prev,[asset.id]:{bias:newData.bias,confidence:newData.confidence}}));
       setAResult(prev=>prev?{...prev,assets:{...prev.assets,[asset.id]:newData}}:prev);
       if(openDeepDive) setDeepAsset({asset,data:newData});
@@ -1393,42 +1371,30 @@ Retourneer ALLEEN JSON, geen wrapper:
       const us10y = freshPrices["US10Y"];
       const xauP  = freshPrices["XAUUSD"];
       const crossAsset = [
-        dxy   ? `DXY: ${dxy.price} ${dxy.change} (${dxy.direction})` : "DXY: onbekend",
-        us10y ? `US10Y: ${us10y.price}% ${us10y.change}` : "US10Y: onbekend",
-        vix   ? `VIX: ${vix.price} ${vix.change}` : "VIX: onbekend",
-        xauP  ? `XAU/USD: ${xauP.price} ${xauP.change} (${xauP.direction})` : "",
+        dxy   ? `DXY:${dxy.price} ${dxy.change}` : "DXY:?",
+        us10y ? `US10Y:${us10y.price}% ${us10y.change}` : "US10Y:?",
+        vix   ? `VIX:${vix.price} ${vix.change}` : "VIX:?",
+        xauP  ? `XAU:${xauP.price} ${xauP.change}` : "",
       ].filter(Boolean).join(" | ");
 
       const assetLines = assets.map(a => {
         const p = freshPrices[a.id];
-        const t = techData[a.id];
         const prev = prevBias[a.id];
-        return `${a.id} (${a.label}): prijs=${p?.price||"?"} ${p?.change||"?"}${t?` RSI=${t.rsi}(${t.rsiSignal})`:""}${prev?` | vorige=${prev.bias}(${prev.confidence}%)`:""}`;
-      }).join("\n");
+        return `${a.id}${prev?` prev=${prev.bias}(${prev.confidence}%)`:""}`;
+      }).join(", ");
 
-      const usr = `VANDAAG ${dateStr}.
+      // Nieuws compact — max 4 items, alleen headline + richting
+      const newsLines = macroCtx
+        ? macroCtx.split("\n").slice(0,6).join("\n")
+        : "Geen Intel.";
 
-CROSS-ASSET: ${crossAsset}
+      const usr = `${dateStr}. Cross-asset: ${crossAsset}
+Assets: ${assetLines}
+Context: ${newsLines}
 
-ASSETS TE ANALYSEREN:
-${assetLines}
+JSON (geen wrapper): {"assets":{"ASSET_ID":{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}}}`;
 
-MACRO CONTEXT:
-${macroCtx || "Geen Intel — gebruik cross-asset data."}
-
-KRITISCH: Geef voor elk asset een ANDERE bias waar de data dat rechtvaardigt.
-- DXY stijgt → EUR/USD en GBP/USD zijn bearish
-- DXY daalt → EUR/USD en GBP/USD zijn bullish  
-- Goud en DXY zijn doorgaans OMGEKEERD gecorreleerd
-- Niet alle assets kunnen tegelijk Bullish zijn in een normaal macro regime
-- Prijs/% zijn ALLEEN voor price_today display, niet voor bias
-
-Retourneer JSON met alle assets. Geen wrapper, geen uitleg:
-{"assets":{"XAUUSD":{...},"US30":{...},"US100":{...},"EURUSD":{...},"GBPUSD":{...}}}
-
-Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
-
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:2500, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429 && attempt < 3) {
         await new Promise(r=>setTimeout(r, attempt * 15000));
@@ -1438,7 +1404,6 @@ Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":""
       const data = await res.json();
       const text = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
       const parsed = robustParse(text);
-      // parsed.assets bevat alle assets, of parsed zelf als flat
       return parsed.assets || parsed;
     }
 
@@ -1477,11 +1442,17 @@ Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":""
     };
     assets.forEach(a => {
       const data = allAssetData[a.id];
+      const p = freshPrices[a.id];
       if(data) {
-        combined.assets[a.id] = data;
+        // Prijs komt van API, niet van AI — inject hier
+        combined.assets[a.id] = {
+          ...data,
+          price_today: p?.price || "",
+          price_change_today: p?.change || "",
+          price_direction: p?.direction || "up",
+        };
         if(!combined.yield_regime && data.yield_regime) {
           combined.yield_regime = data.yield_regime;
-          combined.yield_regime_explanation = data.yield_regime_explanation;
         }
       }
     });
