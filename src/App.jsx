@@ -1,5 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 
+// ── Timestamp helpers ─────────────────────────────────────────────────────────
+const fmtDT = (d) => {
+  if(!d) return "—";
+  const dt = d instanceof Date ? d : new Date(d);
+  if(isNaN(dt)) return String(d);
+  return dt.toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+};
+const fmtTime = (d) => {
+  if(!d) return "—";
+  const dt = d instanceof Date ? d : new Date(d);
+  if(isNaN(dt)) return String(d);
+  return dt.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+};
+
 // ── Twelve Data ───────────────────────────────────────────────────────────────
 const TWELVE_MAP = {
   XAUUSD:"XAU/USD", US30:"DJI",    US100:"NDX",     EURUSD:"EUR/USD",
@@ -469,7 +483,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 {data?.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
               </div>
               <div style={{fontSize:12,color:"#4b5563"}}>{asset.full}</div>
-              {data?.analysed_at&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginTop:2}}>📊 {new Date(data.analysed_at).toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</div>}
+              {data?.analysed_at&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginTop:2}}>📊 Geanalyseerd: {fmtDT(data.analysed_at)}</div>}
             </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -599,7 +613,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                     return (
                       <div key={i} style={{borderLeft:"2px solid rgba(239,68,68,0.3)",paddingLeft:10}}>
                         <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,flexWrap:"wrap"}}>
-                          <span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date(s.time).toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
+                          <span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(s.time)}</span>
                           <span style={{fontSize:10,fontWeight:700,color:vanC.text,background:vanC.bg,border:`1px solid ${vanC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.van}</span>
                           <span style={{fontSize:10,color:"#4b5563"}}>→</span>
                           <span style={{fontSize:10,fontWeight:700,color:naarC.text,background:naarC.bg,border:`1px solid ${naarC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.naar}</span>
@@ -824,7 +838,7 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10}}>
         <div>
           <div style={{fontSize:12,color:"#9ca3af",marginBottom:3}}>{data.session_context}</div>
-          {data.timestamp&&<div style={{fontSize:10,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date(data.timestamp).toLocaleString("nl-NL")}</div>}
+          {data.timestamp&&<div style={{fontSize:10,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>📡 {fmtDT(data.timestamp)}</div>}
         </div>
         <button onClick={onRefresh} disabled={status==="loading-intel"} style={btnStyle(status==="loading-intel")}>
           <span>↺</span>{status==="loading-intel"?`LADEN${".".repeat(dots)}`:"VERNIEUWEN"}
@@ -873,7 +887,8 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(99,102,241,0.06)"}
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap"}}>
-                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time}</span>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time||"—"}</span>
+                  <span style={{fontSize:9,color:"#2d3748",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date().toLocaleDateString("nl-NL",{day:"2-digit",month:"2-digit"})}</span>
                   <Badge label={n.source} color="#6b7280"/>
                   <Badge label={n.category} color="#6366f1"/>
                   {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
@@ -1956,7 +1971,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                   </InfoTooltip>
                 )}
                 {aResult.market_context&&<div style={{flex:1,minWidth:140,fontSize:11,color:"#6b7280"}}>{aResult.market_context}</div>}
-                {aResult.timestamp&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginLeft:"auto"}}>{new Date(aResult.timestamp).toLocaleString("nl-NL")}</div>}
+                {aResult.timestamp&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginLeft:"auto"}}>📊 {fmtDT(aResult.timestamp)}</div>}
               </div>
             )}
 
@@ -1967,15 +1982,83 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
               </div>
             )}
 
-            {/* MARKTVISIE BANNER — AI mening op basis van nieuws */}
+            {/* FOR YOU — AI Marktbriefing zoals MarketReader */}
             {marktvisie?.macro_samenvatting&&(
-              <div style={{marginBottom:14,background:`${accent}08`,border:`1px solid ${accent}22`,borderRadius:8,padding:"10px 16px",display:"flex",gap:10,alignItems:"flex-start"}}>
-                <span style={{fontSize:14,flexShrink:0,marginTop:1}}>🧠</span>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:9,color:accent,letterSpacing:"0.12em",marginBottom:4,fontWeight:700}}>AI MARKTVISIE — GEBASEERD OP NIEUWS</div>
-                  <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.7}}>{marktvisie.macro_samenvatting}</div>
+              <div style={{marginBottom:14,display:"grid",gridTemplateColumns:"1fr 340px",gap:12}}>
+                {/* Linker kolom: macro samenvatting + asset visies */}
+                <div style={{background:`${accent}06`,border:`1px solid ${accent}20`,borderRadius:10,padding:"16px 20px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                    <span style={{fontSize:13}}>🧠</span>
+                    <div>
+                      <div style={{fontSize:10,color:accent,letterSpacing:"0.12em",fontWeight:700}}>AI MARKTBRIEFING</div>
+                      <div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(marktvisie.marktvisie_tijd||Date.now())}</div>
+                    </div>
+                  </div>
+                  <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8,marginBottom:12}}>{marktvisie.macro_samenvatting}</div>
+                  {/* Per-asset visie pills */}
+                  {marktvisie.assets&&(
+                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                      {Object.entries(marktvisie.assets).map(([id,v])=>{
+                        const bc = biasColors[v.bias_richting]||biasColors.Neutraal;
+                        return (
+                          <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"6px 10px"}}>
+                            <span style={{fontSize:10,fontWeight:700,color:bc.text,background:bc.bg,border:`1px solid ${bc.border}44`,borderRadius:4,padding:"1px 7px",flexShrink:0,minWidth:60,textAlign:"center"}}>{id}</span>
+                            <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{v.visie}</span>
+                            {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316",flexShrink:0,marginTop:2}}>ingeprijsd?</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div style={{fontSize:9,color:"#374151",flexShrink:0}}>{new Date(marktvisie.marktvisie_tijd||Date.now()).toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}</div>
+                {/* Rechter kolom: sessie info + key events */}
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {/* Sessie status */}
+                  {presession&&(
+                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+                      <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>SESSIE MOOD</div>
+                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:6}}>
+                        <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>
+                        <span style={{fontSize:12,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
+                        <span style={{fontSize:10,color:"#4b5563"}}>{presession.mood_score}%</span>
+                      </div>
+                      <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5}}>{presession.market_narrative}</div>
+                    </div>
+                  )}
+                  {/* Aankomende events vandaag */}
+                  {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&!e.actual&&e.impact==="high").slice(0,4).length>0&&(
+                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+                      <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:8}}>🔴 HIGH IMPACT VANDAAG</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                        {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&!e.actual&&e.impact==="high").slice(0,4).map((e,i)=>(
+                          <div key={i} style={{display:"flex",gap:8,alignItems:"center"}}>
+                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:accent,fontWeight:700,flexShrink:0}}>{e.time}</span>
+                            <span style={{fontSize:10,color:"#e5e7eb"}}>{e.event}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Risk radar */}
+                  {iResult?.risk_radar&&(
+                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
+                      <svg width="44" height="44" viewBox="0 0 48 48">
+                        <circle cx="24" cy="24" r="18" fill="none" stroke="#1f2023" strokeWidth="4"/>
+                        <circle cx="24" cy="24" r="18" fill="none"
+                          stroke={iResult.risk_radar.score>70?"#ef4444":iResult.risk_radar.score>40?"#f97316":"#22c55e"}
+                          strokeWidth="4"
+                          strokeDasharray={`${(iResult.risk_radar.score/100)*113} 113`}
+                          strokeLinecap="round" transform="rotate(-90 24 24)"/>
+                        <text x="24" y="28" textAnchor="middle" fontSize="11" fontWeight="700"
+                          fill={iResult.risk_radar.score>70?"#ef4444":iResult.risk_radar.score>40?"#f97316":"#22c55e"}>{iResult.risk_radar.score}</text>
+                      </svg>
+                      <div>
+                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:3}}>RISK RADAR</div>
+                        <div style={{fontSize:11,fontWeight:700,color:iResult.risk_radar.score>70?"#ef4444":iResult.risk_radar.score>40?"#f97316":"#22c55e"}}>{iResult.risk_radar.label}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -2057,7 +2140,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                     style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 10px",background:n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)",borderRadius:6,border:n.isNew&&i<3?"1px solid rgba(239,68,68,0.15)":"1px solid transparent",cursor:"pointer",transition:"background 0.2s"}}
                     onMouseEnter={e=>e.currentTarget.style.background="rgba(99,102,241,0.08)"}
                     onMouseLeave={e=>e.currentTarget.style.background=n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)"}>
-                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#374151",flexShrink:0,marginTop:2}}>{n.timeStr}</span>
+                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#374151",flexShrink:0,marginTop:2}}>{fmtDT(n.time)||n.timeStr}</span>
                     <div style={{flex:1}}>
                       <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
                         <Badge label={n.source} color="#6b7280"/>
@@ -2114,7 +2197,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                     </button>
                   ))}
                   <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
-                    {iResult?.timestamp&&<span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date(iResult.timestamp).toLocaleString("nl-NL")}</span>}
+                    {iResult?.timestamp&&<span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>📅 Geladen: {fmtDT(iResult.timestamp)}</span>}
                   </div>
                 </div>
 
