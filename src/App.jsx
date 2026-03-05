@@ -20,9 +20,9 @@ async function fetchTwelvePrice(id, apiKey) {
   const d = await res.json();
   if(d.status==="error" || !d.close) return null;
   const price = parseFloat(d.close);
-  const prev  = parseFloat(d.previous_close);
-  const chg   = prev ? ((price - prev) / prev * 100) : 0;
-  const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+  // percent_change is intraday % from 12data
+  const chg = parseFloat(d.percent_change) || (parseFloat(d.previous_close) ? ((price - parseFloat(d.previous_close)) / parseFloat(d.previous_close) * 100) : 0);
+  const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
   return {
     price: price.toFixed(isFx ? 4 : 2),
     change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
@@ -43,9 +43,8 @@ async function fetchTwelveBatch(ids, apiKey) {
   function parseQuote(id, q) {
     if(!q || q.status==="error" || !q.close) return;
     const price = parseFloat(q.close);
-    const prev  = parseFloat(q.previous_close);
-    const chg   = prev ? ((price - prev) / prev * 100) : 0;
-    const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+    const chg = parseFloat(q.percent_change) || (parseFloat(q.previous_close) ? ((price - parseFloat(q.previous_close)) / parseFloat(q.previous_close) * 100) : 0);
+    const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
     result[id] = {
       price: price.toFixed(isFx ? 4 : 2),
       change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
@@ -67,7 +66,7 @@ async function fetchTwelveBatch(ids, apiKey) {
 
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`;
   const proxies = [
     `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -81,10 +80,12 @@ async function fetchYahooPrice(id) {
       const data = JSON.parse(raw);
       const q = data?.chart?.result?.[0];
       if (!q) continue;
-      const price = q.meta.regularMarketPrice;
-      const prev  = q.meta.chartPreviousClose || q.meta.previousClose;
-      const chg   = prev ? ((price - prev) / prev * 100) : 0;
-      const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+      const meta = q.meta;
+      const price = meta.regularMarketPrice;
+      // Use intraday change percent directly from Yahoo
+      const chgPct = meta.regularMarketChangePercent ?? 0;
+      const chg = chgPct;
+      const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
       return {
         price: price?.toFixed(isFx ? 4 : 2),
         change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
@@ -545,9 +546,10 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 }
 
-function AssetCard({ asset, data, index, loading, onClick, onUpdate, accent, livePrice }) {
+function AssetCard({ asset, data, index, loading, updating: updatingProp, onClick, onUpdate, accent, livePrice }) {
   const [vis, setVis] = useState(false);
-  const [updating, setUpdating] = useState(false);
+  const [updatingLocal, setUpdatingLocal] = useState(false);
+  const updating = updatingProp || updatingLocal;
   const acc = accent || DEFAULT_ACCENT;
   useEffect(()=>{const t=setTimeout(()=>setVis(true),index*80);return()=>clearTimeout(t);},[data,loading]);
   const bias = resolveBias(data?.bias, data?.confidence);
@@ -559,9 +561,9 @@ function AssetCard({ asset, data, index, loading, onClick, onUpdate, accent, liv
   const handleUpdate = async (e) => {
     e.stopPropagation();
     if(updating || !onUpdate) return;
-    setUpdating(true);
+    setUpdatingLocal(true);
     try { await onUpdate(asset); } catch(_) {}
-    setUpdating(false);
+    setUpdatingLocal(false);
   };
 
   return (
@@ -819,6 +821,7 @@ export default function HybridDashboard() {
   const [dots,          setDots]          = useState(0);
   const [deepAsset,     setDeepAsset]     = useState(null);
   const [deepRefreshing,setDeepRefreshing]= useState(false);
+  const [refreshingAssets, setRefreshingAssets] = useState(new Set());
   const [calFilter,     setCalFilter]     = useState("all");
   const [calDayFilter,  setCalDayFilter]  = useState("all");
   const [accent,        setAccent]        = useState(DEFAULT_ACCENT);
@@ -902,31 +905,45 @@ export default function HybridDashboard() {
   async function fetchBreakingNews() {
     setBnLoading(true);
     const allItems = [];
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const proxies = [
+      u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+      u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    ];
     await Promise.allSettled(RSS_FEEDS.map(async ({url, src}) => {
-      try {
-        const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-        const res = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
-        const json = await res.json();
-        const xml = new DOMParser().parseFromString(json.contents, "text/xml");
-        const items = Array.from(xml.querySelectorAll("item")).slice(0,8);
-        items.forEach(item => {
-          const title = item.querySelector("title")?.textContent?.trim() || "";
-          const link  = item.querySelector("link")?.textContent?.trim() || "";
-          const pubDate = item.querySelector("pubDate")?.textContent?.trim() || "";
-          const desc  = item.querySelector("description")?.textContent?.trim() || "";
-          const lower = (title+" "+desc).toLowerCase();
-          const relevant = MARKET_KEYWORDS.some(k => lower.includes(k));
-          if(relevant && title) {
-            const time = pubDate ? new Date(pubDate) : new Date();
-            allItems.push({ headline: title, source: src, url: link, time, timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}), isNew: !seenHeadlines.has(title) });
-          }
+      let xml = null;
+      for(const makeProxy of proxies) {
+        try {
+          const res = await fetch(makeProxy(url), {signal: AbortSignal.timeout(6000)});
+          const json = await res.json();
+          const raw = json.contents || json;
+          xml = new DOMParser().parseFromString(typeof raw === "string" ? raw : JSON.stringify(raw), "text/xml");
+          if(xml.querySelector("item")) break;
+        } catch(_) { continue; }
+      }
+      if(!xml) return;
+      const items = Array.from(xml.querySelectorAll("item")).slice(0,10);
+      items.forEach(item => {
+        const title = item.querySelector("title")?.textContent?.trim() || "";
+        const link  = item.querySelector("link")?.textContent?.trim() || "";
+        const pubDate = item.querySelector("pubDate")?.textContent?.trim() || "";
+        const desc  = item.querySelector("description")?.textContent?.trim() || "";
+        const lower = (title+" "+desc).toLowerCase();
+        const relevant = MARKET_KEYWORDS.some(k => lower.includes(k));
+        if(!relevant || !title) return;
+        const time = pubDate ? new Date(pubDate) : new Date();
+        // Alleen vandaag
+        if(time < todayStart) return;
+        allItems.push({
+          headline: title, source: src, url: link, time,
+          timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+          isNew: !seenHeadlines.has(title)
         });
-      } catch(_) {}
+      });
     }));
-    // Sort newest first
     allItems.sort((a,b) => b.time - a.time);
-    const top = allItems.slice(0, 20);
-    // Notify for new HIGH-impact items
+    const top = allItems.slice(0, 25);
     const newItems = top.filter(n => n.isNew);
     if(newItems.length > 0 && seenHeadlines.size > 0) {
       newItems.forEach(item => sendNotification("📰 Breaking News", item.headline, item.url));
@@ -1122,7 +1139,8 @@ export default function HybridDashboard() {
   }
 
   async function refreshSingleAsset(asset, openDeepDive=false) {
-    if(deepRefreshing) return;
+    if(refreshingAssets.has(asset.id)) return;
+    setRefreshingAssets(prev=>new Set([...prev, asset.id]));
     setDeepRefreshing(true);
     try {
       const now = new Date();
@@ -1158,6 +1176,7 @@ Retourneer ALLEEN dit JSON object, geen wrapper:
       setAResult(prev=>prev?{...prev,assets:{...prev.assets,[asset.id]:newData}}:prev);
       if(openDeepDive) setDeepAsset({asset,data:newData});
     } catch(e){ console.error(e); }
+    setRefreshingAssets(prev=>{ const s=new Set(prev); s.delete(asset.id); return s; });
     setDeepRefreshing(false);
   }
 
@@ -1618,6 +1637,7 @@ Retourneer ALLEEN dit JSON object, geen wrapper, geen uitleg:
               {assets.map((asset,i)=>(
                 <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i}
                   loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
+                  updating={refreshingAssets.has(asset.id)}
                   accent={accent} livePrice={livePrices[asset.id]||null}
                   onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
                   onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
