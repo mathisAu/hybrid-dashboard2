@@ -2005,18 +2005,21 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                     </div>
                   </div>
                   <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8,marginBottom:12}}>{marktvisie.macro_samenvatting}</div>
-                  {/* Per-asset visie pills */}
+                  <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                    <span>📰 NIEUWS CONTEXT PER ASSET</span>
+                    <span style={{color:"#2d3748"}}>— gebaseerd op Intel nieuws van {fmtDT(marktvisie.marktvisie_tijd||Date.now())}</span>
+                  </div>
+                  {/* Per-asset visie — alleen tekst, GEEN bias kleur (want die staat op de kaarten) */}
                   {marktvisie.assets&&(
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
                       {Object.entries(marktvisie.assets).map(([id,v])=>{
-                        const bc = biasColors[v.bias_richting]||biasColors.Neutraal;
                         return (
-                          <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"6px 10px"}}>
-                            <span style={{fontSize:10,fontWeight:700,color:bc.text,background:bc.bg,border:`1px solid ${bc.border}44`,borderRadius:4,padding:"1px 7px",flexShrink:0,minWidth:60,textAlign:"center"}}>{id}</span>
-                            <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{v.visie}</span>
-                            <div style={{display:"flex",flexDirection:"column",gap:2,alignItems:"flex-end",flexShrink:0}}>
-                              <span style={{fontSize:7,color:"#2d3748",letterSpacing:"0.06em"}}>AI VISIE</span>
-                              {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316"}}>ingeprijsd?</span>}
+                          <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px",borderLeft:"2px solid #1f2937"}}>
+                            <span style={{fontSize:10,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.04)",borderRadius:4,padding:"1px 8px",flexShrink:0,minWidth:64,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace"}}>{id}</span>
+                            <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.6,flex:1}}>{v.visie}</span>
+                            <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0,marginTop:1}}>
+                              <span style={{fontSize:8,color:"#374151",background:"rgba(255,255,255,0.03)",borderRadius:3,padding:"1px 5px",letterSpacing:"0.06em",border:"1px solid #1f2937"}}>🤖 AI</span>
+                              {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316",background:"rgba(249,115,22,0.1)",borderRadius:3,padding:"1px 5px"}}>ingeprijsd?</span>}
                             </div>
                           </div>
                         );
