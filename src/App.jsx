@@ -76,36 +76,36 @@ async function fetchTwelveBatch(ids, apiKey) {
 }
 
 
+// Stooq symbol mapping (geen CORS, gratis)
+const STOOQ_MAP = {
+  XAUUSD:"xauusd", US30:"^dji", US100:"^ndx", EURUSD:"eurusd",
+  GBPUSD:"gbpusd", BTCUSD:"btcusd", ETHUSD:"ethusd", USDJPY:"usdjpy",
+  USDCHF:"usdchf", USOIL:"cl.f", SPX:"^spx", DXY:"dxy.f", VIX:"^vix", US10Y:"10yt.b",
+};
+
 async function fetchYahooPrice(id) {
-  const sym = YAHOO_MAP[id] || id;
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`;
-  const proxies = [
-    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  ];
-  for(const proxy of proxies) {
-    try {
-      const res = await fetch(proxy, { signal: AbortSignal.timeout(4000) });
-      const json = await res.json();
-      const raw = typeof json === "string" ? json : json.contents || JSON.stringify(json);
-      const data = JSON.parse(raw);
-      const q = data?.chart?.result?.[0];
-      if (!q) continue;
-      const meta = q.meta;
-      const price = meta.regularMarketPrice;
-      // Use intraday change percent directly from Yahoo
-      const chgPct = meta.regularMarketChangePercent ?? 0;
-      const chg = chgPct;
-      const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
-      return {
-        price: price?.toFixed(isFx ? 4 : 2),
-        change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
-        direction: chg >= 0 ? "up" : "down",
-        raw: chg,
-      };
-    } catch(_) { continue; }
-  }
+  // Stooq CSV — geen CORS, real-time, betrouwbaar
+  const sym = STOOQ_MAP[id] || id.toLowerCase();
+  try {
+    const res = await fetch(`https://stooq.com/q/l/?s=${sym}&f=sd2t2ohlcv&h&e=csv`, {signal:AbortSignal.timeout(6000)});
+    const text = await res.text();
+    const lines = text.trim().split("\n");
+    if(lines.length >= 2) {
+      const cols = lines[1].split(",");
+      const price = parseFloat(cols[4]); // close
+      const open  = parseFloat(cols[2]); // open
+      if(price > 0 && open > 0) {
+        const chg = ((price - open) / open * 100);
+        const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
+        return {
+          price: price.toFixed(isFx ? 4 : 2),
+          change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
+          direction: chg >= 0 ? "up" : "down",
+          raw: chg,
+        };
+      }
+    }
+  } catch(_) {}
   return null;
 }
 
@@ -1033,57 +1033,46 @@ export default function HybridDashboard() {
   },[assets, tdKey, fhKey, priceSource]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
+  // RSS2JSON is gratis en heeft geen CORS problemen
   const RSS_FEEDS = [
-    { url:"https://feeds.bbci.co.uk/news/business/rss.xml",                                    src:"BBC Business" },
-    { url:"https://feeds.reuters.com/reuters/businessNews",                                     src:"Reuters" },
-    { url:"https://feeds.marketwatch.com/marketwatch/topstories/",                              src:"MarketWatch" },
-    { url:"https://www.federalreserve.gov/feeds/press_all.xml",                                 src:"Federal Reserve" },
-    { url:"https://www.ecb.europa.eu/rss/press.html",                                           src:"ECB" },
-    { url:"https://www.bankofengland.co.uk/rss/news",                                           src:"Bank of England" },
-    { url:"https://financialjuice.com/feed",                                                    src:"FinancialJuice" },
+    { url:"https://feeds.bbci.co.uk/news/business/rss.xml",     src:"BBC Business" },
+    { url:"https://feeds.reuters.com/reuters/businessNews",      src:"Reuters" },
+    { url:"https://feeds.marketwatch.com/marketwatch/topstories/", src:"MarketWatch" },
+    { url:"https://www.federalreserve.gov/feeds/press_all.xml",  src:"Federal Reserve" },
+    { url:"https://financialjuice.com/feed",                     src:"FinancialJuice" },
   ];
-  const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yields","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","crypto","bitcoin","recession","tariff","bank","powell","lagarde","treasury","bond","equity","stock","market","economy","trade","forex","currency"];
+  const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yields","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","bitcoin","recession","tariff","powell","lagarde","treasury","bond","equity","stock","market","economy","trade","forex","currency","jobs","nonfarm","payroll","pmi","retail"];
 
   async function fetchBreakingNews() {
     setBnLoading(true);
     const allItems = [];
     const now = new Date();
     const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
-    const proxies = [
-      u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-      u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    ];
+
     await Promise.allSettled(RSS_FEEDS.map(async ({url, src}) => {
-      let xml = null;
-      for(const makeProxy of proxies) {
-        try {
-          const res = await fetch(makeProxy(url), {signal: AbortSignal.timeout(6000)});
-          const json = await res.json();
-          const raw = json.contents || json;
-          xml = new DOMParser().parseFromString(typeof raw === "string" ? raw : JSON.stringify(raw), "text/xml");
-          if(xml.querySelector("item")) break;
-        } catch(_) { continue; }
-      }
-      if(!xml) return;
-      const items = Array.from(xml.querySelectorAll("item")).slice(0,10);
-      items.forEach(item => {
-        const title = item.querySelector("title")?.textContent?.trim() || "";
-        const link  = item.querySelector("link")?.textContent?.trim() || "";
-        const pubDate = item.querySelector("pubDate")?.textContent?.trim() || "";
-        const desc  = item.querySelector("description")?.textContent?.trim() || "";
-        const lower = (title+" "+desc).toLowerCase();
-        const relevant = MARKET_KEYWORDS.some(k => lower.includes(k));
-        if(!relevant || !title) return;
-        const time = pubDate ? new Date(pubDate) : new Date();
-        // Alleen vandaag
-        if(time < todayStart) return;
-        allItems.push({
-          headline: title, source: src, url: link, time,
-          timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
-          isNew: !seenHeadlines.has(title)
+      // rss2json.com — gratis tier, geen CORS
+      try {
+        const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=15`;
+        const res = await fetch(api, {signal: AbortSignal.timeout(8000)});
+        const d = await res.json();
+        if(d.status !== "ok" || !d.items) return;
+        d.items.forEach(item => {
+          const title = item.title?.trim() || "";
+          const link  = item.link  || "";
+          const lower = (title + " " + (item.description||"")).toLowerCase();
+          const relevant = MARKET_KEYWORDS.some(k => lower.includes(k));
+          if(!relevant || !title) return;
+          const time = item.pubDate ? new Date(item.pubDate) : new Date();
+          if(time < todayStart) return;
+          allItems.push({
+            headline: title, source: src, url: link, time,
+            timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+            isNew: !seenHeadlines.has(title)
+          });
         });
-      });
+      } catch(_) {}
     }));
+
     allItems.sort((a,b) => b.time - a.time);
     const top = allItems.slice(0, 25);
     const newItems = top.filter(n => n.isNew);
@@ -1322,7 +1311,7 @@ ${["EURUSD","GBPUSD"].includes(asset.id) ? "DXY stijgt = bearish voor dit pair."
 
 Retourneer ALLEEN JSON, geen wrapper:
 {"bias":"","confidence":0,"hold_confidence":0,"price_today":"${p?.price||""}","price_change_today":"${p?.change||""}","price_direction":"${p?.direction||"up"}","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
