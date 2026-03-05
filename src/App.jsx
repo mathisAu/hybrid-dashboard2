@@ -235,21 +235,16 @@ BELANGRIJK: De prijzen hierboven zijn LIVE en actueel. Noem NOOIT een prijsnivea
 Economische kalender zoeken: vandaag=${dateStr}, morgen=${fmt(tomorrow)}, overmorgen=${fmt(dayAfter)}.
 Zoek kalender events voor ALLE drie de dagen. Kalender items mogen NIET verdwijnen tussen refreshes — geef altijd de volledige lijst.
 
-Doe ALLE volgende searches, in volgorde:
-1. site:forexfactory.com/news — ForexFactory breaking news feed vandaag
-2. site:financialjuice.com — FinancialJuice breaking macro nieuws
-3. reuters markets finance news today ${dateStr}
-4. bloomberg markets breaking news today
-5. Federal Reserve OR Fed speaker statement ${dateStr}
-6. ECB OR Lagarde statement ${dateStr}
-7. Bank of England OR Bailey ${dateStr}
-8. economic calendar PMI CPI NFP GDP ${dateStr}
-9. investing.com economic calendar today
-10. gold XAU/USD price analysis ${dateStr}
+Doe de volgende searches:
+1. ForexFactory breaking news + economic calendar vandaag
+2. Reuters Bloomberg macro markets nieuws vandaag
+3. Fed ECB BoE statements OR speakers ${dateStr}
+4. economic calendar high impact ${dateStr} ${fmt(tomorrow)}
+5. gold EUR/USD GBP/USD market news ${dateStr}
 
 Geef per news_item de directe impact op: ${assetLabels.join(", ")}.
-Economische kalender: zoek ALLE high en medium impact events voor today/tomorrow/day_after.
-Minimaal 8 nieuws items van ECHTE bronnen. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
+Kalender: today/tomorrow/day_after, alle high impact events.
+Minimaal 6 nieuws items. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
 }
 
 
@@ -269,7 +264,7 @@ REGELS:
 
 function MARKTVISIE_USER(intelResult, assetLabels, crossAsset) {
   const nieuws = (intelResult?.news_items||[])
-    .slice(0,12)
+    .slice(0,8)
     .map(n=>`[${n.time||"?"}] ${n.source}: ${n.headline} → ${n.direction} (impact: ${n.impact})`)
     .join("\n");
   const breaking = (intelResult?.breakingItems||[])
@@ -1595,7 +1590,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
     // Breaking news — meest recente signalen
     if(breakingNews?.length>0) {
       macroCtx += "\n\nBREAKING NEWS (meest recent eerst):\n";
-      macroCtx += breakingNews.slice(0,8).map(n=>`[${fmtTime(n.time)}][${n.source}] ${n.headline}`).join("\n");
+      macroCtx += breakingNews.slice(0,4).map(n=>`[${fmtTime(n.time)}][${n.source}] ${n.headline}`).join("\n");
     }
 
     // Analyseer alle assets in 1 call — zo kan AI onderlinge verhoudingen zien
@@ -1635,11 +1630,17 @@ ${newsLines}
 Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:5000, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
-      if(res.status===429 && attempt < 3) {
-        await new Promise(r=>setTimeout(r, attempt * 15000));
-        return analyseAllAssets(attempt+1);
+      if(res.status===429) {
+        if(attempt < 3) {
+          const waitSec = attempt * 30;
+          setAStatus(`waiting-${waitSec}`);
+          await new Promise(r=>setTimeout(r, waitSec*1000));
+          setAStatus("loading");
+          return analyseAllAssets(attempt+1);
+        }
+        throw new Error("Rate limit — wacht 1 minuut en probeer opnieuw");
       }
       if(!res.ok) throw new Error(`Analyse API fout ${res.status}`);
       const data = await res.json();
@@ -1799,7 +1800,7 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
           method:"POST", headers,
           body: JSON.stringify({
             model:"claude-sonnet-4-20250514",
-            max_tokens: 1200,
+            max_tokens: 900,
             system: MARKTVISIE_SYSTEM,
             messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
           })
