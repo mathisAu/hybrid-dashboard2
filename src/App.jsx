@@ -1,175 +1,91 @@
 import { useState, useEffect, useRef } from "react";
 
-// ── Live prijzen via Twelve Data (real-time) met Yahoo fallback ───────────────
+// ── Twelve Data ───────────────────────────────────────────────────────────────
 const TWELVE_MAP = {
-  XAUUSD:"XAU/USD", US30:"DJI", US100:"IXIC", EURUSD:"EUR/USD",
+  XAUUSD:"XAU/USD", US30:"DJI",    US100:"NDX",     EURUSD:"EUR/USD",
   GBPUSD:"GBP/USD", BTCUSD:"BTC/USD", ETHUSD:"ETH/USD", USDJPY:"USD/JPY",
-  USDCHF:"USD/CHF", USOIL:"WTI", SPX:"SPX", DXY:"DXY", VIX:"VIX", US10Y:"TNX",
-};
-const TWELVE_REV = Object.fromEntries(Object.entries(TWELVE_MAP).map(([k,v])=>[v,k]));
-const YAHOO_MAP = {
-  XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F", EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
-  BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X", USDCHF:"CHF=X",
-  USOIL:"CL=F", SPX:"^GSPC", DXY:"DX-Y.NYB", VIX:"^VIX", US10Y:"^TNX",
+  USDCHF:"USD/CHF", USOIL:"WTI",   SPX:"SPX",       DXY:"DXY", VIX:"VIX", US10Y:"TNX",
 };
 
 async function fetchTwelvePrice(id, apiKey) {
   const sym = TWELVE_MAP[id] || id;
-  // /price geeft real-time prijs, /quote geeft closing (vertraagd)
-  const [priceRes, quoteRes] = await Promise.all([
-    fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(5000)}),
-    fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(5000)}),
-  ]);
-  const priceData = await priceRes.json();
-  const quoteData = await quoteRes.json();
-  if(quoteData.status==="error") return null;
-  const price = parseFloat(priceData.price) || parseFloat(quoteData.close);
-  if(!price) return null;
-  const prev = parseFloat(quoteData.previous_close);
-  const chg = prev ? ((price - prev) / prev * 100) : parseFloat(quoteData.percent_change) || 0;
-  const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
-  return {
-    price: price.toFixed(isFx ? 4 : 2),
-    change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
-    direction: chg >= 0 ? "up" : "down",
-    raw: chg,
-  };
-}
-
-// Batch: prijs real-time via /price endpoint
-async function fetchTwelveBatch(ids, apiKey) {
-  const syms = ids.map(id => TWELVE_MAP[id] || id).join(",");
-  // Haal zowel real-time price als quote (voor % change) op
-  const [priceRes, quoteRes] = await Promise.all([
-    fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
-    fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
-  ]);
-  const priceData = await priceRes.json();
-  const quoteData = await quoteRes.json();
-  if(!quoteData || quoteData.status==="error") return {};
-  const result = {};
-
-  function parseEntry(id, qd, pd) {
-    if(!qd || qd.status==="error") return;
-    const price = parseFloat(pd?.price) || parseFloat(qd.close);
-    if(!price) return;
+  try {
+    const [pr, qr] = await Promise.all([
+      fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(6000)}),
+      fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(6000)}),
+    ]);
+    const pd = await pr.json();
+    const qd = await qr.json();
+    if(qd.status==="error") return null;
+    const price = parseFloat(pd.price) || parseFloat(qd.close);
+    if(!price) return null;
     const prev = parseFloat(qd.previous_close);
-    const chg = prev ? ((price - prev) / prev * 100) : parseFloat(qd.percent_change) || 0;
-    const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
-    result[id] = {
-      price: price.toFixed(isFx ? 4 : 2),
-      change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
-      direction: chg >= 0 ? "up" : "down",
-      raw: chg,
-    };
-  }
-
-  if(ids.length === 1) {
-    parseEntry(ids[0], quoteData, priceData);
-    return result;
-  }
-  ids.forEach(id => {
-    const sym = TWELVE_MAP[id] || id;
-    parseEntry(id, quoteData[sym], priceData[sym]);
-  });
-  return result;
+    const chg  = prev ? ((price-prev)/prev*100) : parseFloat(qd.percent_change)||0;
+    const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
+    return { price:price.toFixed(isFx?4:2), change:(chg>=0?"+":"")+chg.toFixed(2)+"%", direction:chg>=0?"up":"down", raw:chg };
+  } catch(_) { return null; }
 }
 
+async function fetchTwelveBatch(ids, apiKey) {
+  const syms = ids.map(id=>TWELVE_MAP[id]||id).join(",");
+  try {
+    const [pr, qr] = await Promise.all([
+      fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
+      fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
+    ]);
+    const pd = await pr.json(); const qd = await qr.json();
+    if(!qd || qd.status==="error") return {};
+    const result = {};
+    const parse = (id,q,p) => {
+      if(!q||q.status==="error") return;
+      const price = parseFloat(p?.price)||parseFloat(q.close); if(!price) return;
+      const prev = parseFloat(q.previous_close);
+      const chg  = prev ? ((price-prev)/prev*100) : parseFloat(q.percent_change)||0;
+      const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
+      result[id] = { price:price.toFixed(isFx?4:2), change:(chg>=0?"+":"")+chg.toFixed(2)+"%", direction:chg>=0?"up":"down", raw:chg };
+    };
+    if(ids.length===1){ parse(ids[0],qd,pd); return result; }
+    ids.forEach(id=>parse(id, qd[TWELVE_MAP[id]||id], pd[TWELVE_MAP[id]||id]));
+    return result;
+  } catch(_) { return {}; }
+}
 
-// Stooq symbol mapping (geen CORS, gratis)
-const STOOQ_MAP = {
-  XAUUSD:"xauusd", US30:"^dji", US100:"^ndx", EURUSD:"eurusd",
-  GBPUSD:"gbpusd", BTCUSD:"btcusd", ETHUSD:"ethusd", USDJPY:"usdjpy",
-  USDCHF:"usdchf", USOIL:"cl.f", SPX:"^spx", DXY:"dxy.f", VIX:"^vix", US10Y:"10yt.b",
+// ── Finnhub ───────────────────────────────────────────────────────────────────
+const FINNHUB_MAP = {
+  XAUUSD:"OANDA:XAU_USD", US30:"OANDA:US30_USD",  US100:"OANDA:NAS100_USD",
+  EURUSD:"OANDA:EUR_USD",  GBPUSD:"OANDA:GBP_USD", BTCUSD:"BINANCE:BTCUSDT",
+  USDJPY:"OANDA:USD_JPY",  USDCHF:"OANDA:USD_CHF", USOIL:"OANDA:WTICO_USD",
+  DXY:"OANDA:USD_BASKET",  VIX:"CBOE:VIX",         US10Y:"TVC:US10Y",
+  SPX:"OANDA:SPX500_USD",
 };
 
-async function fetchYahooPrice(id) {
-  // Stooq CSV — geen CORS, real-time, betrouwbaar
-  const sym = STOOQ_MAP[id] || id.toLowerCase();
+async function fetchFinnhubPrice(id, apiKey) {
+  const sym = FINNHUB_MAP[id]; if(!sym) return null;
   try {
-    const res = await fetch(`https://stooq.com/q/l/?s=${sym}&f=sd2t2ohlcv&h&e=csv`, {signal:AbortSignal.timeout(6000)});
-    const text = await res.text();
-    const lines = text.trim().split("\n");
-    if(lines.length >= 2) {
-      const cols = lines[1].split(",");
-      const price = parseFloat(cols[4]); // close
-      const open  = parseFloat(cols[2]); // open
-      if(price > 0 && open > 0) {
-        const chg = ((price - open) / open * 100);
-        const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
-        return {
-          price: price.toFixed(isFx ? 4 : 2),
-          change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
-          direction: chg >= 0 ? "up" : "down",
-          raw: chg,
-        };
-      }
-    }
-  } catch(_) {}
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${apiKey}`, {signal:AbortSignal.timeout(5000)});
+    const d = await res.json();
+    if(!d.c || d.c===0) return null;
+    const chg = d.dp ?? (d.pc ? ((d.c-d.pc)/d.pc*100) : 0);
+    const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
+    return { price:d.c.toFixed(isFx?4:2), change:(chg>=0?"+":"")+chg.toFixed(2)+"%", direction:chg>=0?"up":"down", raw:chg };
+  } catch(_) { return null; }
+}
+
+// fetchLivePrice: Finnhub eerst, 12data als fallback
+const FOREX_IDS = ["EURUSD","GBPUSD","USDJPY","USDCHF"];
+async function fetchLivePrice(id, tdKey, fhKey, priceSource) {
+  if(priceSource==="finnhub" && fhKey) {
+    const p = await fetchFinnhubPrice(id, fhKey); if(p) return p;
+  }
+  if(priceSource==="twelvedata" && tdKey) {
+    const p = await fetchTwelvePrice(id, tdKey); if(p) return p;
+  }
+  if(fhKey) { const p = await fetchFinnhubPrice(id, fhKey); if(p) return p; }
+  if(tdKey) { const p = await fetchTwelvePrice(id, tdKey); if(p) return p; }
   return null;
 }
 
-const FINNHUB_MAP = {
-  XAUUSD:"OANDA:XAU_USD", US30:"OANDA:US30_USD", US100:"OANDA:NAS100_USD",
-  EURUSD:"OANDA:EUR_USD", GBPUSD:"OANDA:GBP_USD", BTCUSD:"BINANCE:BTCUSDT",
-  USDJPY:"OANDA:USD_JPY", USDCHF:"OANDA:USD_CHF", USOIL:"OANDA:WTICO_USD",
-  DXY:"OANDA:USD_BASKET", VIX:"CBOE:VIX", US10Y:"TVC:US10Y", SPX:"OANDA:SPX500_USD",
-};
-async function fetchFinnhubPrice(id, apiKey) {
-  const sym = FINNHUB_MAP[id] || id;
-  const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${apiKey}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-  const d = await res.json();
-  if(!d.c || d.c === 0) return null;
-  const price = d.c;
-  const prev = d.pc;
-  // Use dp (day percent) directly if available — matches Finnhub website
-  const chg = d.dp !== undefined ? d.dp : (prev ? ((price - prev) / prev * 100) : 0);
-  const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
-  return {
-    price: price.toFixed(isFx ? 4 : 2),
-    change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
-    direction: chg >= 0 ? "up" : "down",
-    raw: chg,
-  };
-}
 
-const FOREX_IDS = ["EURUSD","GBPUSD","USDJPY","USDCHF"];
-const INDEX_IDS  = ["US30","US100","SPX"]; // indices die verkeerde prijs kunnen geven via API
-
-async function fetchLivePrice(id, tdKey, fhKey, priceSource) {
-  // Forex altijd via Yahoo
-  if(FOREX_IDS.includes(id)) return fetchYahooPrice(id);
-
-  // Voor indices: haal prijs van Yahoo (betrouwbaar), % van Finnhub/12data (real-time)
-  if(INDEX_IDS.includes(id)) {
-    const yahooP = await fetchYahooPrice(id).catch(()=>null);
-    // Probeer real-time % te pakken van Finnhub of 12data
-    let rtChg = null;
-    if(priceSource==="finnhub" && fhKey) {
-      try {
-        const fh = await fetchFinnhubPrice(id, fhKey);
-        if(fh) rtChg = { change: fh.change, direction: fh.direction, raw: fh.raw };
-      } catch(_) {}
-    } else if(priceSource==="twelvedata" && tdKey) {
-      try {
-        const td = await fetchTwelvePrice(id, tdKey);
-        if(td) rtChg = { change: td.change, direction: td.direction, raw: td.raw };
-      } catch(_) {}
-    }
-    if(yahooP && rtChg) return { ...yahooP, ...rtChg };
-    return yahooP;
-  }
-
-  // Gold/Oil/DXY/VIX: gebruik gekozen bron
-  if(priceSource==="finnhub" && fhKey) {
-    try { const p = await fetchFinnhubPrice(id, fhKey); if(p) return p; } catch(_) {}
-  }
-  if(priceSource==="twelvedata" && tdKey) {
-    try { const p = await fetchTwelvePrice(id, tdKey); if(p) return p; } catch(_) {}
-  }
-  return fetchYahooPrice(id);
-}
 
 // ── Accent colour (user-configurable) ─────────────────────────────────────────
 const DEFAULT_ACCENT = "#089981";
@@ -262,6 +178,23 @@ INTEGRITEIT REGELS:
 GEEN apostrofs of aanhalingstekens in strings. Alleen JSON, geen markdown.
 
 {"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"09:30","source":"","category":"","headline":"","impact":"high","direction":"bullish","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"","verdict":"","effect":"","date":"today"}]}`;
+
+// ── Lichte nieuws-only fetch (elke 15 min, ~200 tokens) ──────────────────────
+const NEWS_SYSTEM = `Je bent een markt nieuws monitor. Gebruik web search om de laatste breaking news te vinden.
+Zoek UITSLUITEND op deze bronnen: Reuters, Bloomberg, FinancialJuice, Walter Bloomberg, ForexFactory, Fed/ECB/BoE officieel.
+Hallucineeer NOOIT — alleen echte headlines die je gevonden hebt.
+GEEN apostrofs. Alleen JSON array, geen wrapper, geen markdown.
+[{"time":"HH:MM","source":"Reuters","headline":"...","direction":"bullish|bearish|neutraal","impact":"high|medium","assets":["XAU/USD","EUR/USD"]}]`;
+
+function NEWS_USER_NOW() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+  const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  return `${dateStr}, ${timeStr} CET. Zoek naar breaking financial news van de afgelopen 30 minuten.
+Zoektermen: "Reuters forex news today", "Bloomberg markets breaking", "Fed ECB news ${dateStr}", "gold dollar markets ${dateStr}".
+Geef max 8 items. Alleen high-impact macro nieuws. Geen crypto, geen bedrijfsnieuws tenzij marktbeweging.
+Retourneer ALLEEN JSON array.`;
+}
 
 
 
@@ -1028,95 +961,117 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen — batch voor 12data, individueel voor Yahoo/Finnhub
+  // Live prijzen — alleen Finnhub of 12data (geen CORS problemen)
   useEffect(()=>{
-    const nonFxIds = [...assets.map(a=>a.id).filter(id=>!FOREX_IDS.includes(id)), "DXY","VIX","US10Y"];
-    const fxIds = assets.map(a=>a.id).filter(id=>FOREX_IDS.includes(id));
+    const allIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
 
     async function fetchAll() {
-      // Forex altijd via Yahoo (real-time)
-      fxIds.forEach(id => {
-        fetchYahooPrice(id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
-      });
-      // Indices/Gold: batch als 12data, anders individueel
       if(priceSource==="twelvedata" && tdKey) {
+        // Batch call voor alle assets tegelijk
         try {
-          const batch = await fetchTwelveBatch(nonFxIds, tdKey);
+          const batch = await fetchTwelveBatch(allIds, tdKey);
           if(Object.keys(batch).length > 0) {
             setLivePrices(prev=>({...prev,...batch}));
             return;
           }
         } catch(_) {}
       }
-      // Finnhub of fallback Yahoo
-      nonFxIds.forEach(id => {
-        fetchLivePrice(id, tdKey, fhKey, priceSource).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
-      });
+      if(priceSource==="finnhub" && fhKey) {
+        // Individuele calls voor Finnhub (geen batch API)
+        allIds.forEach(id => {
+          fetchFinnhubPrice(id, fhKey)
+            .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
+            .catch(()=>{});
+        });
+        return;
+      }
+      // Fallback: probeer andere bron
+      if(tdKey) {
+        try {
+          const batch = await fetchTwelveBatch(allIds, tdKey);
+          if(Object.keys(batch).length > 0) setLivePrices(prev=>({...prev,...batch}));
+        } catch(_) {}
+      } else if(fhKey) {
+        allIds.forEach(id => {
+          fetchFinnhubPrice(id, fhKey)
+            .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
+            .catch(()=>{});
+        });
+      }
     }
 
     fetchAll();
-    const t = setInterval(fetchAll, 30000); // elke 30s refresh
+    const t = setInterval(fetchAll, 30000);
     return()=>clearInterval(t);
   },[assets, tdKey, fhKey, priceSource]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
-  // RSS2JSON is gratis en heeft geen CORS problemen
-  const RSS_FEEDS = [
-    { url:"https://feeds.bbci.co.uk/news/business/rss.xml",     src:"BBC Business" },
-    { url:"https://feeds.reuters.com/reuters/businessNews",      src:"Reuters" },
-    { url:"https://feeds.marketwatch.com/marketwatch/topstories/", src:"MarketWatch" },
-    { url:"https://www.federalreserve.gov/feeds/press_all.xml",  src:"Federal Reserve" },
-    { url:"https://financialjuice.com/feed",                     src:"FinancialJuice" },
-  ];
-  const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yields","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","bitcoin","recession","tariff","powell","lagarde","treasury","bond","equity","stock","market","economy","trade","forex","currency","jobs","nonfarm","payroll","pmi","retail"];
+  // ── Breaking News via AI web search (Reuters, Bloomberg, FinancialJuice etc) ──
+  const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yield","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","recession","tariff","powell","lagarde","treasury","bond","forex","currency","payroll","pmi"];
 
   async function fetchBreakingNews() {
+    if(!apiKey?.trim()) return; // Geen Anthropic key = geen nieuws
     setBnLoading(true);
-    const allItems = [];
-    const now = new Date();
-    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    try {
+      const hdrs = {
+        "Content-Type":"application/json",
+        "x-api-key": apiKey.trim(),
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true",
+      };
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers: hdrs,
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:600,
+          system: NEWS_SYSTEM,
+          tools:[{"type":"web_search_20250305","name":"web_search"}],
+          messages:[{role:"user", content: NEWS_USER_NOW()}],
+        }),
+        signal: AbortSignal.timeout(30000),
+      });
+      if(!res.ok) { setBnLoading(false); return; }
+      const data = await res.json();
+      const text = data.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
+      const clean = text.replace(/```json|```/g,"").trim();
+      // Verwacht JSON array
+      const start = clean.indexOf("[");
+      const end   = clean.lastIndexOf("]");
+      if(start===-1||end===-1) { setBnLoading(false); return; }
+      const arr = JSON.parse(clean.slice(start, end+1));
+      if(!Array.isArray(arr)) { setBnLoading(false); return; }
 
-    await Promise.allSettled(RSS_FEEDS.map(async ({url, src}) => {
-      // rss2json.com — gratis tier, geen CORS
-      try {
-        const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=15`;
-        const res = await fetch(api, {signal: AbortSignal.timeout(8000)});
-        const d = await res.json();
-        if(d.status !== "ok" || !d.items) return;
-        d.items.forEach(item => {
-          const title = item.title?.trim() || "";
-          const link  = item.link  || "";
-          const lower = (title + " " + (item.description||"")).toLowerCase();
-          const relevant = MARKET_KEYWORDS.some(k => lower.includes(k));
-          if(!relevant || !title) return;
-          const time = item.pubDate ? new Date(item.pubDate) : new Date();
-          if(time < todayStart) return;
-          allItems.push({
-            headline: title, source: src, url: link, time,
-            timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
-            isNew: !seenHeadlines.has(title)
-          });
-        });
-      } catch(_) {}
-    }));
+      const now = new Date();
+      const items = arr.map(n => ({
+        headline: n.headline || "",
+        source:   n.source   || "News",
+        url:      n.url      || "",
+        time:     now,
+        timeStr:  n.time     || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+        direction:n.direction|| "neutraal",
+        impact:   n.impact   || "medium",
+        assets:   n.assets   || [],
+        isNew:    !seenHeadlines.has(n.headline),
+      })).filter(n => n.headline);
 
-    allItems.sort((a,b) => b.time - a.time);
-    const top = allItems.slice(0, 25);
-    const newItems = top.filter(n => n.isNew);
-    if(newItems.length > 0 && seenHeadlines.size > 0) {
-      newItems.forEach(item => sendNotification("📰 Breaking News", item.headline, item.url));
-    }
-    setSeenHeadlines(new Set(top.map(n => n.headline)));
-    setBreakingNews(top);
+      const newItems = items.filter(n => n.isNew);
+      if(newItems.length > 0 && seenHeadlines.size > 0) {
+        newItems.slice(0,2).forEach(item => sendNotification("📰 Breaking News", item.headline, item.url));
+      }
+      setSeenHeadlines(new Set(items.map(n => n.headline)));
+      setBreakingNews(items);
+    } catch(e) { console.error("News fetch:", e); }
     setBnLoading(false);
   }
 
-  // Fetch breaking news on mount and every 5 min
+  // News auto-refresh: bij laden en elke 15 minuten
   useEffect(() => {
+    if(!apiKey?.trim()) return;
     fetchBreakingNews();
-    const t = setInterval(fetchBreakingNews, 5*60*1000);
+    const t = setInterval(fetchBreakingNews, 15*60*1000);
     return () => clearInterval(t);
-  }, []);
+  }, [apiKey]);
 
   // ── Browser Notifications ────────────────────────────────────────────────────
   function requestNotifPermission() {
@@ -1392,24 +1347,19 @@ Retourneer ALLEEN JSON, geen wrapper:
     const headers = {"Content-Type":"application/json"};
     if(apiKey.trim()){ headers["x-api-key"]=apiKey.trim(); headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
 
-    // Forceer verse prijzen — batch voor 12data
+    // Verse prijzen ophalen — alleen Finnhub of 12data
     const freshPrices = {...livePrices};
-    const nonFxIds = [...assets.map(a=>a.id).filter(id=>!FOREX_IDS.includes(id)), "DXY","VIX","US10Y"];
-    const fxIds = assets.map(a=>a.id).filter(id=>FOREX_IDS.includes(id));
-    // Forex via Yahoo
-    await Promise.allSettled(fxIds.map(async id => {
-      try { const p = await fetchYahooPrice(id); if(p) { freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); } } catch(_) {}
-    }));
-    // Indices/Gold batch
+    const allFetchIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
+
     if(priceSource==="twelvedata" && tdKey) {
       try {
-        const batch = await fetchTwelveBatch(nonFxIds, tdKey);
+        const batch = await fetchTwelveBatch(allFetchIds, tdKey);
         Object.entries(batch).forEach(([id,p])=>{ freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); });
       } catch(_) {}
-    } else {
-      await Promise.allSettled(nonFxIds.map(async id => {
+    } else if(priceSource==="finnhub" && fhKey) {
+      await Promise.allSettled(allFetchIds.map(async id => {
         try {
-          const p = await Promise.race([fetchLivePrice(id,tdKey,fhKey,priceSource), new Promise((_,r)=>setTimeout(()=>r(),5000))]);
+          const p = await fetchFinnhubPrice(id, fhKey);
           if(p) { freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); }
         } catch(_) {}
       }));
@@ -1543,7 +1493,23 @@ Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":""
   const runIntel = () => {
     setIError("");
     const labels = assets.map(a=>a.label);
-    callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), setIResult, setIError, setIStatus);
+    callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), (result) => {
+      setIResult(result);
+      // Sync breaking news vanuit Intel AI nieuws items
+      if(result?.news_items?.length > 0) {
+        const now = new Date();
+        const items = result.news_items.map(n => ({
+          headline: n.headline,
+          source: n.source || "Intel",
+          url: n.url || "",
+          time: now,
+          timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+          isNew: true,
+          direction: n.direction,
+        }));
+        setBreakingNews(items);
+      }
+    }, setIError, setIStatus);
   };
   const loading = aStatus==="loading"||iStatus==="loading";
 
@@ -1848,13 +1814,15 @@ Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":""
                   <div style={{width:7,height:7,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 8px #ef4444",animation:"pulse 1.5s infinite"}}/>
                   <span style={{fontSize:10,fontWeight:700,color:"#ef4444",letterSpacing:"0.12em"}}>BREAKING NEWS</span>
                 </div>
-                <span style={{fontSize:9,color:"#374151"}}>Reuters · Bloomberg · FT · MarketWatch — elke 5 min</span>
-                {bnLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto"}}>⟳ refreshing...</span>}
-                <button onClick={fetchBreakingNews} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺ nu laden</button>
+                <span style={{fontSize:9,color:"#374151"}}>Reuters · Bloomberg · FinancialJuice · Fed/ECB — elke 15 min via AI</span>
+                {bnLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span> ophalen...</span>}
+                {!bnLoading&&<button onClick={fetchBreakingNews} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺ nu laden</button>}
               </div>
               <div style={{maxHeight:340,overflowY:"auto",padding:"10px 16px",display:"flex",flexDirection:"column",gap:8}}>
                 {breakingNews.length===0&&!bnLoading&&(
-                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>Nieuws laden... (even wachten)</div>
+                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>
+                    {apiKey?.trim() ? "Klik '↺ nu laden' of wacht op auto-refresh" : "Voer Anthropic API key in voor live nieuws"}
+                  </div>
                 )}
                 {breakingNews.map((n,i)=>(
                   <div key={i}
@@ -1866,7 +1834,14 @@ Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":""
                     <div style={{flex:1}}>
                       <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
                         <Badge label={n.source} color="#6b7280"/>
+                        {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
                         {n.isNew&&i<3&&<Badge label="NIEUW" color="#ef4444"/>}
+                        {n.direction&&n.direction!=="neutraal"&&(
+                          <span style={{fontSize:11,color:n.direction==="bullish"?"#22c55e":"#ef4444",fontWeight:700}}>
+                            {n.direction==="bullish"?"▲":"▼"}
+                          </span>
+                        )}
+                        {n.assets?.length>0&&n.assets.map(a=><Badge key={a} label={a} color="#374151"/>)}
                       </div>
                       <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5}}>{n.headline}</div>
                     </div>
