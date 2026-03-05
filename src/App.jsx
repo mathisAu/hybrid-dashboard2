@@ -198,19 +198,15 @@ GEEN apostrofs. Alleen JSON:
 
 
 
-const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik ALTIJD web search — nooit trainingdata voor actuele markten.
+const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik web search voor actueel nieuws.
 
-ZOEK VERPLICHT (doe meerdere searches):
-1. Reuters markets/finance nieuws vandaag
-2. Bloomberg breaking news markets vandaag
-3. FinancialJuice.com breaking news
-4. Officieel: federalreserve.gov, ecb.europa.eu, bankofengland.co.uk
-5. ForexFactory high impact calendar events
-6. DXY, US10Y yield, VIX actuele niveaus
-
-Minimaal 6 news_items. Hallucineeer NOOIT.
-Beide kanten: bullish EN bearish signalen altijd vermelden.
-GEEN apostrofs. Alleen JSON, geen markdown.
+REGELS:
+- Zoek naar actueel nieuws van vandaag via de web search tool
+- Minimaal 6 news_items van echte bronnen (Reuters, Bloomberg, ForexFactory, FinancialJuice)
+- Economische kalender: zoek high-impact events voor vandaag + morgen + overmorgen
+- Beide kanten: bullish EN bearish altijd vermelden
+- NOOIT prijsniveaus verzinnen die niet uit de aangeleverde data komen
+- GEEN apostrofs. Alleen JSON, geen markdown.
 
 {"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"bullish|bearish","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"HH:MM","source":"","headline":"","impact":"high|medium|low","direction":"bullish|bearish|neutraal","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"high|medium|low","verdict":"","effect":"","date":"today|tomorrow|day_after"}]}`;
 
@@ -235,21 +231,10 @@ BELANGRIJK: De prijzen hierboven zijn LIVE en actueel. Noem NOOIT een prijsnivea
 Economische kalender zoeken: vandaag=${dateStr}, morgen=${fmt(tomorrow)}, overmorgen=${fmt(dayAfter)}.
 Zoek kalender events voor ALLE drie de dagen. Kalender items mogen NIET verdwijnen tussen refreshes — geef altijd de volledige lijst.
 
-Doe ALLE volgende searches, in volgorde:
-1. site:forexfactory.com/news — ForexFactory breaking news feed vandaag
-2. site:financialjuice.com — FinancialJuice breaking macro nieuws
-3. reuters markets finance news today ${dateStr}
-4. bloomberg markets breaking news today
-5. Federal Reserve OR Fed speaker statement ${dateStr}
-6. ECB OR Lagarde statement ${dateStr}
-7. Bank of England OR Bailey ${dateStr}
-8. economic calendar PMI CPI NFP GDP ${dateStr}
-9. investing.com economic calendar today
-10. gold XAU/USD price analysis ${dateStr}
-
+Zoek actueel financieel nieuws en economische kalender voor vandaag.
 Geef per news_item de directe impact op: ${assetLabels.join(", ")}.
-Economische kalender: zoek ALLE high en medium impact events voor today/tomorrow/day_after.
-Minimaal 8 nieuws items van ECHTE bronnen. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
+Kalender: today/tomorrow/day_after, alle high impact events.
+Minimaal 6 nieuws items van echte bronnen. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
 }
 
 
@@ -269,7 +254,7 @@ REGELS:
 
 function MARKTVISIE_USER(intelResult, assetLabels, crossAsset) {
   const nieuws = (intelResult?.news_items||[])
-    .slice(0,12)
+    .slice(0,8)
     .map(n=>`[${n.time||"?"}] ${n.source}: ${n.headline} → ${n.direction} (impact: ${n.impact})`)
     .join("\n");
   const breaking = (intelResult?.breakingItems||[])
@@ -1094,6 +1079,9 @@ export default function HybridDashboard() {
 
   async function fetchBreakingNews() {
     if(!fhKey?.trim()) return;
+    // Geen breaking news fetch tijdens actieve API calls
+    if(hybridStatus!=="idle"&&hybridStatus!=="done") return;
+    if(aStatus==="loading"||iStatus==="loading") return;
     setBnLoading(true);
     try {
       const now = new Date();
@@ -1297,20 +1285,29 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:sys, messages:[{role:"user",content:usr}] })
+          body:JSON.stringify({
+            model:"claude-sonnet-4-20250514",
+            max_tokens: 4000,
+            system: sys,
+            tools: [{ type:"web_search_20250305", name:"web_search" }],
+            messages:[{role:"user",content:usr}]
+          })
         });
         if(res.status===429){
-          const waitSec = attempt * 20;
           if(attempt<maxRetries){
+            // Lees retry-after header of gebruik exponential backoff
+            const retryAfter = parseInt(res.headers.get("retry-after")||"0");
+            const waitSec = retryAfter > 0 ? retryAfter + 2 : attempt * 30;
             setStatus(`waiting-${waitSec}`);
             await new Promise(r=>setTimeout(r, waitSec*1000));
             setStatus("loading");
             continue;
           }
-          throw new Error("API limiet bereikt — wacht 1-2 minuten en probeer opnieuw");
+          throw new Error("Rate limit — wacht even en probeer opnieuw");
         }
         if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API fout: ${res.status}`);}
         const data=await res.json();
+        // Web search geeft meerdere content blocks terug — combineer alleen text blocks
         const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
         setResult(robustParse(text));
         setStatus("done");
@@ -1366,7 +1363,7 @@ ${recentNews}
 Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1462,7 +1459,7 @@ ${macroCtx || "Geen Intel geladen."}
 JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       }
 
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1588,7 +1585,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
     // Breaking news — meest recente signalen
     if(breakingNews?.length>0) {
       macroCtx += "\n\nBREAKING NEWS (meest recent eerst):\n";
-      macroCtx += breakingNews.slice(0,8).map(n=>`[${fmtTime(n.time)}][${n.source}] ${n.headline}`).join("\n");
+      macroCtx += breakingNews.slice(0,4).map(n=>`[${fmtTime(n.time)}][${n.source}] ${n.headline}`).join("\n");
     }
 
     // Analyseer alle assets in 1 call — zo kan AI onderlinge verhoudingen zien
@@ -1628,11 +1625,17 @@ ${newsLines}
 Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:5000, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-haiku-4-5-20251001", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
-      if(res.status===429 && attempt < 3) {
-        await new Promise(r=>setTimeout(r, attempt * 15000));
-        return analyseAllAssets(attempt+1);
+      if(res.status===429) {
+        if(attempt < 3) {
+          const waitSec = attempt * 30;
+          setAStatus(`waiting-${waitSec}`);
+          await new Promise(r=>setTimeout(r, waitSec*1000));
+          setAStatus("loading");
+          return analyseAllAssets(attempt+1);
+        }
+        throw new Error("Rate limit — wacht 1 minuut en probeer opnieuw");
       }
       if(!res.ok) throw new Error(`Analyse API fout ${res.status}`);
       const data = await res.json();
@@ -1743,6 +1746,9 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
   const [hybridStatus, setHybridStatus] = useState("idle");
   const runHybrid = async () => {
     if(hybridStatus !== "idle" && hybridStatus !== "done") return;
+    // Stop auto-refresh tijdens hybrid zodat geen parallel calls
+    clearInterval(autoRefreshRef.current);
+    clearInterval(countdownRef.current);
     setHybridStatus("intel");
     setIError(""); setAError("");
     const labels = assets.map(a=>a.label);
@@ -1775,7 +1781,8 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
       });
     });
 
-    // ── Stap 2: Marktvisie — AI verwerkt nieuws tot echte mening per asset ─────
+    // ── Stap 2: Marktvisie — 3 sec pauze om rate limit te voorkomen ─────────────
+    await new Promise(r=>setTimeout(r,3000));
     setHybridStatus("visie");
     if(intelResult) {
       try {
@@ -1788,15 +1795,23 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
         ].join(" | ");
         // Geef breaking news ook mee aan marktvisie
         const intelMetBreaking = {...intelResult, breakingItems: breakingNews.slice(0,6)};
-        const visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+        let visieRes = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
           body: JSON.stringify({
-            model:"claude-sonnet-4-20250514",
-            max_tokens: 1200,
+            model:"claude-haiku-4-5-20251001",
+            max_tokens: 900,
             system: MARKTVISIE_SYSTEM,
             messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
           })
         });
+        // 429 retry voor marktvisie
+        if(visieRes.status===429) {
+          await new Promise(r=>setTimeout(r,20000));
+          visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+            method:"POST", headers,
+            body: JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
+          });
+        }
         if(visieRes.ok) {
           const visieData = await visieRes.json();
           const visieText = visieData.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
@@ -1809,15 +1824,19 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
       } catch(e) { console.error("Marktvisie fout:", e); }
     }
 
-    // ── Stap 3: Analyse — gebruikt Intel + Marktvisie als context ──────────────
+    // ── Stap 3: Analyse — 3 sec pauze om rate limit te voorkomen ──────────────
+    await new Promise(r=>setTimeout(r,3000));
     setHybridStatus("analyse");
     await runAnalysis();
 
-    // ── Stap 4: Sessie breakdown — parallel uitvoeren na analyse ─────────────
+    // ── Stap 4: Sessie breakdown — 3 sec pauze ──────────────────────────────────
+    await new Promise(r=>setTimeout(r,3000));
     setHybridStatus("sessie");
     await runPresession();
 
     setHybridStatus("done");
+    // Herstart auto-refresh als het aan stond
+    if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
     setTimeout(() => setHybridStatus("idle"), 4000);
   };
   const loading = aStatus==="loading"||iStatus==="loading";
