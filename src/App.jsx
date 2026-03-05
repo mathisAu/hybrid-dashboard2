@@ -208,6 +208,53 @@ Minimaal 8 nieuws items van ECHTE bronnen. Alleen JSON.`;
 }
 
 
+// ── MARKTVISIE: AI verwerkt nieuws tot echte marktmening per asset ────────────
+const MARKTVISIE_SYSTEM = `Je bent een ervaren forex en index trader die een dagelijkse marktvisie schrijft.
+Je hebt zojuist nieuws gelezen. Schrijf nu een concrete marktvisie per asset.
+
+REGELS:
+- Baseer ALLES op het aangeleverde nieuws — niet op aannames
+- Elke asset krijgt een eigen visie gebaseerd op HOE dat nieuws dat SPECIFIEKE asset raakt
+- Wees concreet: noem het specifieke nieuws dat de doorslag geeft
+- Geef aan of het nieuws al ingeprijsd kan zijn (buy-the-rumor-sell-the-news)
+- Als nieuws tegenstrijdig is: zeg dat en geef een genuan­ceerde visie
+- GEEN apostrofs. Alleen JSON.
+
+{"marktvisie_tijd":"ISO","macro_samenvatting":"2-3 zinnen over het overkoepelende macro beeld vandaag","assets":{"XAUUSD":{"visie":"","bias_richting":"Bullish|Bearish|Neutraal|Fragiel","sterkte":0,"key_driver":"","risico":"","ingeprijsd":false}}}`;
+
+function MARKTVISIE_USER(intelResult, assetLabels, crossAsset) {
+  const nieuws = (intelResult?.news_items||[])
+    .slice(0,12)
+    .map(n=>`[${n.time||"?"}] ${n.source}: ${n.headline} → ${n.direction} (impact: ${n.impact})`)
+    .join("\n");
+  const breaking = (intelResult?.breakingItems||[])
+    .slice(0,6)
+    .map(n=>`[BREAKING] ${n.source}: ${n.headline}`)
+    .join("\n");
+  const regime = `Macro regime: ${intelResult?.macro_regime||"onbekend"}. Driver: ${intelResult?.dominant_driver||"?"}. ${intelResult?.desk_view||""}`;
+  const yields = intelResult?.yield_analysis
+    ? `US10Y: ${intelResult.yield_analysis.us10y_level}, Regime: ${intelResult.yield_analysis.regime}, Implicatie: ${intelResult.yield_analysis.implication}`
+    : "";
+  const assetJsonParts = assetLabels.map(l => {
+    const id = l.replace("/","");
+    return `"${id}":{"visie":"","bias_richting":"","sterkte":0,"key_driver":"","risico":"","ingeprijsd":false}`;
+  }).join(",");
+
+  return `NIEUWS VAN VANDAAG:
+${nieuws}
+${breaking}
+
+MACRO CONTEXT:
+${regime}
+${yields}
+LIVE PRIJZEN: ${crossAsset}
+
+Schrijf voor elk van deze assets een concrete marktvisie: ${assetLabels.join(", ")}.
+Gebruik ALLEEN het bovenstaande nieuws. Geen aannames.
+
+{"marktvisie_tijd":"${new Date().toISOString()}","macro_samenvatting":"","assets":{${assetJsonParts}}}`;
+}
+
 function resolveBias(bias, confidence) {
   if (!bias) return bias;
   const low = bias.toLowerCase();
@@ -900,6 +947,7 @@ export default function HybridDashboard() {
   const [iStatus,       setIStatus]       = useState("idle");
   const [aResult,       setAResult]       = useState(null);
   const [iResult,       setIResult]       = useState(null);
+  const [marktvisie,    setMarktvisie]    = useState(null); // AI marktmening op basis van nieuws
   const [aError,        setAError]        = useState("");
   const [iError,        setIError]        = useState("");
   const [dots,          setDots]          = useState(0);
@@ -1307,6 +1355,14 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
       if(iResult.news_items?.length>0) {
         macroCtx += "\nNIEUWS VANDAAG (gebruik dit voor bias — niet alleen prijs):\n" + iResult.news_items.slice(0,10).map(n=>`- [${n.source}] ${n.headline} → ${n.direction} (impact:${n.impact})`).join("\n");
       }
+      // Marktvisie: AI heeft nieuws al verwerkt tot per-asset mening — dit is de kern
+      if(iResult.marktvisie?.assets) {
+        macroCtx += "\n\nMARKTVISIE OP BASIS VAN NIEUWS (zwaar meewegen):\n";
+        macroCtx += `Macro: ${iResult.marktvisie.macro_samenvatting||""}\n`;
+        Object.entries(iResult.marktvisie.assets).forEach(([id, v]) => {
+          macroCtx += `${id}: ${v.visie} → ${v.bias_richting} (sterkte:${v.sterkte}/100) | driver: ${v.key_driver} | risico: ${v.risico}${v.ingeprijsd?" | MOGELIJK INGEPRIJSD":""}\n`;
+        });
+      }
     }
     if(breakingNews?.length>0) {
       macroCtx += "\nBREAKING NEWS:\n" + breakingNews.slice(0,6).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
@@ -1452,10 +1508,12 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
     setIError(""); setAError("");
     const labels = assets.map(a=>a.label);
 
-    // Stap 1: Intel laden met echte nieuwscontext
+    // ── Stap 1: Intel — nieuws ophalen via web search ──────────────────────────
+    let intelResult = null;
     let intelDone = false;
     await new Promise(resolve => {
       const origSet = (result) => {
+        intelResult = result;
         setIResult(result);
         if(result?.news_items?.length > 0) {
           const now = new Date();
@@ -1478,7 +1536,41 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
       });
     });
 
-    // Stap 2: Analyse met verse Intel context
+    // ── Stap 2: Marktvisie — AI verwerkt nieuws tot echte mening per asset ─────
+    setHybridStatus("visie");
+    if(intelResult) {
+      try {
+        const headers = {"Content-Type":"application/json","x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};
+        const dxy = livePrices["DXY"]; const us10y = livePrices["US10Y"]; const vix = livePrices["VIX"];
+        const crossAsset = [
+          dxy   ? `DXY:${dxy.price} ${dxy.change}` : "DXY:?",
+          us10y ? `US10Y:${us10y.price}% ${us10y.change}` : "US10Y:?",
+          vix   ? `VIX:${vix.price} ${vix.change}` : "VIX:?",
+        ].join(" | ");
+        // Geef breaking news ook mee aan marktvisie
+        const intelMetBreaking = {...intelResult, breakingItems: breakingNews.slice(0,6)};
+        const visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+          method:"POST", headers,
+          body: JSON.stringify({
+            model:"claude-sonnet-4-20250514",
+            max_tokens: 1200,
+            system: MARKTVISIE_SYSTEM,
+            messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
+          })
+        });
+        if(visieRes.ok) {
+          const visieData = await visieRes.json();
+          const visieText = visieData.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
+          const visieParsed = JSON.parse(visieText.replace(/```json|```/g,"").trim());
+          setMarktvisie(visieParsed);
+          // Sla marktvisie op in iResult zodat analyse hem kan gebruiken
+          intelResult = {...intelResult, marktvisie: visieParsed};
+          setIResult(prev => prev ? {...prev, marktvisie: visieParsed} : prev);
+        }
+      } catch(e) { console.error("Marktvisie fout:", e); }
+    }
+
+    // ── Stap 3: Analyse — gebruikt Intel + Marktvisie als context ──────────────
     setHybridStatus("analyse");
     await runAnalysis();
     setHybridStatus("done");
@@ -1681,9 +1773,10 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                 <span style={{display:"inline-block",animation:hybridStatus==="intel"||hybridStatus==="analyse"?"spin 0.8s linear infinite":"none"}}>
                   {hybridStatus==="done"?"✓":"⬤"}
                 </span>
-                {hybridStatus==="intel" ? `NIEUWS LADEN${".".repeat(dots)}` :
-                 hybridStatus==="analyse" ? `ANALYSEREN${".".repeat(dots)}` :
-                 hybridStatus==="done" ? "KLAAR" : "▶ HYBRID ANALYSE"}
+                {hybridStatus==="intel" ? `1/3 NIEUWS LADEN${".".repeat(dots)}` :
+                 hybridStatus==="visie" ? `2/3 MARKTVISIE${".".repeat(dots)}` :
+                 hybridStatus==="analyse" ? `3/3 ANALYSEREN${".".repeat(dots)}` :
+                 hybridStatus==="done" ? "✓ KLAAR" : "▶ HYBRID ANALYSE"}
               </button>
               <button onClick={runAnalysis}
                 disabled={aStatus==="loading"}
@@ -1740,6 +1833,18 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
               <div style={{background:"#0f1011",border:`1px solid ${accent}30`,borderRadius:8,padding:"14px 20px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
                 <div style={{width:22,height:22,border:`2px solid ${accent}22`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}}/>
                 <div style={{fontSize:12,color:accent,fontWeight:600}}>Live price action & HYBRID PROMPT v6.3 uitvoeren...</div>
+              </div>
+            )}
+
+            {/* MARKTVISIE BANNER — AI mening op basis van nieuws */}
+            {marktvisie?.macro_samenvatting&&(
+              <div style={{marginBottom:14,background:`${accent}08`,border:`1px solid ${accent}22`,borderRadius:8,padding:"10px 16px",display:"flex",gap:10,alignItems:"flex-start"}}>
+                <span style={{fontSize:14,flexShrink:0,marginTop:1}}>🧠</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:9,color:accent,letterSpacing:"0.12em",marginBottom:4,fontWeight:700}}>AI MARKTVISIE — GEBASEERD OP NIEUWS</div>
+                  <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.7}}>{marktvisie.macro_samenvatting}</div>
+                </div>
+                <div style={{fontSize:9,color:"#374151",flexShrink:0}}>{new Date(marktvisie.marktvisie_tijd||Date.now()).toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}</div>
               </div>
             )}
 
