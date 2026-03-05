@@ -1200,10 +1200,10 @@ export default function HybridDashboard() {
     // Strip all markdown artifacts
     let s = text
       .replace(/```json\s*/gi,"").replace(/```\s*/g,"")
-      .replace(/^---+\s*$/gm,"")  // remove --- lines
+      .replace(/^---+\s*$/gm,"")
       .trim();
 
-    // Find the outermost { ... } — be careful with nested braces
+    // Find the outermost { ... }
     const start = s.indexOf("{");
     if(start===-1) throw new Error("Geen JSON object gevonden");
 
@@ -1219,16 +1219,37 @@ export default function HybridDashboard() {
       if(c==="{")depth++;
       else if(c==="}"){depth--;if(depth===0){end=i;break;}}
     }
-    if(end===-1) {
-      // JSON werd afgekapt — probeer te sluiten door ontbrekende } toe te voegen
-      const opens = (s.match(/{/g)||[]).length - (s.match(/}/g)||[]).length;
-      const closeArr = (s.match(/\[/g)||[]).length - (s.match(/\]/g)||[]).length;
-      s = s + "]".repeat(Math.max(0,closeArr)) + "}".repeat(Math.max(0,opens));
-      end = s.length - 1;
-    }
-    s = s.slice(start, end+1);
 
-    // Quick fix trailing commas
+    if(end===-1) {
+      // JSON afgekapt — agressieve reparatie:
+      // 1. Als we midden in een string zitten: sluit die
+      let repairing = s.slice(start);
+      // Sluit open string als nodig
+      let inS2=false, es2=false, lastStrStart=-1;
+      for(let i=0;i<repairing.length;i++){
+        const c=repairing[i];
+        if(es2){es2=false;continue;}
+        if(c==="\\"&&inS2){es2=true;continue;}
+        if(c==='"'){
+          if(!inS2) lastStrStart=i;
+          inS2=!inS2;
+        }
+      }
+      if(inS2) repairing += '"'; // sluit open string
+      // Verwijder trailing incomplete key (bijv: ,"some_key": zonder waarde)
+      repairing = repairing.replace(/,\s*"[^"]*"\s*:\s*$/, '');
+      repairing = repairing.replace(/,\s*"[^"]*"\s*$/, '');
+      // Tel open haakjes en sluit ze
+      const opens  = (repairing.match(/{/g)||[]).length - (repairing.match(/}/g)||[]).length;
+      const opensA = (repairing.match(/\[/g)||[]).length - (repairing.match(/\]/g)||[]).length;
+      repairing += "]".repeat(Math.max(0,opensA)) + "}".repeat(Math.max(0,opens));
+      s = repairing;
+      end = s.length - 1;
+    } else {
+      s = s.slice(start, end+1);
+    }
+
+    // Fix trailing commas
     s = s.replace(/,(\s*[}\]])/g,"$1");
     try { return JSON.parse(s); } catch(_) {}
 
@@ -1240,14 +1261,13 @@ export default function HybridDashboard() {
       if(c==="\\"&&inS){out+=c;es=true;continue;}
       if(c==='"'){
         if(!inS){inS=true;out+=c;continue;}
-        // Is this a real closing quote?
         let j=i+1;
         while(j<s.length&&" \t\n\r".includes(s[j]))j++;
         const nx=s[j];
         if(":"===nx||","===nx||"}"===nx||"]"===nx||j>=s.length){
           inS=false;out+=c;
         } else {
-          out+='\u201C'; // replace rogue quote with typographic "
+          out+='\u201C';
         }
         continue;
       }
@@ -1262,9 +1282,9 @@ export default function HybridDashboard() {
 
     try { return JSON.parse(s); } catch(e){
       const pos=parseInt(e.message.match(/position (\d+)/)?.[1]||"0");
-      const snip=s.slice(Math.max(0,pos-150),pos+150);
+      const snip=s.slice(Math.max(0,pos-100),pos+100);
       console.error("JSON BREAK pos="+pos+"\n---\n"+snip+"\n---");
-      throw new Error(`JSON fout pos ${pos} — open F12 console voor details`);
+      throw new Error(`JSON afgekapt (pos ${pos}) — verhoog max_tokens of versimpel prompt`);
     }
   }
 
@@ -1608,7 +1628,7 @@ ${newsLines}
 Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:2400, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:3500, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429 && attempt < 3) {
         await new Promise(r=>setTimeout(r, attempt * 15000));
