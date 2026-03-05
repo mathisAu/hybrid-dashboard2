@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from "react";
 
 // ── Live prijzen via Twelve Data (real-time) met Yahoo fallback ───────────────
 const TWELVE_MAP = {
-  XAUUSD:"XAU/USD", US30:"DJ30", US100:"NDX", EURUSD:"EUR/USD",
+  XAUUSD:"XAU/USD", US30:"DJIA", US100:"QQQ", EURUSD:"EUR/USD",
   GBPUSD:"GBP/USD", BTCUSD:"BTC/USD", ETHUSD:"ETH/USD", USDJPY:"USD/JPY",
-  USDCHF:"USD/CHF", USOIL:"WTI", SPX:"SPX", DXY:"DXY", VIX:"VIX", US10Y:"TNX",
+  USDCHF:"USD/CHF", USOIL:"WTI", SPX:"SPY", DXY:"DXY", VIX:"VIX", US10Y:"TNX",
 };
+const TWELVE_REV = Object.fromEntries(Object.entries(TWELVE_MAP).map(([k,v])=>[v,k]));
 const YAHOO_MAP = {
   XAUUSD:"GC=F", US30:"YM=F", US100:"NQ=F", EURUSD:"EURUSD=X", GBPUSD:"GBPUSD=X",
   BTCUSD:"BTC-USD", ETHUSD:"ETH-USD", USDJPY:"JPY=X", USDCHF:"CHF=X",
@@ -36,10 +37,10 @@ async function fetchTwelveBatch(ids, apiKey) {
   const url = `https://api.twelvedata.com/quote?symbol=${syms}&apikey=${apiKey}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   const d = await res.json();
+  if(!d || d.status==="error") return {};
   const result = {};
-  ids.forEach(id => {
-    const sym = TWELVE_MAP[id] || id;
-    const q = d[sym] || (ids.length === 1 ? d : null);
+
+  function parseQuote(id, q) {
     if(!q || q.status==="error" || !q.close) return;
     const price = parseFloat(q.close);
     const prev  = parseFloat(q.previous_close);
@@ -51,6 +52,15 @@ async function fetchTwelveBatch(ids, apiKey) {
       direction: chg >= 0 ? "up" : "down",
       raw: chg,
     };
+  }
+
+  // Single asset response (no wrapper)
+  if(ids.length === 1) { parseQuote(ids[0], d); return result; }
+
+  // Multi: response is keyed by symbol name
+  ids.forEach(id => {
+    const sym = TWELVE_MAP[id] || id;
+    parseQuote(id, d[sym]);
   });
   return result;
 }
@@ -171,31 +181,34 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Institutioneel intraday trading analist. Live prijzen worden aangeleverd — gebruik deze direct, doe GEEN web search.
+const ANALYSIS_SYSTEM = `Je bent een institutioneel macro trading analist. Doe GEEN web search — alle context wordt aangeleverd.
 
-HYBRID METHODE:
-1. MACRO: yield regime, DXY richting, risk-on/off
-2. FUNDAMENTEEL: wat drijft dit asset vandaag?
-3. TECHNISCH: RSI, EMA, structuur (HH/HL of LH/LL)
-4. FLOW: momentum kwaliteit, participatie
-5. SYNTHESE: bias op basis van macro + fundamenteel (dominant). Technisch bevestigt of verzwakt de confidence.
+KERNREGEL: Bias komt van FUNDAMENTELE analyse. Prijs en % zijn CONTEXT, nooit de oorzaak van je bias.
+
+WERKWIJZE:
+1. Lees de macro context en nieuws — dit is je primaire input
+2. Bepaal wat dit asset fundamenteel drijft vandaag (Fed, ECB, geopolitiek, risk regime)
+3. Prijs/% gebruik je ALLEEN om te checken of markt al heeft ingeprijsd
+4. Technische data bevestigt of verzwakt confidence — verandert NOOIT de bias richting
 
 BIAS REGELS:
-- Bias: Bullish/Bearish/Neutraal/Fragiel
-- Als fundamenteel Bearish maar technisch choppy/mixed → bias BEARISH maar confidence lager (50-65%), market_mood="Technische tegenspraak"
-- Confidence MAX 10 punten verschil per run tenzij groot nieuws
-- Bij twijfel: houd vorige bias, gebruik Fragiel
-- mini_summary: WAAROM deze bias fundamenteel, wat zegt technisch
+- Bullish/Bearish/Neutraal/Fragiel
+- Fragiel = fundamenteel beeld onduidelijk of conflicterend
+- Vorige bias is je anker — wijk ALLEEN af bij nieuw fundamenteel nieuws of regime shift
+- Technische tegenspraak → confidence lager (50-65%), bias ZELFDE richting houden
+- Als GEEN macro context beschikbaar: geef Fragiel met confidence 45, leg uit wat je mist
+- confidence 80+: sterke fundamentele alignment
+- confidence 65-79: goed beeld, lichte onzekerheid  
+- confidence 50-64: mixed signals
+- confidence <50: gebruik Fragiel
 
-VELDEN:
-- market_mood: korte sfeer omschrijving bv "Risk-Off Selloff", "Bullish Momentum", "Choppy Consolidatie", "Technische Tegenspraak", "Voorzichtig Bullish"
-- dominant_mechanisme: fundamentele driver NIET prijsbeweging
-- technical_trend: Strong Uptrend/Choppy Up/Strong Downtrend/Choppy Down/Ranging/Compressing
-- yield_regime: Risk-On/Risk-Off/Stagflatie/Neutraal
-- GEEN apostrofs in strings. Alleen JSON.
+mini_summary: 2 zinnen — (1) waarom deze bias fundamenteel, (2) wat bevestigt/weerspreekt technisch
+market_mood: 2-3 woorden sfeer bv "Risk-Off Selloff", "Voorzichtig Bullish", "Stagflatie Angst", "Technische Tegenspraak"
+dominant_mechanisme: de FUNDAMENTELE drijfveer — NOOIT "prijs stijgt" of "%"
 
-JSON:
-{"timestamp":"ISO","yield_regime":"","yield_regime_explanation":"","dxy_change":"","dxy_direction":"up","vix_level":"","us10y":"","market_context":"","session":"","assets":{"ASSETID":{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[{"headline":"","source":"","direction":"","time":"","url":""}]}}}`;
+GEEN apostrofs. Alleen JSON.
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
+
 
 
 const INTEL_SYSTEM = `Macro market intelligence analist. Gebruik web search voor actuele data van vandaag.
@@ -1118,16 +1131,24 @@ export default function HybridDashboard() {
       const p = livePrices[asset.id];
       const prev = prevBias[asset.id];
       let macroCtx = "";
-      if(iResult) macroCtx = `Macro regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. ${iResult.desk_view||""}`;
-      if(breakingNews?.length>0) macroCtx += " Breaking: "+breakingNews.slice(0,3).map(n=>n.headline).join("; ");
-      const priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : "prijs tijdelijk niet beschikbaar";
-      const prevLine = prev ? `Vorige bias: ${prev.bias} (${prev.confidence}%) — wijk alleen af bij concrete reden.` : "";
-      const usr = `VANDAAG ${dateStr}. Analyseer ALLEEN: ${asset.label} (${asset.id}).
-${priceLine}
-${macroCtx ? "Macro context: "+macroCtx : ""}
+      if(iResult) {
+        macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. ${iResult.desk_view||""}`;
+        if(iResult.news_items?.length>0) macroCtx += "\nNIEUWS:\n"+iResult.news_items.slice(0,5).map(n=>`- [${n.source}] ${n.headline} → ${n.direction}`).join("\n");
+      }
+      if(breakingNews?.length>0) macroCtx += "\nBREAKING:\n"+breakingNews.slice(0,3).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
+      const priceCtx = p ? `Prijs (context only): ${p.price} | Dag verandering: ${p.change}` : `Prijs niet beschikbaar`;
+      const prevLine = prev ? `VORIGE BIAS: ${prev.bias} (${prev.confidence}%) — houd dit aan tenzij macro context veranderd is.` : "";
+      const usr = `VANDAAG ${dateStr}. Asset: ${asset.label} (${asset.id}).
+
+FUNDAMENTELE CONTEXT (basis voor je bias):
+${macroCtx || "Geen macro context — gebruik Fragiel bias"}
+
+TECHNISCHE CONTEXT (alleen voor confidence):
+${priceCtx}
+
 ${prevLine}
-Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper):
-{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
+Retourneer ALLEEN dit JSON object, geen wrapper:
+{"bias":"","confidence":0,"hold_confidence":0,"price_today":"${p?.price||""}","price_change_today":"${p?.change||""}","price_direction":"${p?.direction||"up"}","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
@@ -1216,10 +1237,14 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
     // Macro context van Intel + breaking news
     let macroCtx = "";
     if(iResult) {
-      macroCtx = `Macro regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
-      if(iResult.news_items?.length>0) macroCtx += " Nieuws: "+iResult.news_items.slice(0,3).map(n=>`${n.headline}(${n.direction})`).join("; ");
+      macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
+      if(iResult.news_items?.length>0) {
+        macroCtx += "\nNIEUWS VANDAAG:\n" + iResult.news_items.slice(0,6).map(n=>`- [${n.source}] ${n.headline} → ${n.direction}`).join("\n");
+      }
     }
-    if(breakingNews?.length>0) macroCtx += " Breaking: "+breakingNews.slice(0,3).map(n=>n.headline).join("; ");
+    if(breakingNews?.length>0) {
+      macroCtx += "\nBREAKING:\n" + breakingNews.slice(0,4).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
+    }
 
     // Analyseer elke asset apart — met retry bij falen
     async function analyseAsset(asset, attempt=1) {
@@ -1227,16 +1252,23 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
       const t = techData[asset.id];
       const prev = prevBias[asset.id];
 
-      let priceLine = p ? `prijs=${p.price}, verandering=${p.change} (${p.direction})` : `prijs tijdelijk niet beschikbaar`;
-      if(t) priceLine += `, RSI=${t.rsi}(${t.rsiSignal}), ${t.priceVsEma}`;
-      const prevLine = prev ? `Vorige bias: ${prev.bias} (${prev.confidence}%) — wijk alleen af bij concrete reden.` : "";
+      let priceCtx = p ? `Prijs (context only): ${p.price} | Dag verandering: ${p.change}` : `Prijs niet beschikbaar`;
+      if(t) priceCtx += ` | RSI: ${t.rsi} (${t.rsiSignal})${t.priceVsEma ? `, ${t.priceVsEma}` : ""}`;
+      const prevLine = prev ? `VORIGE BIAS: ${prev.bias} (${prev.confidence}%) — houd dit aan tenzij macro context veranderd is.` : "";
 
-      const usr = `VANDAAG ${dateStr}. Analyseer ALLEEN: ${asset.label} (${asset.id}).
-${priceLine}
-${macroCtx ? "Macro context: "+macroCtx : ""}
+      const usr = `VANDAAG ${dateStr}. Asset: ${asset.label} (${asset.id}).
+
+FUNDAMENTELE CONTEXT (basis voor je bias):
+${macroCtx || "Geen macro context — gebruik Fragiel bias"}
+
+TECHNISCHE CONTEXT (alleen voor confidence, niet voor bias richting):
+${priceCtx}
+
 ${prevLine}
-Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} object (geen wrapper):
-{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
+
+Bepaal je bias puur op de fundamentele context. Geef altijd een volledig ingevuld JSON object.
+Retourneer ALLEEN dit JSON object, geen wrapper, geen uitleg:
+{"bias":"","confidence":0,"hold_confidence":0,"price_today":"${p?.price||""}","price_change_today":"${p?.change||""}","price_direction":"${p?.direction||"up"}","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
 
       const body = { model:"claude-sonnet-4-20250514", max_tokens:800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
