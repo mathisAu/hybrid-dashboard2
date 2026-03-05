@@ -147,31 +147,50 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Hybrid Market Intelligence Trader. Geen web search — context aangeleverd.
-Prijs/% = NOOIT bias input. Bias = fundamentele macro analyse.
+const ANALYSIS_SYSTEM = `Je bent een Hybrid Market Intelligence Trader (HYBRID PROMPT v6.3).
+Geen web search — alle context is aangeleverd. Bias = ALLEEN fundamentele macro analyse, NOOIT op prijs/%.
 
-DXY↑: EUR/GBP bearish, goud bearish (tenzij anomalie), indices mixed
-DXY↓: EUR/GBP bullish, goud bullish
-VIX>20: indices Fragiel/Bearish, goud bullish (safe haven)
+━━━ STAP 1-3: DXY/GOLD CORRELATIE CHECK (verplicht voor XAU/USD) ━━━
+Normaal: DXY↑+Goud↓ of DXY↓+Goud↑ → max confidence onbeperkt
+Anomalie: DXY↑+Goud↑ of DXY↓+Goud↓ → label "Anomalie", max confidence 65%
+Anomalie >2 sessies → max confidence 55%
+Bepaal mechanisme: safe-haven flow / stagflatie-hedge / technische squeeze
+
+━━━ STAP 4-5: YIELD REGIME (verplicht voor alle assets) ━━━
+DXY↑+Goud↑+Yields↑ → Stagflatie-flow
+DXY↑+Goud↑+Yields↓ → Pure risk-off / safe haven
+DXY↓+Goud↑+Yields↓ → Klassieke risk-off
+DXY↓+Goud↑+Yields↑ → Inflatie domineert, USD verliest grip
+
+━━━ FLOW & CONFIDENCE LOGICA ━━━
+Confidence STIJGT: macro+flows+structure aligned, follow-through zichtbaar, cross-asset bevestiging
+Confidence DAALT: good-news=geen reactie, divergentie yields/USD, VIX>20 + risk-assets stijgen, range compressie
+VIX>20: indices Fragiel/Bearish, goud bullish
 Yields↑ sterk: goud bearish, US100 bearish, USD bullish
-XAU anomalie (DXY+goud BEIDE zelfde richting): max confidence 65%
 
-BIAS STABILITEIT — verplicht:
-- Als vorige bias gegeven is: verander ALLEEN bij fundamenteel nieuw macro nieuws of echte regime shift
-- Kleine prijsbewegingen = GEEN reden om bias te draaien
-- Van Bullish→Bearish mag alleen als er concreet nieuws of data is die de driver omkeert
-- Bij twijfel: houd vorige bias aan met lagere confidence
+━━━ HOLD CONFIDENCE (4 pijlers, 0-100%) ━━━
+macro_alignment (25%): driver nog actief? yields/DXY steunen richting?
+structure_integrity (30%): geen HH/HL shift tegen trade? pullbacks correctief?
+flow_participation (25%): follow-through aanwezig? geen absorptie?
+volatility_regime (20%): ATR normaal/expansief? geen extreme compressie?
+Score NOOIT hoger dan confidence. Bij XAU anomalie: hold_confidence max 60%.
+80-100%=Hold vol | 60-79%=Bescherm winst | 40-59%=Reduce | <40%=Exit
 
-Elke asset krijgt ANDERE bias — verplicht.
+━━━ BIAS STABILITEIT ━━━
+Verander bias ALLEEN bij fundamenteel nieuw macro nieuws of regime shift.
+Kleine prijsbewegingen = GEEN reden. Bij twijfel: houd vorige bias, verlaag confidence.
+Elke asset ANDERE bias verplicht — analyseer cross-asset verhoudingen.
 
-mini_summary: MAX 1 zin voor op de kaart — bondig, kernboodschap alleen.
-analyse_uitgebreid: 3-4 zinnen voor in de uitgebreide analyse. (1) waarom deze bias op basis van nieuws, (2) welke macro driver domineert, (3) wat zijn de risicos, (4) wat maakt deze situatie anders dan normaal.
-hold_advies: hoe LANG vasthoudenl bijv. "Meerdere sessies" / "Alleen intraday" / "Wacht op bevestiging". NIET over richting.
+━━━ OUTPUT VELDEN ━━━
+mini_summary: MAX 1 zin voor kaart — kernboodschap.
+analyse_uitgebreid: 3-4 zinnen — (1) bias reden op basis van SPECIFIEK nieuws, (2) dominante driver, (3) risicos, (4) wat uniek is nu.
+hold_advies: HOE LANG vasthouden bijv. "Meerdere sessies" / "Alleen intraday". NIET over richting.
 fail_condition: wanneer bias ongeldig, max 8 woorden.
-technical_trend: Bullish/Bearish/Neutraal — macro momentum gebaseerd.
-trend_driver: 3-5 woorden dominante kracht.
-market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy.
-intraday_structuur: HH/HL of LH/LL of Ranging.
+technical_trend: Bullish/Bearish/Neutraal
+trend_driver: 3-5 woorden dominante kracht
+market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy
+intraday_structuur: HH/HL of LH/LL of Ranging
+correlatie_status: Normaal/Anomalie/Hersteld
 
 GEEN apostrofs. Alleen JSON:
 {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
@@ -1518,24 +1537,38 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
       }));
     }
 
-    // Macro context van Intel + breaking news
+    // ── Volledige macro context voor v6.3 analyse ───────────────────────────────
     let macroCtx = "";
     if(iResult) {
-      macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
+      // Yield regime detail — kern van v6.3 correlatie check
+      const ya = iResult.yield_analysis || {};
+      macroCtx += `MACRO REGIME: ${iResult.macro_regime||"onbekend"}`;
+      macroCtx += `\nDOMINANT DRIVER: ${iResult.dominant_driver||"onbekend"}`;
+      macroCtx += `\nYIELD ANALYSE: US10Y=${ya.us10y_level||"?"} US2Y=${ya.us2y_level||"?"} Spread=${ya.spread||"?"} Regime=${ya.regime||"?"} → ${ya.implication||""}`;
+      macroCtx += `\nDESK VIEW: ${iResult.desk_view||""}`;
+      // Alle nieuws items — niet gecapped, v6.3 heeft specifiek nieuws nodig
       if(iResult.news_items?.length>0) {
-        macroCtx += "\nNIEUWS VANDAAG (gebruik dit voor bias — niet alleen prijs):\n" + iResult.news_items.slice(0,10).map(n=>`- [${n.source}] ${n.headline} → ${n.direction} (impact:${n.impact})`).join("\n");
+        macroCtx += "\n\nNIEUWS VANDAAG — gebruik specifieke headlines voor bias onderbouwing:\n";
+        macroCtx += iResult.news_items.map(n=>`[${n.time||"?"}][${n.source}][${n.impact?.toUpperCase()}] ${n.headline} → ${n.direction}`).join("\n");
       }
-      // Marktvisie: AI heeft nieuws al verwerkt tot per-asset mening — dit is de kern
+      // Cross-asset signals van Intel
+      if(iResult.cross_asset_signals?.length>0) {
+        macroCtx += "\n\nCROSS-ASSET SIGNALEN:\n";
+        macroCtx += iResult.cross_asset_signals.map(s=>`${s.signal} (${s.type}): ${s.implication}`).join("\n");
+      }
+      // Marktvisie — diepste nieuws analyse per asset
       if(iResult.marktvisie?.assets) {
-        macroCtx += "\n\nMARKTVISIE OP BASIS VAN NIEUWS (zwaar meewegen):\n";
+        macroCtx += "\n\nMARKTVISIE PER ASSET (gebaseerd op nieuws, zwaar meewegen):\n";
         macroCtx += `Macro: ${iResult.marktvisie.macro_samenvatting||""}\n`;
         Object.entries(iResult.marktvisie.assets).forEach(([id, v]) => {
-          macroCtx += `${id}: ${v.visie} → ${v.bias_richting} (sterkte:${v.sterkte}/100) | driver: ${v.key_driver} | risico: ${v.risico}${v.ingeprijsd?" | MOGELIJK INGEPRIJSD":""}\n`;
+          macroCtx += `${id}: ${v.visie} → verwacht: ${v.bias_richting} (sterkte:${v.sterkte}/100) | key driver: ${v.key_driver} | risico: ${v.risico}${v.ingeprijsd?" | LET OP: MOGELIJK AL INGEPRIJSD":""}\n`;
         });
       }
     }
+    // Breaking news — meest recente signalen
     if(breakingNews?.length>0) {
-      macroCtx += "\nBREAKING NEWS:\n" + breakingNews.slice(0,6).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
+      macroCtx += "\n\nBREAKING NEWS (meest recent eerst):\n";
+      macroCtx += breakingNews.slice(0,8).map(n=>`[${fmtTime(n.time)}][${n.source}] ${n.headline}`).join("\n");
     }
 
     // Analyseer alle assets in 1 call — zo kan AI onderlinge verhoudingen zien
@@ -1558,26 +1591,24 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
           : `${a.id}: geen vorige bias`;
       }).join("\n");
 
-      // Meer nieuws context voor stabielere bias
-      const newsLines = macroCtx
-        ? macroCtx.split("\n").slice(0,10).join("\n")
-        : "Geen Intel geladen — baseer op cross-asset data.";
+      const newsLines = macroCtx || "Geen Intel geladen — baseer op cross-asset data.";
 
       const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
-      const usr = `${dateStr}. Cross-asset: ${crossAsset}
+      const usr = `DATUM: ${dateStr}
+LIVE CROSS-ASSET: ${crossAsset}
 
-VORIGE BIASSEN (verander alleen bij concreet nieuw macro nieuws):
+VORIGE BIASSEN — verander ALLEEN bij concreet nieuw macro nieuws of regime shift:
 ${assetLines}
 
-NIEUWS/MACRO CONTEXT:
+━━━ VOLLEDIG NIEUWS & MACRO CONTEXT (v6.3) ━━━
 ${newsLines}
 
-Vul ALLE ${assets.length} assets in. Geen uitleg:
+Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:1600, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:2400, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429 && attempt < 3) {
         await new Promise(r=>setTimeout(r, attempt * 15000));
