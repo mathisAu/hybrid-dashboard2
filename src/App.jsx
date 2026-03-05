@@ -1388,13 +1388,17 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
         ? macroCtx.split("\n").slice(0,6).join("\n")
         : "Geen Intel.";
 
+      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+      const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
+
       const usr = `${dateStr}. Cross-asset: ${crossAsset}
 Assets: ${assetLines}
 Context: ${newsLines}
 
-JSON (geen wrapper): {"assets":{"ASSET_ID":{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}}}`;
+Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
+{"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:1200, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429 && attempt < 3) {
         await new Promise(r=>setTimeout(r, attempt * 15000));
