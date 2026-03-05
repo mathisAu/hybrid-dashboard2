@@ -585,6 +585,46 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8}}>{data?.deep_summary||data?.mini_summary||"—"}</div>
             </div>
 
+            {/* Bias switch history */}
+            {data?.bias_switch_history?.length>0&&(
+              <div style={{background:"rgba(239,68,68,0.04)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+                  <span>⚡</span> BIAS SWITCH GESCHIEDENIS
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                  {data.bias_switch_history.map((s,i)=>{
+                    const vanC = biasColors[s.van]||biasColors.Neutraal;
+                    const naarC = biasColors[s.naar]||biasColors.Neutraal;
+                    return (
+                      <div key={i} style={{borderLeft:"2px solid rgba(239,68,68,0.3)",paddingLeft:10}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,flexWrap:"wrap"}}>
+                          <span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date(s.time).toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
+                          <span style={{fontSize:10,fontWeight:700,color:vanC.text,background:vanC.bg,border:`1px solid ${vanC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.van}</span>
+                          <span style={{fontSize:10,color:"#4b5563"}}>→</span>
+                          <span style={{fontSize:10,fontWeight:700,color:naarC.text,background:naarC.bg,border:`1px solid ${naarC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.naar}</span>
+                          <span style={{fontSize:9,color:"#374151"}}>{s.confidence}%</span>
+                        </div>
+                        {s.nieuws?.length>0&&(
+                          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:2}}>NIEUWS OP DAT MOMENT:</div>
+                            {s.nieuws.map((n,j)=>(
+                              <div key={j} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
+                                <span style={{fontSize:9,color:"#4b5563",flexShrink:0,marginTop:1}}>[{n.source}]</span>
+                                {n.url
+                                  ? <a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#6b7280",lineHeight:1.4,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color="#9ca3af"} onMouseLeave={e=>e.target.style.color="#6b7280"}>{n.headline}</a>
+                                  : <span style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{n.headline}</span>
+                                }
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Mechanisme + Driver */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
@@ -1332,7 +1372,19 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
       const newData=robustParse(text);
       // Prijs van API injekten, niet van AI
       if(p) { newData.price_today=p.price; newData.price_change_today=p.change; newData.price_direction=p.direction; }
-      if(newData.bias) setPrevBias(prev=>({...prev,[asset.id]:{bias:newData.bias,confidence:newData.confidence}}));
+      newData.analysed_at = new Date().toISOString();
+      if(newData.bias) {
+        const oldBias = prevBias[asset.id]?.bias;
+        // Nieuws context: breaking news + Intel nieuws top 5
+        const newsCtx = [
+          ...breakingNews.slice(0,3).map(n=>({source:n.source, headline:n.headline, url:n.url||""})),
+          ...(iResult?.news_items||[]).slice(0,3).map(n=>({source:n.source, headline:n.headline, url:n.url||""})),
+        ].slice(0,5);
+        recordBiasChange(asset.id, oldBias, newData.bias, newData.confidence, newsCtx);
+        setPrevBias(prev=>({...prev,[asset.id]:{bias:newData.bias,confidence:newData.confidence}}));
+      }
+      // Sla biasHistory op in newData zodat DeepDive hem kan tonen
+      newData.bias_switch_history = biasHistory[asset.id] || [];
       setAResult(prev=>prev?{...prev,assets:{...prev.assets,[asset.id]:newData}}:prev);
       if(openDeepDive) setDeepAsset({asset,data:newData});
     } catch(e){ console.error(e); }
@@ -1341,6 +1393,23 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
   }
 
   const [prevBias, setPrevBias] = useState({}); // geheugen vorige bias per asset
+  const [biasHistory, setBiasHistory] = useState({}); // history van bias switches per asset
+
+  function recordBiasChange(assetId, oldBias, newBias, newConfidence, newsContext) {
+    if(!oldBias || oldBias === newBias) return; // geen switch, niets opslaan
+    const entry = {
+      time: new Date().toISOString(),
+      van: oldBias,
+      naar: newBias,
+      confidence: newConfidence,
+      // Meest relevante breaking news op dit moment
+      nieuws: newsContext || [],
+    };
+    setBiasHistory(prev => ({
+      ...prev,
+      [assetId]: [entry, ...(prev[assetId]||[])].slice(0, 5) // max 5 switches onthouden
+    }));
+  }
 
   function addCustomPair() {
     if(!newPairLabel.trim()) return;
@@ -1459,6 +1528,24 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
           if(!allAssetData[a.id].price_direction) allAssetData[a.id].price_direction = p.direction;
         }
         if(allAssetData[a.id]?.bias) {
+          const oldBias = prevBias[a.id]?.bias;
+          const newBias = allAssetData[a.id].bias;
+          if(oldBias && oldBias !== newBias) {
+            const newsCtx = [
+              ...breakingNews.slice(0,3).map(n=>({source:n.source, headline:n.headline, url:n.url||""})),
+              ...(iResult?.news_items||[]).slice(0,3).map(n=>({source:n.source, headline:n.headline, url:n.url||""})),
+            ].slice(0,5);
+            setBiasHistory(prev => ({
+              ...prev,
+              [a.id]: [{
+                time: new Date().toISOString(),
+                van: oldBias,
+                naar: newBias,
+                confidence: allAssetData[a.id].confidence,
+                nieuws: newsCtx,
+              }, ...(prev[a.id]||[])].slice(0,5)
+            }));
+          }
           setPrevBias(prev=>({...prev,[a.id]:{bias:allAssetData[a.id].bias,confidence:allAssetData[a.id].confidence}}));
         }
       });
@@ -1484,13 +1571,13 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
       const data = allAssetData[a.id];
       const p = freshPrices[a.id];
       if(data) {
-        // Prijs komt van API, niet van AI — inject hier
         combined.assets[a.id] = {
           ...data,
           price_today: p?.price || "",
           price_change_today: p?.change || "",
           price_direction: p?.direction || "up",
           analysed_at: new Date().toISOString(),
+          bias_switch_history: biasHistory[a.id] || [],
         };
         if(!combined.yield_regime && data.yield_regime) {
           combined.yield_regime = data.yield_regime;
