@@ -1282,16 +1282,26 @@ export default function HybridDashboard() {
     const sessionCtx = hourUTC>=22||hourUTC<8 ? "Aziatische sessie" : hourUTC>=6&&hourUTC<16 ? "Londense sessie" : "New Yorkse sessie";
     // Inject live prices so no web search needed
     const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} ${p.change}`:a.label; }).join(", ");
-    const sys = `Pre-sessie analist. Geen web search nodig. Geen apostrofs in strings. Alleen JSON:
-{"session":"London","session_time":"07:00-16:00 CET","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","watch_levels":"1 zin"}`;
-    const usr = `VANDAAG ${dateStr} ${timeStr}, ${sessionCtx}. Live prijzen: ${priceLines}. Geef pre-sessie breakdown. Alleen JSON.`;
+    // NY pre-market: 13:00-15:00 CET (London nog open maar NY opent om 15:30)
+    const cetHour = new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false});
+    const cetMin  = new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"});
+    const cetH = parseInt(cetHour); const cetM = parseInt(cetMin);
+    const isPreNY = (cetH===13||(cetH===14&&cetM<30)||(cetH===15&&cetM<30));
+    const sessionLabel = isPreNY ? "Pre-NY sessie (13:00-15:30 CET)" : sessionCtx;
+    const sys = `Pre-sessie analist. Geen web search nodig. Geen apostrofs in strings.
+${isPreNY ? "Het is nu PRE-NY sessie. Focus op: wat verwacht NY bij opening? Hoe reageert NY op wat London heeft gedaan? Wat zijn de key catalysts voor de NY-sessie (15:30 CET)?" : ""}
+Alleen JSON:
+{"session":"London","session_time":"07:00-16:00 CET","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","analysed_at":"ISO"}`;
+    const usr = `VANDAAG ${dateStr} ${timeStr} CET, ${sessionLabel}. Live prijzen: ${priceLines}. Geef pre-sessie breakdown. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
-      setPresession(robustParse(text));
+      const psData = robustParse(text);
+      if(!psData.analysed_at) psData.analysed_at = new Date().toISOString();
+      setPresession(psData);
       setPsStatus("done");
     } catch(e){ console.error(e); setPsStatus("error"); }
   }
@@ -2004,7 +2014,10 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                           <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"6px 10px"}}>
                             <span style={{fontSize:10,fontWeight:700,color:bc.text,background:bc.bg,border:`1px solid ${bc.border}44`,borderRadius:4,padding:"1px 7px",flexShrink:0,minWidth:60,textAlign:"center"}}>{id}</span>
                             <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{v.visie}</span>
-                            {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316",flexShrink:0,marginTop:2}}>ingeprijsd?</span>}
+                            <div style={{display:"flex",flexDirection:"column",gap:2,alignItems:"flex-end",flexShrink:0}}>
+                              <span style={{fontSize:7,color:"#2d3748",letterSpacing:"0.06em"}}>AI VISIE</span>
+                              {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316"}}>ingeprijsd?</span>}
+                            </div>
                           </div>
                         );
                       })}
@@ -2016,13 +2029,18 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                   {/* Sessie status */}
                   {presession&&(
                     <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                      <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>SESSIE MOOD</div>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>{presession.session?.toUpperCase()||"SESSIE"}</div>
+                        {presession.analysed_at&&<div style={{fontSize:8,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(presession.analysed_at)}</div>}
+                      </div>
                       <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:6}}>
                         <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>
                         <span style={{fontSize:12,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
                         <span style={{fontSize:10,color:"#4b5563"}}>{presession.mood_score}%</span>
+                        {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
                       </div>
-                      <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5}}>{presession.market_narrative}</div>
+                      <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5,marginBottom:presession.session_time?4:0}}>{presession.market_narrative}</div>
+                      {presession.session_time&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{presession.session_time}</div>}
                     </div>
                   )}
                   {/* Aankomende events vandaag */}
@@ -2039,25 +2057,20 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                       </div>
                     </div>
                   )}
-                  {/* Risk radar */}
-                  {iResult?.risk_radar&&(
-                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
-                      <svg width="44" height="44" viewBox="0 0 48 48">
-                        <circle cx="24" cy="24" r="18" fill="none" stroke="#1f2023" strokeWidth="4"/>
-                        <circle cx="24" cy="24" r="18" fill="none"
-                          stroke={iResult.risk_radar.score>70?"#ef4444":iResult.risk_radar.score>40?"#f97316":"#22c55e"}
-                          strokeWidth="4"
-                          strokeDasharray={`${(iResult.risk_radar.score/100)*113} 113`}
-                          strokeLinecap="round" transform="rotate(-90 24 24)"/>
-                        <text x="24" y="28" textAnchor="middle" fontSize="11" fontWeight="700"
-                          fill={iResult.risk_radar.score>70?"#ef4444":iResult.risk_radar.score>40?"#f97316":"#22c55e"}>{iResult.risk_radar.score}</text>
-                      </svg>
-                      <div>
-                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:3}}>RISK RADAR</div>
-                        <div style={{fontSize:11,fontWeight:700,color:iResult.risk_radar.score>70?"#ef4444":iResult.risk_radar.score>40?"#f97316":"#22c55e"}}>{iResult.risk_radar.label}</div>
+                  {/* Pre-NY outlook block — verschijnt 13:00-15:30 CET */}
+                  {(()=>{
+                    const h=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
+                    const m=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
+                    const isPreNY=(h===13||(h===14)|| (h===15&&m<30));
+                    if(!isPreNY||!presession) return null;
+                    return (
+                      <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"12px 14px"}}>
+                        <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:6}}>🗽 PRE-NY OUTLOOK</div>
+                        <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
+                        <div style={{fontSize:9,color:"#374151",marginTop:4}}>NY opent 15:30 CET</div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -2093,7 +2106,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                   {presession.key_events_today?.slice(0,3).map((e,i)=><Badge key={i} label={e} color={accent}/>)}
                   {/* Narrative */}
                   <span style={{fontSize:10,color:"#6b7280",flex:1,minWidth:160,lineHeight:1.4}}>{presession.market_narrative}</span>
-                  {presession.watch_levels&&<span style={{fontSize:9,color:"#4b5563"}}>📍 {presession.watch_levels}</span>}
+
                 </div>
               )}
 
