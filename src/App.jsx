@@ -143,10 +143,17 @@ Yields↑ sterk: goud bearish, US100 bearish, USD bullish
 XAU anomalie (DXY+goud BEIDE zelfde richting): max confidence 65%
 
 Elke asset krijgt ANDERE bias — verplicht.
-mini_summary: 2-3 zinnen. Leg uit: (1) waarom deze bias, (2) welk macro driver domineert, (3) wat is het risico. Geen bullet points.
-hold_advies: max 8 woorden. fail_condition: max 8 woorden.
+
+mini_summary: 2-3 zinnen. (1) waarom deze bias, (2) welke macro driver domineert, (3) wat is het risico.
+hold_advies: advies over hoe LANG je een trade vasthoudt — bijv. "Meerdere sessies houden" / "Alleen intraday, niet overnight" / "Wacht op bevestiging voor langere hold". NIET over richting.
+fail_condition: wanneer wordt de bias ongeldig, max 8 woorden.
+technical_trend: Bullish/Bearish/Neutraal — gebaseerd op macro momentum, niet prijs.
+trend_driver: 3-5 woorden, de dominante kracht achter de trend.
+market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy.
+intraday_structuur: HH/HL of LH/LL of Ranging — inschatting op basis van macro context.
+
 GEEN apostrofs. Alleen JSON:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
 
 
 
@@ -469,25 +476,24 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               </div>
             )}
 
-            {/* Technical + Structure + Regime */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+            {/* Technical + Structure + Regime + Trend Driver */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <InfoTooltip text={data?.technical_trend_explanation||"Technische trendanalyse op basis van price action vandaag"} color={trendColor(data?.technical_trend)}>
-                  <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TECHNISCHE TREND</div>
-                </InfoTooltip>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TECHNISCHE TREND</div>
                 <div style={{fontSize:13,fontWeight:700,color:trendColor(data?.technical_trend)}}>{data?.technical_trend||"—"}</div>
+                {data?.trend_driver&&<div style={{fontSize:10,color:"#6b7280",marginTop:4}}>{data.trend_driver}</div>}
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <InfoTooltip text={data?.intraday_structuur_explanation||"HH/HL = Higher Highs + Higher Lows (bullish). LH/LL = Lower Highs + Lower Lows (bearish)."} color="#9ca3af">
-                  <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>STRUCTUUR</div>
-                </InfoTooltip>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>STRUCTUUR</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#9ca3af"}}>{data?.intraday_structuur||"—"}</div>
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <InfoTooltip text={data?.market_regime_explanation||"Het huidige markt karakter op basis van price action en volatiliteit."} color="#6366f1">
-                  <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>MARKET REGIME</div>
-                </InfoTooltip>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>MARKET REGIME</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#6366f1"}}>{data?.market_regime?.toUpperCase()||"—"}</div>
+              </div>
+              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>DOMINANT MECHANISME</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#9ca3af",lineHeight:1.4}}>{data?.dominant_mechanisme||"—"}</div>
               </div>
             </div>
 
@@ -1322,7 +1328,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
         ? macroCtx.split("\n").slice(0,6).join("\n")
         : "Geen Intel.";
 
-      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `${dateStr}. Cross-asset: ${crossAsset}
