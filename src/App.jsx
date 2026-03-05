@@ -351,6 +351,85 @@ function Skeleton({ w="100%", h=8, mb=8 }) {
   return <div style={{height:h,width:w,background:"#1a1b1e",borderRadius:4,marginBottom:mb,animation:"pulse 1.5s infinite"}}/>;
 }
 
+// ── News Impact Popup ─────────────────────────────────────────────────────────
+function NewsImpactPopup({ news, apiKey, onClose }) {
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function analyse() {
+      const headers = {"Content-Type":"application/json"};
+      if(apiKey?.trim()) {
+        headers["x-api-key"] = apiKey.trim();
+        headers["anthropic-version"] = "2023-06-01";
+        headers["anthropic-dangerous-direct-browser-access"] = "true";
+      }
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method:"POST", headers,
+          body: JSON.stringify({
+            model:"claude-sonnet-4-20250514",
+            max_tokens:300,
+            system:`Je bent een FX/index trading analist. Analyseer het effect van nieuws op de gevraagde markten. Geef altijd JSON terug zonder uitleg. Geen apostrofs.`,
+            messages:[{role:"user",content:`Nieuws: "${news.headline}" (bron: ${news.source})
+
+Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
+{"overall":"bullish|bearish|neutraal|gemengd","pairs":{"XAUUSD":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"US30":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"US100":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"EURUSD":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"GBPUSD":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"}}}`}]
+          })
+        });
+        const d = await res.json();
+        const text = d.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
+        const clean = text.replace(/```json|```/g,"").trim();
+        setResult(JSON.parse(clean));
+      } catch(e) { setResult({error:true}); }
+      setLoading(false);
+    }
+    analyse();
+  }, []);
+
+  const impactColor = i => i==="bullish"?"#22c55e":i==="bearish"?"#ef4444":"#6b7280";
+  const impactIcon  = i => i==="bullish"?"▲":i==="bearish"?"▼":"—";
+  const pairs = [
+    {id:"XAUUSD",label:"XAU/USD"},{id:"US30",label:"US30"},
+    {id:"US100",label:"US100"},{id:"EURUSD",label:"EUR/USD"},{id:"GBPUSD",label:"GBP/USD"}
+  ];
+
+  return (
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#111214",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
+          <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{news.headline}</div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16,flexShrink:0,padding:0}}>✕</button>
+        </div>
+        <div style={{height:1,background:"#1f2023",marginBottom:14}}/>
+        {loading ? (
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {pairs.map(p=><Skeleton key={p.id} h={32}/>)}
+          </div>
+        ) : result?.error ? (
+          <div style={{color:"#ef4444",fontSize:11}}>Analyse mislukt — probeer opnieuw</div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {pairs.map(({id,label})=>{
+              const r = result?.pairs?.[id];
+              if(!r) return null;
+              return (
+                <div key={id} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,0.02)",border:"1px solid #1f2023",borderRadius:6,padding:"8px 12px"}}>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:"#6b7280",width:58,flexShrink:0}}>{label}</span>
+                  <span style={{fontSize:13,color:impactColor(r.impact),fontWeight:700,width:16,flexShrink:0}}>{impactIcon(r.impact)}</span>
+                  <span style={{fontSize:11,color:"#9ca3af",flex:1}}>{r.reden}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div style={{marginTop:12,fontSize:9,color:"#374151",textAlign:"right"}}>klik buiten popup om te sluiten</div>
+      </div>
+    </div>
+  );
+}
+
+
 function btnStyle(disabled, accent=DEFAULT_ACCENT) {
   return {
     background:disabled?`${accent}11`:`linear-gradient(135deg,${accent}30,${accent}20)`,
@@ -449,7 +528,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>HOLD CONFIDENCE</div>
                 <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,fontWeight:700,color:"#6366f1",marginBottom:8}}>{data?.hold_confidence}%</div>
                 <Bar value={data?.hold_confidence||0} color="#6366f1"/>
-                <div style={{fontSize:10,color:"#4b5563",marginTop:6}}>{data?.hold_confidence>=80?"🟢 Hold vol":data?.hold_confidence>=60?"🟡 Bescherm winst":data?.hold_confidence>=40?"⚠️ Reduce exposure":"🔴 Exit"}</div>
+                <div style={{fontSize:10,color:"#4b5563",marginTop:6}}>{data?.hold_confidence>=80?"🟢 Trail stop, hold":data?.hold_confidence>=60?"🟡 Bescherm winst, verkort target":data?.hold_confidence>=40?"⚠️ Niet lang houden, snelle scalp":"🔴 Geen positie vasthouden"}</div>
               </div>
             </div>
 
@@ -889,6 +968,7 @@ export default function HybridDashboard() {
   const [breakingNews,  setBreakingNews]  = useState([]);
   const [bnLoading,     setBnLoading]     = useState(false);
   const [seenHeadlines, setSeenHeadlines] = useState(new Set());
+  const [newsImpact,    setNewsImpact]    = useState(null); // popup
   // Auto-refresh
   const [autoRefresh,   setAutoRefresh]   = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(30); // minutes
@@ -1725,9 +1805,10 @@ Retourneer ALLEEN JSON, geen wrapper:
                   <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>Nieuws laden... (even wachten)</div>
                 )}
                 {breakingNews.map((n,i)=>(
-                  <div key={i} onClick={()=>n.url&&window.open(n.url,"_blank")}
-                    style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 10px",background:n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)",borderRadius:6,border:n.isNew&&i<3?"1px solid rgba(239,68,68,0.15)":"1px solid transparent",cursor:n.url?"pointer":"default",transition:"background 0.2s"}}
-                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.04)"}
+                  <div key={i}
+                    onClick={()=>setNewsImpact(n)}
+                    style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 10px",background:n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)",borderRadius:6,border:n.isNew&&i<3?"1px solid rgba(239,68,68,0.15)":"1px solid transparent",cursor:"pointer",transition:"background 0.2s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(99,102,241,0.08)"}
                     onMouseLeave={e=>e.currentTarget.style.background=n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)"}>
                     <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#374151",flexShrink:0,marginTop:2}}>{n.timeStr}</span>
                     <div style={{flex:1}}>
@@ -1737,7 +1818,7 @@ Retourneer ALLEEN JSON, geen wrapper:
                       </div>
                       <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5}}>{n.headline}</div>
                     </div>
-                    {n.url&&<span style={{fontSize:9,color:"#374151",flexShrink:0,marginTop:2}}>↗</span>}
+                    <span style={{fontSize:9,color:"#4b5563",flexShrink:0,marginTop:2}} title="Analyseer impact">⚡</span>
                   </div>
                 ))}
               </div>
@@ -1851,6 +1932,14 @@ Retourneer ALLEEN JSON, geen wrapper:
           onRefreshAsset={()=>refreshSingleAsset(deepAsset.asset)}
           refreshing={deepRefreshing}
           accent={accent}
+        />
+      )}
+
+      {newsImpact&&(
+        <NewsImpactPopup
+          news={newsImpact}
+          apiKey={apiKey}
+          onClose={()=>setNewsImpact(null)}
         />
       )}
 
