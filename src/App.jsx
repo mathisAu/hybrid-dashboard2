@@ -86,11 +86,15 @@ async function fetchFinnhubPrice(id, apiKey) {
   };
 }
 
+const FOREX_IDS = ["EURUSD","GBPUSD","USDJPY","USDCHF"];
 async function fetchLivePrice(id, tdKey, fhKey, priceSource) {
+  // Forex altijd via Yahoo — real-time, geen vertraging voor FX pairs
+  if(FOREX_IDS.includes(id)) return fetchYahooPrice(id);
+  // Indices/Gold/Oil: gebruik gekozen bron
   if(priceSource === "finnhub" && fhKey) {
     try { const p = await fetchFinnhubPrice(id, fhKey); if(p) return p; } catch(_) {}
   }
-  if(priceSource !== "finnhub" && tdKey) {
+  if(priceSource === "twelvedata" && tdKey) {
     try { const p = await fetchTwelvePrice(id, tdKey); if(p) return p; } catch(_) {}
   }
   return fetchYahooPrice(id);
@@ -144,29 +148,29 @@ const BASE_ASSETS = [
 
 const ANALYSIS_SYSTEM = `Institutioneel intraday trading analist. Live prijzen worden aangeleverd — gebruik deze direct, doe GEEN web search.
 
-HYBRID METHODE — analyseer in deze volgorde:
-1. MACRO: yield regime, DXY richting, risk-on/off sentiment
-2. FUNDAMENTEEL: wat drijft dit asset vandaag? (centrale bank, macro data, geopolitiek, earnings)
-3. TECHNISCH: RSI positie, EMA richting, intraday structuur (HH/HL of LH/LL)
-4. FLOW: institutionele participatie, momentum kwaliteit
-5. SYNTHESE: bias alleen als minimaal 3 van 4 lagen aligned zijn
+HYBRID METHODE:
+1. MACRO: yield regime, DXY richting, risk-on/off
+2. FUNDAMENTEEL: wat drijft dit asset vandaag?
+3. TECHNISCH: RSI, EMA, structuur (HH/HL of LH/LL)
+4. FLOW: momentum kwaliteit, participatie
+5. SYNTHESE: bias op basis van macro + fundamenteel (dominant). Technisch bevestigt of verzwakt de confidence.
 
-BIAS STABILITEIT — KRITISCH:
-- Wijk NOOIT af van vorige bias tenzij er een concrete fundamentele reden is (nieuw macro nieuws, RSI >75 of <25, EMA crossover)
-- Kleine prijsschommelingen (<0.3%) rechtvaardigen GEEN biaswisseling
-- Confidence mag maximaal 10 punten per run veranderen tenzij groot nieuws
-- Bij twijfel: houd vorige bias aan met lagere confidence, gebruik Fragiel
+BIAS REGELS:
+- Bias: Bullish/Bearish/Neutraal/Fragiel
+- Als fundamenteel Bearish maar technisch choppy/mixed → bias BEARISH maar confidence lager (50-65%), market_mood="Technische tegenspraak"
+- Confidence MAX 10 punten verschil per run tenzij groot nieuws
+- Bij twijfel: houd vorige bias, gebruik Fragiel
+- mini_summary: WAAROM deze bias fundamenteel, wat zegt technisch
 
-REGELS:
-- Bias: Bullish/Bearish/Neutraal/Fragiel. Fragiel = voorzichtig, niet zeker
-- Bias MOET overeenkomen met price_direction
-- DXY/Goud anomalie: max confidence 65%
-- mini_summary: 2 zinnen — WAAROM deze bias fundamenteel + wat bevestigt het technisch
-- dominant_mechanisme: de FUNDAMENTELE drijfveer, NIET de prijsbeweging
-- GEEN apostrofs of aanhalingstekens in strings. Alleen JSON.
+VELDEN:
+- market_mood: korte sfeer omschrijving bv "Risk-Off Selloff", "Bullish Momentum", "Choppy Consolidatie", "Technische Tegenspraak", "Voorzichtig Bullish"
+- dominant_mechanisme: fundamentele driver NIET prijsbeweging
+- technical_trend: Strong Uptrend/Choppy Up/Strong Downtrend/Choppy Down/Ranging/Compressing
+- yield_regime: Risk-On/Risk-Off/Stagflatie/Neutraal
+- GEEN apostrofs in strings. Alleen JSON.
 
 JSON:
-{"timestamp":"ISO","yield_regime":"","yield_regime_explanation":"","dxy_change":"","dxy_direction":"up","vix_level":"","us10y":"","market_context":"","session":"","assets":{"ASSETID":{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[{"headline":"","source":"","direction":"","time":"","url":""}]}}}`;
+{"timestamp":"ISO","yield_regime":"","yield_regime_explanation":"","dxy_change":"","dxy_direction":"up","vix_level":"","us10y":"","market_context":"","session":"","assets":{"ASSETID":{"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[{"headline":"","source":"","direction":"","time":"","url":""}]}}}`;
 
 
 const INTEL_SYSTEM = `Macro market intelligence analist. Gebruik web search voor actuele data van vandaag.
@@ -356,7 +360,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>BIAS CONFIDENCE</div>
                 <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,fontWeight:700,color:acc,marginBottom:8}}>{data?.confidence}%</div>
                 <Bar value={data?.confidence||0} color={acc}/>
-                <div style={{fontSize:10,color:"#4b5563",marginTop:6}}>{data?.confidence>=80?"Sterk signaal":data?.confidence>=65?"Matig signaal":"Zwak / twijfelachtig"}</div>
+                <div style={{fontSize:10,color:"#4b5563",marginTop:6}}>{data?.confidence>=80?"Sterk signaal":data?.confidence>=65?"Goed signaal":data?.confidence>=50?"Matig signaal":"Zwak / twijfelachtig"}</div>
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>HOLD CONFIDENCE</div>
@@ -503,22 +507,30 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 }
 
-function AssetCard({ asset, data, index, loading, onClick, accent, livePrice }) {
+function AssetCard({ asset, data, index, loading, onClick, onUpdate, accent, livePrice }) {
   const [vis, setVis] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const acc = accent || DEFAULT_ACCENT;
   useEffect(()=>{const t=setTimeout(()=>setVis(true),index*80);return()=>clearTimeout(t);},[data,loading]);
   const bias = resolveBias(data?.bias, data?.confidence);
   const c = biasColors[bias] || biasColors.Neutraal;
-  // Gebruik Yahoo live prijs als die beschikbaar is, anders AI data
   const displayPrice  = livePrice?.price  || data?.price_today        || null;
   const displayChange = livePrice?.change || data?.price_change_today || null;
   const priceUp = livePrice ? livePrice.direction === "up" : data?.price_direction === "up";
+
+  const handleUpdate = async (e) => {
+    e.stopPropagation();
+    if(updating || !onUpdate) return;
+    setUpdating(true);
+    await onUpdate(asset);
+    setUpdating(false);
+  };
 
   return (
     <div onClick={data ? onClick : undefined} style={{background:"linear-gradient(145deg,#111214,#0d0e10)",border:`1px solid ${data?.bias?c.border+"44":"#1a1b1e"}`,borderRadius:8,padding:"16px 18px",opacity:vis?1:0,transform:vis?"translateY(0)":"translateY(10px)",transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",position:"relative",overflow:"visible",cursor:data?"pointer":"default"}}>
       {data?.bias&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${c.border},transparent)`,borderRadius:"8px 8px 0 0"}}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-        <div>
+        <div style={{flex:1,minWidth:0}}>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2,flexWrap:"wrap"}}>
             <span style={{flexShrink:0}}><AssetLogo id={asset.id} size={22}/></span>
             <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:700,color:"#e5e7eb",letterSpacing:"0.05em"}}>{asset.label}</span>
@@ -531,9 +543,16 @@ function AssetCard({ asset, data, index, loading, onClick, accent, livePrice }) 
           </div>
           <div style={{fontSize:10,color:"#374151"}}>{asset.full}</div>
         </div>
-        {data?.bias
-          ? <div style={{background:c.bg,border:`1px solid ${c.border}44`,borderRadius:5,padding:"4px 10px",flexShrink:0}}><span style={{fontSize:11,fontWeight:700,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span></div>
-          : loading ? <Skeleton w={72} h={26} mb={0}/> : null}
+        <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+          {/* Update knop per asset */}
+          <button onClick={handleUpdate} title="Update deze asset"
+            style={{background:"rgba(255,255,255,0.04)",border:"1px solid #1f2023",borderRadius:5,padding:"4px 7px",cursor:updating?"wait":"pointer",color:updating?acc:"#4b5563",fontSize:12,lineHeight:1,animation:updating?"spin 1s linear infinite":"none",display:"inline-block"}}>
+            ⟳
+          </button>
+          {data?.bias
+            ? <div style={{background:c.bg,border:`1px solid ${c.border}44`,borderRadius:5,padding:"4px 10px"}}><span style={{fontSize:11,fontWeight:700,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span></div>
+            : loading ? <Skeleton w={72} h={26} mb={0}/> : null}
+        </div>
       </div>
       {data ? (
         <>
@@ -547,6 +566,9 @@ function AssetCard({ asset, data, index, loading, onClick, accent, livePrice }) 
           </div>
           <div style={{height:1,background:"rgba(255,255,255,0.04)",marginBottom:8}}/>
           <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+            {data.market_mood&&(
+              <div style={{fontSize:9,color:"#9ca3af",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>{data.market_mood.toUpperCase()}</div>
+            )}
             {data.correlatie_status&&(
               <InfoTooltip text={data.correlatie_status==="Normaal"?"DXY en Gold bewegen in verwachte richting t.o.v. elkaar — geen anomalie.":"DXY en Gold bewegen beide dezelfde kant op — dit is een anomalie die confidence verlaagt."} color={corrColors[data.correlatie_status]||"#6b7280"}>
                 <Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>
@@ -1516,8 +1538,11 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
             {/* ASSET GRID */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:10}}>
               {assets.map((asset,i)=>(
-                <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i} loading={aStatus==="loading"} accent={accent} livePrice={livePrices[asset.id]||null}
-                  onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}/>
+                <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i}
+                  loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
+                  accent={accent} livePrice={livePrices[asset.id]||null}
+                  onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
+                  onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
               ))}
             </div>
 
