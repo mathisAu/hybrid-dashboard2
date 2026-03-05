@@ -147,50 +147,31 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Je bent een Hybrid Market Intelligence Trader (HYBRID PROMPT v6.3).
-Geen web search — alle context is aangeleverd. Bias = ALLEEN fundamentele macro analyse, NOOIT op prijs/%.
+const ANALYSIS_SYSTEM = `Hybrid Market Intelligence Trader. Geen web search — context aangeleverd.
+Prijs/% = NOOIT bias input. Bias = fundamentele macro analyse.
 
-━━━ STAP 1-3: DXY/GOLD CORRELATIE CHECK (verplicht voor XAU/USD) ━━━
-Normaal: DXY↑+Goud↓ of DXY↓+Goud↑ → max confidence onbeperkt
-Anomalie: DXY↑+Goud↑ of DXY↓+Goud↓ → label "Anomalie", max confidence 65%
-Anomalie >2 sessies → max confidence 55%
-Bepaal mechanisme: safe-haven flow / stagflatie-hedge / technische squeeze
-
-━━━ STAP 4-5: YIELD REGIME (verplicht voor alle assets) ━━━
-DXY↑+Goud↑+Yields↑ → Stagflatie-flow
-DXY↑+Goud↑+Yields↓ → Pure risk-off / safe haven
-DXY↓+Goud↑+Yields↓ → Klassieke risk-off
-DXY↓+Goud↑+Yields↑ → Inflatie domineert, USD verliest grip
-
-━━━ FLOW & CONFIDENCE LOGICA ━━━
-Confidence STIJGT: macro+flows+structure aligned, follow-through zichtbaar, cross-asset bevestiging
-Confidence DAALT: good-news=geen reactie, divergentie yields/USD, VIX>20 + risk-assets stijgen, range compressie
-VIX>20: indices Fragiel/Bearish, goud bullish
+DXY↑: EUR/GBP bearish, goud bearish (tenzij anomalie), indices mixed
+DXY↓: EUR/GBP bullish, goud bullish
+VIX>20: indices Fragiel/Bearish, goud bullish (safe haven)
 Yields↑ sterk: goud bearish, US100 bearish, USD bullish
+XAU anomalie (DXY+goud BEIDE zelfde richting): max confidence 65%
 
-━━━ HOLD CONFIDENCE (4 pijlers, 0-100%) ━━━
-macro_alignment (25%): driver nog actief? yields/DXY steunen richting?
-structure_integrity (30%): geen HH/HL shift tegen trade? pullbacks correctief?
-flow_participation (25%): follow-through aanwezig? geen absorptie?
-volatility_regime (20%): ATR normaal/expansief? geen extreme compressie?
-Score NOOIT hoger dan confidence. Bij XAU anomalie: hold_confidence max 60%.
-80-100%=Hold vol | 60-79%=Bescherm winst | 40-59%=Reduce | <40%=Exit
+BIAS STABILITEIT — verplicht:
+- Als vorige bias gegeven is: verander ALLEEN bij fundamenteel nieuw macro nieuws of echte regime shift
+- Kleine prijsbewegingen = GEEN reden om bias te draaien
+- Van Bullish→Bearish mag alleen als er concreet nieuws of data is die de driver omkeert
+- Bij twijfel: houd vorige bias aan met lagere confidence
 
-━━━ BIAS STABILITEIT ━━━
-Verander bias ALLEEN bij fundamenteel nieuw macro nieuws of regime shift.
-Kleine prijsbewegingen = GEEN reden. Bij twijfel: houd vorige bias, verlaag confidence.
-Elke asset ANDERE bias verplicht — analyseer cross-asset verhoudingen.
+Elke asset krijgt ANDERE bias — verplicht.
 
-━━━ OUTPUT VELDEN ━━━
-mini_summary: MAX 1 zin voor kaart — kernboodschap.
-analyse_uitgebreid: 2-3 zinnen — (1) bias reden op basis van SPECIFIEK nieuws, (2) dominante driver + risico.
-hold_advies: HOE LANG vasthouden bijv. "Meerdere sessies" / "Alleen intraday". NIET over richting.
+mini_summary: MAX 1 zin voor op de kaart — bondig, kernboodschap alleen.
+analyse_uitgebreid: 3-4 zinnen voor in de uitgebreide analyse. (1) waarom deze bias op basis van nieuws, (2) welke macro driver domineert, (3) wat zijn de risicos, (4) wat maakt deze situatie anders dan normaal.
+hold_advies: hoe LANG vasthoudenl bijv. "Meerdere sessies" / "Alleen intraday" / "Wacht op bevestiging". NIET over richting.
 fail_condition: wanneer bias ongeldig, max 8 woorden.
-technical_trend: Bullish/Bearish/Neutraal
-trend_driver: 3-5 woorden dominante kracht
-market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy
-intraday_structuur: HH/HL of LH/LL of Ranging
-correlatie_status: Normaal/Anomalie/Hersteld
+technical_trend: Bullish/Bearish/Neutraal — macro momentum gebaseerd.
+trend_driver: 3-5 woorden dominante kracht.
+market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy.
+intraday_structuur: HH/HL of LH/LL of Ranging.
 
 GEEN apostrofs. Alleen JSON:
 {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
@@ -198,43 +179,47 @@ GEEN apostrofs. Alleen JSON:
 
 
 
-const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik web search voor actueel nieuws.
+const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik ALTIJD web search — nooit trainingdata voor actuele markten.
 
-REGELS:
-- Zoek naar actueel nieuws van vandaag via de web search tool
-- Minimaal 6 news_items van echte bronnen (Reuters, Bloomberg, ForexFactory, FinancialJuice)
-- Economische kalender: zoek high-impact events voor vandaag + morgen + overmorgen
-- Beide kanten: bullish EN bearish altijd vermelden
-- NOOIT prijsniveaus verzinnen die niet uit de aangeleverde data komen
-- GEEN apostrofs. Alleen JSON, geen markdown.
+ZOEK VERPLICHT (doe meerdere searches):
+1. Reuters markets/finance nieuws vandaag
+2. Bloomberg breaking news markets vandaag
+3. FinancialJuice.com breaking news
+4. Officieel: federalreserve.gov, ecb.europa.eu, bankofengland.co.uk
+5. ForexFactory high impact calendar events
+6. DXY, US10Y yield, VIX actuele niveaus
+
+Minimaal 6 news_items. Hallucineeer NOOIT.
+Beide kanten: bullish EN bearish signalen altijd vermelden.
+GEEN apostrofs. Alleen JSON, geen markdown.
 
 {"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"bullish|bearish","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"HH:MM","source":"","headline":"","impact":"high|medium|low","direction":"bullish|bearish|neutraal","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"high|medium|low","verdict":"","effect":"","date":"today|tomorrow|day_after"}]}`;
 
-function INTEL_USER_NOW(assetLabels, livePrices={}) {
+function INTEL_USER_NOW(assetLabels) {
   const now = new Date();
-  // Altijd Amsterdam/CET tijd tonen
-  const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long",year:"numeric"});
-  const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
+  const dateStr = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+  const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
   const dayAfter = new Date(now); dayAfter.setDate(now.getDate()+2);
-  const fmt = d => d.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"short",day:"numeric",month:"short"});
-  // Inject actuele prijzen zodat AI NOOIT verouderde niveaus hallucineert
-  const priceCtx = Object.entries(livePrices)
-    .filter(([k,v])=>v?.price)
-    .map(([k,v])=>`${k}: ${v.price} (${v.change})`)
-    .join(", ");
-  return `DATUM: ${dateStr}, ${timeStr} Amsterdam tijd.
+  const fmt = d => d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+  return `TODAY: ${dateStr}, ${timeStr} CET.
 Assets: ${assetLabels.join(", ")}.
-${priceCtx ? `ACTUELE LIVE PRIJZEN (gebruik ALLEEN deze — geen verouderde niveaus verzinnen): ${priceCtx}` : ""}
 
-BELANGRIJK: De prijzen hierboven zijn LIVE en actueel. Noem NOOIT een prijsniveau dat niet overeenkomt met deze data.
-Economische kalender zoeken: vandaag=${dateStr}, morgen=${fmt(tomorrow)}, overmorgen=${fmt(dayAfter)}.
-Zoek kalender events voor ALLE drie de dagen. Kalender items mogen NIET verdwijnen tussen refreshes — geef altijd de volledige lijst.
+Doe ALLE volgende searches, in volgorde:
+1. site:forexfactory.com/news — ForexFactory breaking news feed vandaag
+2. site:financialjuice.com — FinancialJuice breaking macro nieuws
+3. "reuters.com" forex markets news ${dateStr}
+4. "bloomberg.com" markets breaking news today
+5. Federal Reserve statement OR Fed speaker ${dateStr}
+6. ECB statement OR Lagarde ${dateStr}
+7. Bank of England OR Bailey ${dateStr}
+8. CPI OR NFP OR PMI OR GDP release ${dateStr}
+9. gold XAU dollar DXY news ${dateStr}
+10. EUR/USD GBP/USD market outlook ${dateStr}
 
-Zoek actueel financieel nieuws en economische kalender voor vandaag.
 Geef per news_item de directe impact op: ${assetLabels.join(", ")}.
-Kalender: today/tomorrow/day_after, alle high impact events.
-Minimaal 6 nieuws items van echte bronnen. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
+Economische kalender: today=vandaag, tomorrow=${fmt(tomorrow)}, day_after=${fmt(dayAfter)}.
+Minimaal 8 nieuws items van ECHTE bronnen. Alleen JSON.`;
 }
 
 
@@ -254,7 +239,7 @@ REGELS:
 
 function MARKTVISIE_USER(intelResult, assetLabels, crossAsset) {
   const nieuws = (intelResult?.news_items||[])
-    .slice(0,8)
+    .slice(0,12)
     .map(n=>`[${n.time||"?"}] ${n.source}: ${n.headline} → ${n.direction} (impact: ${n.impact})`)
     .join("\n");
   const breaking = (intelResult?.breakingItems||[])
@@ -1079,9 +1064,6 @@ export default function HybridDashboard() {
 
   async function fetchBreakingNews() {
     if(!fhKey?.trim()) return;
-    // Geen breaking news fetch tijdens actieve API calls
-    if(hybridStatus!=="idle"&&hybridStatus!=="done") return;
-    if(aStatus==="loading"||iStatus==="loading") return;
     setBnLoading(true);
     try {
       const now = new Date();
@@ -1188,10 +1170,10 @@ export default function HybridDashboard() {
     // Strip all markdown artifacts
     let s = text
       .replace(/```json\s*/gi,"").replace(/```\s*/g,"")
-      .replace(/^---+\s*$/gm,"")
+      .replace(/^---+\s*$/gm,"")  // remove --- lines
       .trim();
 
-    // Find the outermost { ... }
+    // Find the outermost { ... } — be careful with nested braces
     const start = s.indexOf("{");
     if(start===-1) throw new Error("Geen JSON object gevonden");
 
@@ -1207,37 +1189,16 @@ export default function HybridDashboard() {
       if(c==="{")depth++;
       else if(c==="}"){depth--;if(depth===0){end=i;break;}}
     }
-
     if(end===-1) {
-      // JSON afgekapt — agressieve reparatie:
-      // 1. Als we midden in een string zitten: sluit die
-      let repairing = s.slice(start);
-      // Sluit open string als nodig
-      let inS2=false, es2=false, lastStrStart=-1;
-      for(let i=0;i<repairing.length;i++){
-        const c=repairing[i];
-        if(es2){es2=false;continue;}
-        if(c==="\\"&&inS2){es2=true;continue;}
-        if(c==='"'){
-          if(!inS2) lastStrStart=i;
-          inS2=!inS2;
-        }
-      }
-      if(inS2) repairing += '"'; // sluit open string
-      // Verwijder trailing incomplete key (bijv: ,"some_key": zonder waarde)
-      repairing = repairing.replace(/,\s*"[^"]*"\s*:\s*$/, '');
-      repairing = repairing.replace(/,\s*"[^"]*"\s*$/, '');
-      // Tel open haakjes en sluit ze
-      const opens  = (repairing.match(/{/g)||[]).length - (repairing.match(/}/g)||[]).length;
-      const opensA = (repairing.match(/\[/g)||[]).length - (repairing.match(/\]/g)||[]).length;
-      repairing += "]".repeat(Math.max(0,opensA)) + "}".repeat(Math.max(0,opens));
-      s = repairing;
+      // JSON werd afgekapt — probeer te sluiten door ontbrekende } toe te voegen
+      const opens = (s.match(/{/g)||[]).length - (s.match(/}/g)||[]).length;
+      const closeArr = (s.match(/\[/g)||[]).length - (s.match(/\]/g)||[]).length;
+      s = s + "]".repeat(Math.max(0,closeArr)) + "}".repeat(Math.max(0,opens));
       end = s.length - 1;
-    } else {
-      s = s.slice(start, end+1);
     }
+    s = s.slice(start, end+1);
 
-    // Fix trailing commas
+    // Quick fix trailing commas
     s = s.replace(/,(\s*[}\]])/g,"$1");
     try { return JSON.parse(s); } catch(_) {}
 
@@ -1249,13 +1210,14 @@ export default function HybridDashboard() {
       if(c==="\\"&&inS){out+=c;es=true;continue;}
       if(c==='"'){
         if(!inS){inS=true;out+=c;continue;}
+        // Is this a real closing quote?
         let j=i+1;
         while(j<s.length&&" \t\n\r".includes(s[j]))j++;
         const nx=s[j];
         if(":"===nx||","===nx||"}"===nx||"]"===nx||j>=s.length){
           inS=false;out+=c;
         } else {
-          out+='\u201C';
+          out+='\u201C'; // replace rogue quote with typographic "
         }
         continue;
       }
@@ -1270,9 +1232,9 @@ export default function HybridDashboard() {
 
     try { return JSON.parse(s); } catch(e){
       const pos=parseInt(e.message.match(/position (\d+)/)?.[1]||"0");
-      const snip=s.slice(Math.max(0,pos-100),pos+100);
+      const snip=s.slice(Math.max(0,pos-150),pos+150);
       console.error("JSON BREAK pos="+pos+"\n---\n"+snip+"\n---");
-      throw new Error(`JSON afgekapt (pos ${pos}) — verhoog max_tokens of versimpel prompt`);
+      throw new Error(`JSON fout pos ${pos} — open F12 console voor details`);
     }
   }
 
@@ -1285,29 +1247,20 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({
-            model:"claude-sonnet-4-20250514",
-            max_tokens: 4000,
-            system: sys,
-            tools: [{ type:"web_search_20250305", name:"web_search" }],
-            messages:[{role:"user",content:usr}]
-          })
+          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:sys, messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
+          const waitSec = attempt * 20;
           if(attempt<maxRetries){
-            // Lees retry-after header of gebruik exponential backoff
-            const retryAfter = parseInt(res.headers.get("retry-after")||"0");
-            const waitSec = retryAfter > 0 ? retryAfter + 2 : attempt * 30;
             setStatus(`waiting-${waitSec}`);
             await new Promise(r=>setTimeout(r, waitSec*1000));
             setStatus("loading");
             continue;
           }
-          throw new Error("Rate limit — wacht even en probeer opnieuw");
+          throw new Error("API limiet bereikt — wacht 1-2 minuten en probeer opnieuw");
         }
         if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API fout: ${res.status}`);}
         const data=await res.json();
-        // Web search geeft meerdere content blocks terug — combineer alleen text blocks
         const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
         setResult(robustParse(text));
         setStatus("done");
@@ -1323,47 +1276,26 @@ export default function HybridDashboard() {
     setPsStatus("loading");
     const assetList = assets.map(a=>a.label).join(", ");
     const now = new Date();
+    const hourUTC = now.getUTCHours();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
     const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-    // Nauwkeurige sessie detectie op basis van CET tijd
-    const getCetH = () => parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
-    const getCetM = () => parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
-    const cetH = getCetH(); const cetM = getCetM();
-    const cetMins = cetH*60+cetM; // minuten sinds middernacht CET
-    // Sessie grenzen in minuten CET:
-    // Asia: 00:00-07:00 = 0-420
-    // London: 07:00-16:00 = 420-960
-    // Pre-NY: 13:00-15:30 = 780-930 (overlap met London)
-    // NY: 15:30-00:00 = 930-1440
-    const isAsia   = cetMins < 420;
-    const isLondon = cetMins >= 420 && cetMins < 930 && !(cetMins >= 780 && cetMins < 930);
-    const isPreNY  = cetMins >= 780 && cetMins < 930;
-    const isNY     = cetMins >= 930;
-    const sessionLabel = isAsia ? "Aziatische sessie (00:00-07:00 Amsterdam)" :
-                         isPreNY ? "Pre-NY sessie (13:00-15:30 Amsterdam)" :
-                         isNY ? "New Yorkse sessie (15:30-00:00 CET)" :
-                         "Londense sessie (07:00-16:00 Amsterdam)";
-    const sessionName = isAsia?"Asia" : isPreNY?"Pre-NY" : isNY?"New York" : "London";
-    const sessionTime = isAsia?"00:00-07:00 Amsterdam" : isPreNY?"13:00-15:30 Amsterdam" : isNY?"15:30-00:00 CET" : "07:00-16:00 Amsterdam";
-    // Inject live prices — inclusief actuele prijs zodat AI geen verouderde levels gebruikt
-    const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} (${p.change})`:a.label; }).join(", ");
+    const sessionCtx = hourUTC>=22||hourUTC<8 ? "Aziatische sessie" : hourUTC>=6&&hourUTC<16 ? "Londense sessie" : "New Yorkse sessie";
+    // Inject live prices so no web search needed
+    const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} ${p.change}`:a.label; }).join(", ");
+    // NY pre-market: 13:00-15:00 CET (London nog open maar NY opent om 15:30)
+    const cetHour = new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false});
+    const cetMin  = new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"});
+    const cetH = parseInt(cetHour); const cetM = parseInt(cetMin);
+    const isPreNY = (cetH===13||(cetH===14&&cetM<30)||(cetH===15&&cetM<30));
+    const sessionLabel = isPreNY ? "Pre-NY sessie (13:00-15:30 CET)" : sessionCtx;
     const sys = `Pre-sessie analist. Geen web search nodig. Geen apostrofs in strings.
-HUIDIGE SESSIE: ${sessionName} (${sessionTime}).
-${isPreNY ? "PRE-NY: Focus op wat NY verwacht bij opening (15:30 CET). Hoe reageert NY op London? Key catalysts voor NY?" : ""}
-${isNY ? "NY SESSIE: Actief. Focus op US data, Fed speakers, equity flow." : ""}
-BELANGRIJK: Gebruik ALLEEN de aangeleverde live prijzen voor levels. Verzin GEEN prijsniveaus.
+${isPreNY ? "Het is nu PRE-NY sessie. Focus op: wat verwacht NY bij opening? Hoe reageert NY op wat London heeft gedaan? Wat zijn de key catalysts voor de NY-sessie (15:30 CET)?" : ""}
 Alleen JSON:
-{"session":"${sessionName}","session_time":"${sessionTime}","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","analysed_at":"ISO"}`;
-    // Geef breaking news mee zodat narrative niet altijd hetzelfde is
-    const recentNews = breakingNews.slice(0,5).map(n=>`[${n.source}] ${n.headline}`).join("\n") || "geen recent nieuws";
-    const usr = `VANDAAG ${dateStr} ${timeStr} Amsterdam tijd — ${sessionLabel}.
-Live prijzen: ${priceLines}.
-Recent breaking news (laatste uur):
-${recentNews}
-Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
+{"session":"London","session_time":"07:00-16:00 CET","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","analysed_at":"ISO"}`;
+    const usr = `VANDAAG ${dateStr} ${timeStr} CET, ${sessionLabel}. Live prijzen: ${priceLines}. Geef pre-sessie breakdown. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1459,7 +1391,7 @@ ${macroCtx || "Geen Intel geladen."}
 JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       }
 
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1554,38 +1486,24 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
       }));
     }
 
-    // ── Volledige macro context voor v6.3 analyse ───────────────────────────────
+    // Macro context van Intel + breaking news
     let macroCtx = "";
     if(iResult) {
-      // Yield regime detail — kern van v6.3 correlatie check
-      const ya = iResult.yield_analysis || {};
-      macroCtx += `MACRO REGIME: ${iResult.macro_regime||"onbekend"}`;
-      macroCtx += `\nDOMINANT DRIVER: ${iResult.dominant_driver||"onbekend"}`;
-      macroCtx += `\nYIELD ANALYSE: US10Y=${ya.us10y_level||"?"} US2Y=${ya.us2y_level||"?"} Spread=${ya.spread||"?"} Regime=${ya.regime||"?"} → ${ya.implication||""}`;
-      macroCtx += `\nDESK VIEW: ${iResult.desk_view||""}`;
-      // Alle nieuws items — niet gecapped, v6.3 heeft specifiek nieuws nodig
+      macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
       if(iResult.news_items?.length>0) {
-        macroCtx += "\n\nNIEUWS VANDAAG — gebruik specifieke headlines voor bias onderbouwing:\n";
-        macroCtx += iResult.news_items.map(n=>`[${n.time||"?"}][${n.source}][${n.impact?.toUpperCase()}] ${n.headline} → ${n.direction}`).join("\n");
+        macroCtx += "\nNIEUWS VANDAAG (gebruik dit voor bias — niet alleen prijs):\n" + iResult.news_items.slice(0,10).map(n=>`- [${n.source}] ${n.headline} → ${n.direction} (impact:${n.impact})`).join("\n");
       }
-      // Cross-asset signals van Intel
-      if(iResult.cross_asset_signals?.length>0) {
-        macroCtx += "\n\nCROSS-ASSET SIGNALEN:\n";
-        macroCtx += iResult.cross_asset_signals.map(s=>`${s.signal} (${s.type}): ${s.implication}`).join("\n");
-      }
-      // Marktvisie — diepste nieuws analyse per asset
+      // Marktvisie: AI heeft nieuws al verwerkt tot per-asset mening — dit is de kern
       if(iResult.marktvisie?.assets) {
-        macroCtx += "\n\nMARKTVISIE PER ASSET (gebaseerd op nieuws, zwaar meewegen):\n";
+        macroCtx += "\n\nMARKTVISIE OP BASIS VAN NIEUWS (zwaar meewegen):\n";
         macroCtx += `Macro: ${iResult.marktvisie.macro_samenvatting||""}\n`;
         Object.entries(iResult.marktvisie.assets).forEach(([id, v]) => {
-          macroCtx += `${id}: ${v.visie} → verwacht: ${v.bias_richting} (sterkte:${v.sterkte}/100) | key driver: ${v.key_driver} | risico: ${v.risico}${v.ingeprijsd?" | LET OP: MOGELIJK AL INGEPRIJSD":""}\n`;
+          macroCtx += `${id}: ${v.visie} → ${v.bias_richting} (sterkte:${v.sterkte}/100) | driver: ${v.key_driver} | risico: ${v.risico}${v.ingeprijsd?" | MOGELIJK INGEPRIJSD":""}\n`;
         });
       }
     }
-    // Breaking news — meest recente signalen
     if(breakingNews?.length>0) {
-      macroCtx += "\n\nBREAKING NEWS (meest recent eerst):\n";
-      macroCtx += breakingNews.slice(0,4).map(n=>`[${fmtTime(n.time)}][${n.source}] ${n.headline}`).join("\n");
+      macroCtx += "\nBREAKING NEWS:\n" + breakingNews.slice(0,6).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
     }
 
     // Analyseer alle assets in 1 call — zo kan AI onderlinge verhoudingen zien
@@ -1608,34 +1526,30 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
           : `${a.id}: geen vorige bias`;
       }).join("\n");
 
-      const newsLines = macroCtx || "Geen Intel geladen — baseer op cross-asset data.";
+      // Meer nieuws context voor stabielere bias
+      const newsLines = macroCtx
+        ? macroCtx.split("\n").slice(0,10).join("\n")
+        : "Geen Intel geladen — baseer op cross-asset data.";
 
       const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
-      const usr = `DATUM: ${dateStr}
-LIVE CROSS-ASSET: ${crossAsset}
+      const usr = `${dateStr}. Cross-asset: ${crossAsset}
 
-VORIGE BIASSEN — verander ALLEEN bij concreet nieuw macro nieuws of regime shift:
+VORIGE BIASSEN (verander alleen bij concreet nieuw macro nieuws):
 ${assetLines}
 
-━━━ VOLLEDIG NIEUWS & MACRO CONTEXT (v6.3) ━━━
+NIEUWS/MACRO CONTEXT:
 ${newsLines}
 
-Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
+Vul ALLE ${assets.length} assets in. Geen uitleg:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-haiku-4-5-20251001", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:1600, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
-      if(res.status===429) {
-        if(attempt < 3) {
-          const waitSec = attempt * 30;
-          setAStatus(`waiting-${waitSec}`);
-          await new Promise(r=>setTimeout(r, waitSec*1000));
-          setAStatus("loading");
-          return analyseAllAssets(attempt+1);
-        }
-        throw new Error("Rate limit — wacht 1 minuut en probeer opnieuw");
+      if(res.status===429 && attempt < 3) {
+        await new Promise(r=>setTimeout(r, attempt * 15000));
+        return analyseAllAssets(attempt+1);
       }
       if(!res.ok) throw new Error(`Analyse API fout ${res.status}`);
       const data = await res.json();
@@ -1720,7 +1634,7 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
   const runIntel = () => {
     setIError("");
     const labels = assets.map(a=>a.label);
-    callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels, livePrices), (result) => {
+    callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), (result) => {
       setIResult(result);
       if(result?.news_items?.length > 0) {
         const now = new Date();
@@ -1746,9 +1660,6 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
   const [hybridStatus, setHybridStatus] = useState("idle");
   const runHybrid = async () => {
     if(hybridStatus !== "idle" && hybridStatus !== "done") return;
-    // Stop auto-refresh tijdens hybrid zodat geen parallel calls
-    clearInterval(autoRefreshRef.current);
-    clearInterval(countdownRef.current);
     setHybridStatus("intel");
     setIError(""); setAError("");
     const labels = assets.map(a=>a.label);
@@ -1775,14 +1686,13 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
         }
         if(!intelDone) { intelDone = true; resolve(result); }
       };
-      callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels, livePrices), origSet, setIError, (s) => {
+      callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), origSet, setIError, (s) => {
         setIStatus(s);
         if(s === "error" && !intelDone) { intelDone = true; resolve(null); }
       });
     });
 
-    // ── Stap 2: Marktvisie — 3 sec pauze om rate limit te voorkomen ─────────────
-    await new Promise(r=>setTimeout(r,3000));
+    // ── Stap 2: Marktvisie — AI verwerkt nieuws tot echte mening per asset ─────
     setHybridStatus("visie");
     if(intelResult) {
       try {
@@ -1795,23 +1705,15 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
         ].join(" | ");
         // Geef breaking news ook mee aan marktvisie
         const intelMetBreaking = {...intelResult, breakingItems: breakingNews.slice(0,6)};
-        let visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+        const visieRes = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
           body: JSON.stringify({
-            model:"claude-haiku-4-5-20251001",
-            max_tokens: 900,
+            model:"claude-sonnet-4-20250514",
+            max_tokens: 1200,
             system: MARKTVISIE_SYSTEM,
             messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
           })
         });
-        // 429 retry voor marktvisie
-        if(visieRes.status===429) {
-          await new Promise(r=>setTimeout(r,20000));
-          visieRes = await fetch("https://api.anthropic.com/v1/messages",{
-            method:"POST", headers,
-            body: JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
-          });
-        }
         if(visieRes.ok) {
           const visieData = await visieRes.json();
           const visieText = visieData.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
@@ -1824,19 +1726,10 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
       } catch(e) { console.error("Marktvisie fout:", e); }
     }
 
-    // ── Stap 3: Analyse — 3 sec pauze om rate limit te voorkomen ──────────────
-    await new Promise(r=>setTimeout(r,3000));
+    // ── Stap 3: Analyse — gebruikt Intel + Marktvisie als context ──────────────
     setHybridStatus("analyse");
     await runAnalysis();
-
-    // ── Stap 4: Sessie breakdown — 3 sec pauze ──────────────────────────────────
-    await new Promise(r=>setTimeout(r,3000));
-    setHybridStatus("sessie");
-    await runPresession();
-
     setHybridStatus("done");
-    // Herstart auto-refresh als het aan stond
-    if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
     setTimeout(() => setHybridStatus("idle"), 4000);
   };
   const loading = aStatus==="loading"||iStatus==="loading";
@@ -2033,14 +1926,13 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
               <button onClick={runHybrid}
                 disabled={hybridStatus!=="idle"&&hybridStatus!=="done"}
                 style={{...btnStyle(hybridStatus!=="idle"&&hybridStatus!=="done", accent), flex:2}}>
-                <span style={{display:"inline-block",animation:["intel","visie","analyse","sessie"].includes(hybridStatus)?"spin 0.8s linear infinite":"none"}}>
+                <span style={{display:"inline-block",animation:hybridStatus==="intel"||hybridStatus==="analyse"?"spin 0.8s linear infinite":"none"}}>
                   {hybridStatus==="done"?"✓":"⬤"}
                 </span>
-                {hybridStatus==="intel"   ? `1/4 NIEUWS LADEN${".".repeat(dots)}` :
-                 hybridStatus==="visie"   ? `2/4 MARKTVISIE${".".repeat(dots)}` :
-                 hybridStatus==="analyse" ? `3/4 ANALYSEREN${".".repeat(dots)}` :
-                 hybridStatus==="sessie"  ? `4/4 SESSIE${".".repeat(dots)}` :
-                 hybridStatus==="done"    ? "✓ KLAAR" : "▶ HYBRID ANALYSE"}
+                {hybridStatus==="intel" ? `1/3 NIEUWS LADEN${".".repeat(dots)}` :
+                 hybridStatus==="visie" ? `2/3 MARKTVISIE${".".repeat(dots)}` :
+                 hybridStatus==="analyse" ? `3/3 ANALYSEREN${".".repeat(dots)}` :
+                 hybridStatus==="done" ? "✓ KLAAR" : "▶ HYBRID ANALYSE"}
               </button>
               <button onClick={runAnalysis}
                 disabled={aStatus==="loading"}
@@ -2084,7 +1976,7 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
                   </InfoTooltip>
                 )}
                 {aResult.session&&(
-                  <InfoTooltip text="Actieve handelssessie. London (07:00-16:00 Amsterdam) = hoogste volume voor EUR/GBP. New York (13:00-22:00 CET) = hoogste volume voor USD-paren en equities. Overlap London/NY (13:00-16:00) = meest volatiel." color="#6366f1">
+                  <InfoTooltip text="Actieve handelssessie. London (07:00-16:00 CET) = hoogste volume voor EUR/GBP. New York (13:00-22:00 CET) = hoogste volume voor USD-paren en equities. Overlap London/NY (13:00-16:00) = meest volatiel." color="#6366f1">
                     <Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>
                   </InfoTooltip>
                 )}
@@ -2135,84 +2027,67 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
                     </div>
                   )}
                 </div>
-                {/* Rechter kolom: v6.3 correlatie status + high impact events */}
+                {/* Rechter kolom: sessie info + key events */}
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
-
-                  {/* DXY / Gold correlatie — kern van v6.3 */}
-                  {(()=>{
-                    const dxy  = livePrices["DXY"];
-                    const xau  = livePrices["XAUUSD"];
-                    const us10y= livePrices["US10Y"];
-                    const vix  = livePrices["VIX"];
-                    if(!dxy||!xau) return null;
-                    const dxyUp  = dxy.raw  > 0;
-                    const xauUp  = xau.raw  > 0;
-                    const anomalie = (dxyUp && xauUp) || (!dxyUp && !xauUp);
-                    const corrColor = anomalie ? "#f97316" : "#22c55e";
-                    const corrLabel = anomalie ? "⚠️ ANOMALIE" : "✓ NORMAAL";
-                    const corrText  = anomalie
-                      ? (dxyUp ? "DXY↑ + Goud↑ — max confidence 65%" : "DXY↓ + Goud↓ — max confidence 65%")
-                      : (dxyUp ? "DXY↑ + Goud↓ — inverse relatie actief" : "DXY↓ + Goud↑ — inverse relatie actief");
-                    // Yield regime
-                    const yieldsUp = us10y?.raw > 0;
-                    let yieldRegime = "";
-                    if(dxyUp && xauUp && yieldsUp)  yieldRegime = "Stagflatie-flow";
-                    else if(dxyUp && xauUp && !yieldsUp) yieldRegime = "Pure risk-off / safe haven";
-                    else if(!dxyUp && xauUp && !yieldsUp) yieldRegime = "Klassieke risk-off";
-                    else if(!dxyUp && xauUp && yieldsUp)  yieldRegime = "Inflatie domineert";
-                    else yieldRegime = "Normaal macro regime";
-                    return (
-                      <div style={{background:"#111214",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
-                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
-                        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                          <span style={{fontSize:11,fontWeight:700,color:corrColor}}>{corrLabel}</span>
-                        </div>
-                        <div style={{fontSize:10,color:"#6b7280",marginBottom:8}}>{corrText}</div>
-                        {/* DXY / XAU / US10Y / VIX live */}
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
-                          {[["DXY",dxy],["XAU/USD",xau],["US10Y",us10y],["VIX",vix]].filter(([,v])=>v).map(([label,v])=>(
-                            <div key={label} style={{background:"rgba(255,255,255,0.02)",borderRadius:5,padding:"5px 8px"}}>
-                              <div style={{fontSize:8,color:"#374151",letterSpacing:"0.08em"}}>{label}</div>
-                              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:v.raw>0?"#22c55e":"#ef4444"}}>{v.change}</div>
-                            </div>
-                          ))}
-                        </div>
-                        {yieldRegime&&<div style={{fontSize:9,color:"#6366f1",background:"rgba(99,102,241,0.08)",borderRadius:4,padding:"4px 8px"}}>{yieldRegime}</div>}
+                  {/* Sessie status */}
+                  {presession&&(
+                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>{presession.session?.toUpperCase()||"SESSIE"}</div>
+                        {presession.analysed_at&&<div style={{fontSize:8,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(presession.analysed_at)}</div>}
                       </div>
-                    );
-                  })()}
-
-                  {/* High impact events vandaag */}
-                  {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).length>0&&(
+                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:6}}>
+                        <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>
+                        <span style={{fontSize:12,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
+                        <span style={{fontSize:10,color:"#4b5563"}}>{presession.mood_score}%</span>
+                        {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
+                      </div>
+                      <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5,marginBottom:presession.session_time?4:0}}>{presession.market_narrative}</div>
+                      {presession.session_time&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{presession.session_time}</div>}
+                    </div>
+                  )}
+                  {/* Aankomende events vandaag */}
+                  {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&!e.actual&&e.impact==="high").slice(0,4).length>0&&(
                     <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
                       <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:8}}>🔴 HIGH IMPACT VANDAAG</div>
-                      <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                        {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).map((e,i)=>(
+                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                        {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&!e.actual&&e.impact==="high").slice(0,4).map((e,i)=>(
                           <div key={i} style={{display:"flex",gap:8,alignItems:"center"}}>
-                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:e.actual?accent:"#e5e7eb",fontWeight:700,flexShrink:0}}>{e.time}</span>
-                            <span style={{fontSize:10,color:e.actual?"#4b5563":"#e5e7eb",flex:1}}>{e.event}</span>
-                            {e.actual&&<span style={{fontSize:9,fontWeight:700,color:accent,fontFamily:"'IBM Plex Mono',monospace"}}>{e.actual}</span>}
-                            {!e.actual&&<span style={{fontSize:8,color:"#374151"}}>→</span>}
+                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:accent,fontWeight:700,flexShrink:0}}>{e.time}</span>
+                            <span style={{fontSize:10,color:"#e5e7eb"}}>{e.event}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
+                  {/* Pre-NY outlook block — verschijnt 13:00-15:30 CET */}
+                  {(()=>{
+                    const h=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
+                    const m=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
+                    const isPreNY=(h===13||(h===14)|| (h===15&&m<30));
+                    if(!isPreNY||!presession) return null;
+                    return (
+                      <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"12px 14px"}}>
+                        <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:6}}>🗽 PRE-NY OUTLOOK</div>
+                        <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
+                        <div style={{fontSize:9,color:"#374151",marginTop:4}}>NY opent 15:30 CET</div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
 
-            {/* SESSIE BREAKDOWN — 1x, compact, enkel blok */}
+            {/* PRE-SESSION BREAKDOWN */}
             <div style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.12em"}}>SESSIE BREAKDOWN</span>
+                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.12em"}}>PRE-SESSIE BREAKDOWN</span>
                   {psStatus==="done"&&presession&&<div style={{width:8,height:8,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>}
-                  {presession?.analysed_at&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(presession.analysed_at)}</span>}
                 </div>
                 <button onClick={runPresession} disabled={psStatus==="loading"} style={{...btnStyle(psStatus==="loading",accent),padding:"5px 12px",fontSize:9}}>
                   <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
-                  {psStatus==="loading"?`LADEN...`:"↺ SESSIE"}
+                  {psStatus==="loading"?`LADEN...`:"BREAKDOWN LADEN"}
                 </button>
               </div>
 
@@ -2220,14 +2095,19 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
 
               {psStatus==="done"&&presession&&(
                 <div style={{background:"#0f1011",border:`1px solid ${accent}18`,borderRadius:7,padding:"9px 14px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
+                  {/* Session badge */}
                   <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                     <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 5px ${moodColor(presession.mood)}`}}/>
                     <span style={{fontSize:11,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
                     <span style={{fontSize:9,color:"#374151"}}>{presession.mood_score||""}%</span>
                   </div>
+                  {/* Session */}
                   {presession.session&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:9,color:"#374151"}}>SESSIE</span><span style={{fontSize:10,fontWeight:600,color:accent,fontFamily:"'IBM Plex Mono',monospace"}}>{presession.session}</span>{presession.session_time&&<span style={{fontSize:9,color:"#374151"}}>{presession.session_time}</span>}</div>}
+                  {/* Volatility */}
                   {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
+                  {/* Key events */}
                   {presession.key_events_today?.slice(0,3).map((e,i)=><Badge key={i} label={e} color={accent}/>)}
+                  {/* Narrative */}
                   <span style={{fontSize:10,color:"#6b7280",flex:1,minWidth:160,lineHeight:1.4}}>{presession.market_narrative}</span>
 
                 </div>
