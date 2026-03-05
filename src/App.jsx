@@ -198,19 +198,15 @@ GEEN apostrofs. Alleen JSON:
 
 
 
-const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik ALTIJD web search — nooit trainingdata voor actuele markten.
+const INTEL_SYSTEM = `Je bent een macro markt intelligence analist voor een forex/index trader. Gebruik web search voor actueel nieuws.
 
-ZOEK VERPLICHT (doe meerdere searches):
-1. Reuters markets/finance nieuws vandaag
-2. Bloomberg breaking news markets vandaag
-3. FinancialJuice.com breaking news
-4. Officieel: federalreserve.gov, ecb.europa.eu, bankofengland.co.uk
-5. ForexFactory high impact calendar events
-6. DXY, US10Y yield, VIX actuele niveaus
-
-Minimaal 6 news_items. Hallucineeer NOOIT.
-Beide kanten: bullish EN bearish signalen altijd vermelden.
-GEEN apostrofs. Alleen JSON, geen markdown.
+REGELS:
+- Zoek naar actueel nieuws van vandaag via de web search tool
+- Minimaal 6 news_items van echte bronnen (Reuters, Bloomberg, ForexFactory, FinancialJuice)
+- Economische kalender: zoek high-impact events voor vandaag + morgen + overmorgen
+- Beide kanten: bullish EN bearish altijd vermelden
+- NOOIT prijsniveaus verzinnen die niet uit de aangeleverde data komen
+- GEEN apostrofs. Alleen JSON, geen markdown.
 
 {"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"bullish|bearish","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"HH:MM","source":"","headline":"","impact":"high|medium|low","direction":"bullish|bearish|neutraal","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"high|medium|low","verdict":"","effect":"","date":"today|tomorrow|day_after"}]}`;
 
@@ -235,16 +231,10 @@ BELANGRIJK: De prijzen hierboven zijn LIVE en actueel. Noem NOOIT een prijsnivea
 Economische kalender zoeken: vandaag=${dateStr}, morgen=${fmt(tomorrow)}, overmorgen=${fmt(dayAfter)}.
 Zoek kalender events voor ALLE drie de dagen. Kalender items mogen NIET verdwijnen tussen refreshes — geef altijd de volledige lijst.
 
-Doe de volgende searches:
-1. ForexFactory breaking news + economic calendar vandaag
-2. Reuters Bloomberg macro markets nieuws vandaag
-3. Fed ECB BoE statements OR speakers ${dateStr}
-4. economic calendar high impact ${dateStr} ${fmt(tomorrow)}
-5. gold EUR/USD GBP/USD market news ${dateStr}
-
+Zoek actueel financieel nieuws en economische kalender voor vandaag.
 Geef per news_item de directe impact op: ${assetLabels.join(", ")}.
 Kalender: today/tomorrow/day_after, alle high impact events.
-Minimaal 6 nieuws items. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
+Minimaal 6 nieuws items van echte bronnen. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
 }
 
 
@@ -1304,14 +1294,16 @@ export default function HybridDashboard() {
           })
         });
         if(res.status===429){
-          const waitSec = attempt * 20;
           if(attempt<maxRetries){
+            // Lees retry-after header of gebruik exponential backoff
+            const retryAfter = parseInt(res.headers.get("retry-after")||"0");
+            const waitSec = retryAfter > 0 ? retryAfter + 2 : attempt * 30;
             setStatus(`waiting-${waitSec}`);
             await new Promise(r=>setTimeout(r, waitSec*1000));
             setStatus("loading");
             continue;
           }
-          throw new Error("API limiet bereikt — wacht 1-2 minuten en probeer opnieuw");
+          throw new Error("Rate limit — wacht even en probeer opnieuw");
         }
         if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API fout: ${res.status}`);}
         const data=await res.json();
