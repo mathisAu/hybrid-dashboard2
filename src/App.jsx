@@ -1275,29 +1275,47 @@ export default function HybridDashboard() {
     setDeepRefreshing(true);
     try {
       const now = new Date();
-      const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
       const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
       const p = livePrices[asset.id];
       const prev = prevBias[asset.id];
+
+      // Zelfde macroCtx als runAnalysis — inclusief marktvisie
       let macroCtx = "";
       if(iResult) {
-        macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. ${iResult.desk_view||""}`;
-        if(iResult.news_items?.length>0) macroCtx += "\nNIEUWS:\n"+iResult.news_items.slice(0,5).map(n=>`- [${n.source}] ${n.headline} → ${n.direction}`).join("\n");
+        macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
+        if(iResult.news_items?.length>0) {
+          macroCtx += "\nNIEUWS:\n" + iResult.news_items.slice(0,8).map(n=>`- [${n.source}] ${n.headline} → ${n.direction} (impact:${n.impact})`).join("\n");
+        }
+        if(iResult.marktvisie?.assets?.[asset.id]) {
+          const v = iResult.marktvisie.assets[asset.id];
+          macroCtx += `\n\nMARKTVISIE VOOR ${asset.id}: ${v.visie} → verwachte richting: ${v.bias_richting} (sterkte:${v.sterkte}/100) | driver: ${v.key_driver} | risico: ${v.risico}${v.ingeprijsd?" | MOGELIJK INGEPRIJSD":""}`;
+        }
+        if(iResult.marktvisie?.macro_samenvatting) {
+          macroCtx += `\nMACRO: ${iResult.marktvisie.macro_samenvatting}`;
+        }
       }
-      if(breakingNews?.length>0) macroCtx += "\nBREAKING:\n"+breakingNews.slice(0,3).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
+      if(breakingNews?.length>0) macroCtx += "\nBREAKING:\n"+breakingNews.slice(0,4).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
+
       const dxy   = livePrices["DXY"];
       const us10y = livePrices["US10Y"];
       const xauP  = livePrices["XAUUSD"];
       const crossAsset = [
-        dxy   ? `DXY: ${dxy.price} ${dxy.change} (${dxy.direction})` : "DXY: onbekend",
-        us10y ? `US10Y: ${us10y.price}% ${us10y.change}` : "US10Y: onbekend",
-        xauP && asset.id!=="XAUUSD" ? `XAU/USD: ${xauP.price} ${xauP.change}` : "",
+        dxy   ? `DXY:${dxy.price} ${dxy.change}` : "DXY:?",
+        us10y ? `US10Y:${us10y.price}% ${us10y.change}` : "US10Y:?",
+        xauP && asset.id!=="XAUUSD" ? `XAU:${xauP.price} ${xauP.change}` : "",
       ].filter(Boolean).join(" | ");
-      const newsCompact = macroCtx ? macroCtx.split("\n").slice(0,4).join(" | ") : "Geen context.";
-      const prevLine = prev ? `prev=${prev.bias}(${prev.confidence}%)` : "";
-      const usr = `${asset.id} | Cross-asset: ${crossAsset} | ${prevLine}
-Context: ${newsCompact}
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+
+      const prevLine = prev
+        ? `VORIGE BIAS: ${prev.bias} (${prev.confidence}%) — verander ALLEEN bij concreet nieuw macro nieuws`
+        : "geen vorige bias";
+
+      const usr = `${asset.id} | ${crossAsset} | ${prevLine}
+
+CONTEXT:
+${macroCtx || "Geen Intel geladen."}
+
+JSON:
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
