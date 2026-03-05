@@ -195,31 +195,42 @@ GEEN apostrofs. Alleen JSON, geen markdown.
 
 {"timestamp":"ISO","macro_regime":"","dominant_driver":"","session_context":"","yield_analysis":{"us10y_level":"","us2y_level":"","spread":"","regime":"","implication":""},"cross_asset_signals":[{"signal":"","type":"bullish|bearish","implication":""}],"risk_radar":{"score":0,"label":"","factors":[]},"desk_view":"","news_items":[{"time":"HH:MM","source":"","headline":"","impact":"high|medium|low","direction":"bullish|bearish|neutraal","assets_affected":[]}],"economic_calendar":[{"time":"","event":"","actual":"","expected":"","previous":"","impact":"high|medium|low","verdict":"","effect":"","date":"today|tomorrow|day_after"}]}`;
 
-function INTEL_USER_NOW(assetLabels) {
+function INTEL_USER_NOW(assetLabels, livePrices={}) {
   const now = new Date();
-  const dateStr = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-  const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  // Altijd Amsterdam/CET tijd tonen
+  const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate()+1);
   const dayAfter = new Date(now); dayAfter.setDate(now.getDate()+2);
-  const fmt = d => d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-  return `TODAY: ${dateStr}, ${timeStr} CET.
+  const fmt = d => d.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"short",day:"numeric",month:"short"});
+  // Inject actuele prijzen zodat AI NOOIT verouderde niveaus hallucineert
+  const priceCtx = Object.entries(livePrices)
+    .filter(([k,v])=>v?.price)
+    .map(([k,v])=>`${k}: ${v.price} (${v.change})`)
+    .join(", ");
+  return `DATUM: ${dateStr}, ${timeStr} Amsterdam tijd.
 Assets: ${assetLabels.join(", ")}.
+${priceCtx ? `ACTUELE LIVE PRIJZEN (gebruik ALLEEN deze — geen verouderde niveaus verzinnen): ${priceCtx}` : ""}
+
+BELANGRIJK: De prijzen hierboven zijn LIVE en actueel. Noem NOOIT een prijsniveau dat niet overeenkomt met deze data.
+Economische kalender zoeken: vandaag=${dateStr}, morgen=${fmt(tomorrow)}, overmorgen=${fmt(dayAfter)}.
+Zoek kalender events voor ALLE drie de dagen. Kalender items mogen NIET verdwijnen tussen refreshes — geef altijd de volledige lijst.
 
 Doe ALLE volgende searches, in volgorde:
 1. site:forexfactory.com/news — ForexFactory breaking news feed vandaag
 2. site:financialjuice.com — FinancialJuice breaking macro nieuws
-3. "reuters.com" forex markets news ${dateStr}
-4. "bloomberg.com" markets breaking news today
-5. Federal Reserve statement OR Fed speaker ${dateStr}
-6. ECB statement OR Lagarde ${dateStr}
+3. reuters markets finance news today ${dateStr}
+4. bloomberg markets breaking news today
+5. Federal Reserve OR Fed speaker statement ${dateStr}
+6. ECB OR Lagarde statement ${dateStr}
 7. Bank of England OR Bailey ${dateStr}
-8. CPI OR NFP OR PMI OR GDP release ${dateStr}
-9. gold XAU dollar DXY news ${dateStr}
-10. EUR/USD GBP/USD market outlook ${dateStr}
+8. economic calendar PMI CPI NFP GDP ${dateStr}
+9. investing.com economic calendar today
+10. gold XAU/USD price analysis ${dateStr}
 
 Geef per news_item de directe impact op: ${assetLabels.join(", ")}.
-Economische kalender: today=vandaag, tomorrow=${fmt(tomorrow)}, day_after=${fmt(dayAfter)}.
-Minimaal 8 nieuws items van ECHTE bronnen. Alleen JSON.`;
+Economische kalender: zoek ALLE high en medium impact events voor today/tomorrow/day_after.
+Minimaal 8 nieuws items van ECHTE bronnen. NOOIT prijsniveaus verzinnen. Alleen JSON.`;
 }
 
 
@@ -1292,12 +1303,12 @@ export default function HybridDashboard() {
     const isLondon = cetMins >= 420 && cetMins < 930 && !(cetMins >= 780 && cetMins < 930);
     const isPreNY  = cetMins >= 780 && cetMins < 930;
     const isNY     = cetMins >= 930;
-    const sessionLabel = isAsia ? "Aziatische sessie (00:00-07:00 CET)" :
-                         isPreNY ? "Pre-NY sessie (13:00-15:30 CET)" :
+    const sessionLabel = isAsia ? "Aziatische sessie (00:00-07:00 Amsterdam)" :
+                         isPreNY ? "Pre-NY sessie (13:00-15:30 Amsterdam)" :
                          isNY ? "New Yorkse sessie (15:30-00:00 CET)" :
-                         "Londense sessie (07:00-16:00 CET)";
+                         "Londense sessie (07:00-16:00 Amsterdam)";
     const sessionName = isAsia?"Asia" : isPreNY?"Pre-NY" : isNY?"New York" : "London";
-    const sessionTime = isAsia?"00:00-07:00 CET" : isPreNY?"13:00-15:30 CET" : isNY?"15:30-00:00 CET" : "07:00-16:00 CET";
+    const sessionTime = isAsia?"00:00-07:00 Amsterdam" : isPreNY?"13:00-15:30 Amsterdam" : isNY?"15:30-00:00 CET" : "07:00-16:00 Amsterdam";
     // Inject live prices — inclusief actuele prijs zodat AI geen verouderde levels gebruikt
     const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} (${p.change})`:a.label; }).join(", ");
     const sys = `Pre-sessie analist. Geen web search nodig. Geen apostrofs in strings.
@@ -1307,9 +1318,13 @@ ${isNY ? "NY SESSIE: Actief. Focus op US data, Fed speakers, equity flow." : ""}
 BELANGRIJK: Gebruik ALLEEN de aangeleverde live prijzen voor levels. Verzin GEEN prijsniveaus.
 Alleen JSON:
 {"session":"${sessionName}","session_time":"${sessionTime}","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","analysed_at":"ISO"}`;
-    const usr = `VANDAAG ${dateStr} ${timeStr} CET — ${sessionLabel}.
-Live prijzen (gebruik ALLEEN deze voor eventuele levels): ${priceLines}.
-Geef pre-sessie breakdown. Alleen JSON.`;
+    // Geef breaking news mee zodat narrative niet altijd hetzelfde is
+    const recentNews = breakingNews.slice(0,5).map(n=>`[${n.source}] ${n.headline}`).join("\n") || "geen recent nieuws";
+    const usr = `VANDAAG ${dateStr} ${timeStr} Amsterdam tijd — ${sessionLabel}.
+Live prijzen: ${priceLines}.
+Recent breaking news (laatste uur):
+${recentNews}
+Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
@@ -1651,7 +1666,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
   const runIntel = () => {
     setIError("");
     const labels = assets.map(a=>a.label);
-    callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), (result) => {
+    callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels, livePrices), (result) => {
       setIResult(result);
       if(result?.news_items?.length > 0) {
         const now = new Date();
@@ -1703,7 +1718,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
         }
         if(!intelDone) { intelDone = true; resolve(result); }
       };
-      callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels), origSet, setIError, (s) => {
+      callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels, livePrices), origSet, setIError, (s) => {
         setIStatus(s);
         if(s === "error" && !intelDone) { intelDone = true; resolve(null); }
       });
@@ -1999,7 +2014,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                   </InfoTooltip>
                 )}
                 {aResult.session&&(
-                  <InfoTooltip text="Actieve handelssessie. London (07:00-16:00 CET) = hoogste volume voor EUR/GBP. New York (13:00-22:00 CET) = hoogste volume voor USD-paren en equities. Overlap London/NY (13:00-16:00) = meest volatiel." color="#6366f1">
+                  <InfoTooltip text="Actieve handelssessie. London (07:00-16:00 Amsterdam) = hoogste volume voor EUR/GBP. New York (13:00-22:00 CET) = hoogste volume voor USD-paren en equities. Overlap London/NY (13:00-16:00) = meest volatiel." color="#6366f1">
                     <Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>
                   </InfoTooltip>
                 )}
@@ -2095,14 +2110,14 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                       <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"12px 14px"}}>
                         <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:6}}>🗽 PRE-NY OUTLOOK</div>
                         <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
-                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>NY opent 15:30 CET</div>
+                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>NY opent 15:30 Amsterdam tijd</div>
                       </div>
                     );
                     if(isNY) return (
                       <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.15)",borderRadius:8,padding:"12px 14px"}}>
                         <div style={{fontSize:9,color:"#22c55e",letterSpacing:"0.1em",marginBottom:6}}>🗽 NEW YORK SESSIE ACTIEF</div>
                         <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
-                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>15:30–00:00 CET</div>
+                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>15:30–00:00 Amsterdam</div>
                       </div>
                     );
                     return null;
