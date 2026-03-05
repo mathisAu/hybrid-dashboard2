@@ -142,15 +142,21 @@ VIX>20: indices Fragiel/Bearish, goud bullish (safe haven)
 Yields↑ sterk: goud bearish, US100 bearish, USD bullish
 XAU anomalie (DXY+goud BEIDE zelfde richting): max confidence 65%
 
+BIAS STABILITEIT — verplicht:
+- Als vorige bias gegeven is: verander ALLEEN bij fundamenteel nieuw macro nieuws of echte regime shift
+- Kleine prijsbewegingen = GEEN reden om bias te draaien
+- Van Bullish→Bearish mag alleen als er concreet nieuws of data is die de driver omkeert
+- Bij twijfel: houd vorige bias aan met lagere confidence
+
 Elke asset krijgt ANDERE bias — verplicht.
 
 mini_summary: 2-3 zinnen. (1) waarom deze bias, (2) welke macro driver domineert, (3) wat is het risico.
-hold_advies: advies over hoe LANG je een trade vasthoudt — bijv. "Meerdere sessies houden" / "Alleen intraday, niet overnight" / "Wacht op bevestiging voor langere hold". NIET over richting.
-fail_condition: wanneer wordt de bias ongeldig, max 8 woorden.
-technical_trend: Bullish/Bearish/Neutraal — gebaseerd op macro momentum, niet prijs.
-trend_driver: 3-5 woorden, de dominante kracht achter de trend.
+hold_advies: hoe LANG vasthoudenl bijv. "Meerdere sessies" / "Alleen intraday" / "Wacht op bevestiging". NIET over richting.
+fail_condition: wanneer bias ongeldig, max 8 woorden.
+technical_trend: Bullish/Bearish/Neutraal — macro momentum gebaseerd.
+trend_driver: 3-5 woorden dominante kracht.
 market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy.
-intraday_structuur: HH/HL of LH/LL of Ranging — inschatting op basis van macro context.
+intraday_structuur: HH/HL of LH/LL of Ranging.
 
 GEEN apostrofs. Alleen JSON:
 {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
@@ -415,6 +421,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 {data?.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
               </div>
               <div style={{fontSize:12,color:"#4b5563"}}>{asset.full}</div>
+              {data?.analysed_at&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",marginTop:2}}>📊 {new Date(data.analysed_at).toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</div>}
             </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -704,7 +711,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
   );
 }
 
-function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick }) {
+function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, accent }) {
+  const acc = accent || "#089981";
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:420,gap:14}}>
       <div style={{fontSize:40,opacity:0.4}}>📡</div>
@@ -753,7 +761,7 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick }
             {[{l:"US10Y",v:data.yield_analysis.us10y_level},{l:"US2Y",v:data.yield_analysis.us2y_level},{l:"SPREAD",v:data.yield_analysis.spread},{l:"REGIME",v:data.yield_analysis.regime}].map(({l,v})=>(
               <div key={l} style={{display:"flex",gap:6,alignItems:"center"}}>
                 <span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>{l}</span>
-                <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,fontWeight:700,color:"#f97316"}}>{v}</span>
+                <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,fontWeight:700,color:acc}}>{v}</span>
               </div>
             ))}
           </div>
@@ -878,7 +886,7 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick }
       {/* Desk view */}
       {data.desk_view&&(
         <div style={{background:"linear-gradient(135deg,rgba(249,115,22,0.05),rgba(99,102,241,0.04))",border:"1px solid rgba(249,115,22,0.15)",borderRadius:8,padding:"16px 20px"}}>
-          <div style={{fontSize:10,color:"#f97316",letterSpacing:"0.12em",marginBottom:8}}>DESK PERSPECTIEF</div>
+          <div style={{fontSize:10,color:acc,letterSpacing:"0.12em",marginBottom:8}}>DESK PERSPECTIEF</div>
           <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.7}}>{data.desk_view}</div>
         </div>
       )}
@@ -1297,11 +1305,11 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
     if(iResult) {
       macroCtx = `Regime: ${iResult.macro_regime||""}. Driver: ${iResult.dominant_driver||""}. Yields: ${iResult.yield_analysis?.us10y_level||""} (${iResult.yield_analysis?.regime||""}). ${iResult.desk_view||""}`;
       if(iResult.news_items?.length>0) {
-        macroCtx += "\nNIEUWS VANDAAG:\n" + iResult.news_items.slice(0,6).map(n=>`- [${n.source}] ${n.headline} → ${n.direction}`).join("\n");
+        macroCtx += "\nNIEUWS VANDAAG (gebruik dit voor bias — niet alleen prijs):\n" + iResult.news_items.slice(0,10).map(n=>`- [${n.source}] ${n.headline} → ${n.direction} (impact:${n.impact})`).join("\n");
       }
     }
     if(breakingNews?.length>0) {
-      macroCtx += "\nBREAKING:\n" + breakingNews.slice(0,4).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
+      macroCtx += "\nBREAKING NEWS:\n" + breakingNews.slice(0,6).map(n=>`- [${n.source}] ${n.headline}`).join("\n");
     }
 
     // Analyseer alle assets in 1 call — zo kan AI onderlinge verhoudingen zien
@@ -1318,24 +1326,29 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
       ].filter(Boolean).join(" | ");
 
       const assetLines = assets.map(a => {
-        const p = freshPrices[a.id];
         const prev = prevBias[a.id];
-        return `${a.id}${prev?` prev=${prev.bias}(${prev.confidence}%)`:""}`;
-      }).join(", ");
+        return prev
+          ? `${a.id}: VORIGE BIAS=${prev.bias}(${prev.confidence}%) — verander ALLEEN bij concreet nieuw nieuws`
+          : `${a.id}: geen vorige bias`;
+      }).join("\n");
 
-      // Nieuws compact — max 4 items, alleen headline + richting
+      // Meer nieuws context voor stabielere bias
       const newsLines = macroCtx
-        ? macroCtx.split("\n").slice(0,6).join("\n")
-        : "Geen Intel.";
+        ? macroCtx.split("\n").slice(0,10).join("\n")
+        : "Geen Intel geladen — baseer op cross-asset data.";
 
       const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `${dateStr}. Cross-asset: ${crossAsset}
-Assets: ${assetLines}
-Context: ${newsLines}
 
-Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
+VORIGE BIASSEN (verander alleen bij concreet nieuw macro nieuws):
+${assetLines}
+
+NIEUWS/MACRO CONTEXT:
+${newsLines}
+
+Vul ALLE ${assets.length} assets in. Geen uitleg:
 {"assets":{${assetsJson}}}`;
 
       const body = { model:"claude-sonnet-4-20250514", max_tokens:1600, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
@@ -1394,6 +1407,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
           price_today: p?.price || "",
           price_change_today: p?.change || "",
           price_direction: p?.direction || "up",
+          analysed_at: new Date().toISOString(),
         };
         if(!combined.yield_regime && data.yield_regime) {
           combined.yield_regime = data.yield_regime;
@@ -1834,7 +1848,7 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
         {page==="intel"&&(
           <>
             {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
-            <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)}/>
+            <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)} accent={accent}/>
           </>
         )}
 
