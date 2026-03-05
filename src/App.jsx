@@ -1089,6 +1089,9 @@ export default function HybridDashboard() {
 
   async function fetchBreakingNews() {
     if(!fhKey?.trim()) return;
+    // Geen breaking news fetch tijdens actieve API calls
+    if(hybridStatus!=="idle"&&hybridStatus!=="done") return;
+    if(aStatus==="loading"||iStatus==="loading") return;
     setBnLoading(true);
     try {
       const now = new Date();
@@ -1751,6 +1754,9 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
   const [hybridStatus, setHybridStatus] = useState("idle");
   const runHybrid = async () => {
     if(hybridStatus !== "idle" && hybridStatus !== "done") return;
+    // Stop auto-refresh tijdens hybrid zodat geen parallel calls
+    clearInterval(autoRefreshRef.current);
+    clearInterval(countdownRef.current);
     setHybridStatus("intel");
     setIError(""); setAError("");
     const labels = assets.map(a=>a.label);
@@ -1783,7 +1789,8 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
       });
     });
 
-    // ── Stap 2: Marktvisie — AI verwerkt nieuws tot echte mening per asset ─────
+    // ── Stap 2: Marktvisie — 3 sec pauze om rate limit te voorkomen ─────────────
+    await new Promise(r=>setTimeout(r,3000));
     setHybridStatus("visie");
     if(intelResult) {
       try {
@@ -1796,7 +1803,7 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
         ].join(" | ");
         // Geef breaking news ook mee aan marktvisie
         const intelMetBreaking = {...intelResult, breakingItems: breakingNews.slice(0,6)};
-        const visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+        let visieRes = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
           body: JSON.stringify({
             model:"claude-sonnet-4-20250514",
@@ -1805,6 +1812,14 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
             messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
           })
         });
+        // 429 retry voor marktvisie
+        if(visieRes.status===429) {
+          await new Promise(r=>setTimeout(r,20000));
+          visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+            method:"POST", headers,
+            body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
+          });
+        }
         if(visieRes.ok) {
           const visieData = await visieRes.json();
           const visieText = visieData.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
@@ -1817,15 +1832,19 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
       } catch(e) { console.error("Marktvisie fout:", e); }
     }
 
-    // ── Stap 3: Analyse — gebruikt Intel + Marktvisie als context ──────────────
+    // ── Stap 3: Analyse — 3 sec pauze om rate limit te voorkomen ──────────────
+    await new Promise(r=>setTimeout(r,3000));
     setHybridStatus("analyse");
     await runAnalysis();
 
-    // ── Stap 4: Sessie breakdown — parallel uitvoeren na analyse ─────────────
+    // ── Stap 4: Sessie breakdown — 3 sec pauze ──────────────────────────────────
+    await new Promise(r=>setTimeout(r,3000));
     setHybridStatus("sessie");
     await runPresession();
 
     setHybridStatus("done");
+    // Herstart auto-refresh als het aan stond
+    if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
     setTimeout(() => setHybridStatus("idle"), 4000);
   };
   const loading = aStatus==="loading"||iStatus==="loading";
