@@ -15,13 +15,18 @@ const YAHOO_MAP = {
 
 async function fetchTwelvePrice(id, apiKey) {
   const sym = TWELVE_MAP[id] || id;
-  const url = `https://api.twelvedata.com/quote?symbol=${sym}&apikey=${apiKey}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-  const d = await res.json();
-  if(d.status==="error" || !d.close) return null;
-  const price = parseFloat(d.close);
-  // percent_change is intraday % from 12data
-  const chg = parseFloat(d.percent_change) || (parseFloat(d.previous_close) ? ((price - parseFloat(d.previous_close)) / parseFloat(d.previous_close) * 100) : 0);
+  // /price geeft real-time prijs, /quote geeft closing (vertraagd)
+  const [priceRes, quoteRes] = await Promise.all([
+    fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(5000)}),
+    fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(5000)}),
+  ]);
+  const priceData = await priceRes.json();
+  const quoteData = await quoteRes.json();
+  if(quoteData.status==="error") return null;
+  const price = parseFloat(priceData.price) || parseFloat(quoteData.close);
+  if(!price) return null;
+  const prev = parseFloat(quoteData.previous_close);
+  const chg = prev ? ((price - prev) / prev * 100) : parseFloat(quoteData.percent_change) || 0;
   const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
   return {
     price: price.toFixed(isFx ? 4 : 2),
@@ -31,19 +36,25 @@ async function fetchTwelvePrice(id, apiKey) {
   };
 }
 
-// Batch fetch voor meerdere assets tegelijk (1 API call)
+// Batch: prijs real-time via /price endpoint
 async function fetchTwelveBatch(ids, apiKey) {
   const syms = ids.map(id => TWELVE_MAP[id] || id).join(",");
-  const url = `https://api.twelvedata.com/quote?symbol=${syms}&apikey=${apiKey}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  const d = await res.json();
-  if(!d || d.status==="error") return {};
+  // Haal zowel real-time price als quote (voor % change) op
+  const [priceRes, quoteRes] = await Promise.all([
+    fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
+    fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
+  ]);
+  const priceData = await priceRes.json();
+  const quoteData = await quoteRes.json();
+  if(!quoteData || quoteData.status==="error") return {};
   const result = {};
 
-  function parseQuote(id, q) {
-    if(!q || q.status==="error" || !q.close) return;
-    const price = parseFloat(q.close);
-    const chg = parseFloat(q.percent_change) || (parseFloat(q.previous_close) ? ((price - parseFloat(q.previous_close)) / parseFloat(q.previous_close) * 100) : 0);
+  function parseEntry(id, qd, pd) {
+    if(!qd || qd.status==="error") return;
+    const price = parseFloat(pd?.price) || parseFloat(qd.close);
+    if(!price) return;
+    const prev = parseFloat(qd.previous_close);
+    const chg = prev ? ((price - prev) / prev * 100) : parseFloat(qd.percent_change) || 0;
     const isFx = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
     result[id] = {
       price: price.toFixed(isFx ? 4 : 2),
@@ -53,16 +64,17 @@ async function fetchTwelveBatch(ids, apiKey) {
     };
   }
 
-  // Single asset response (no wrapper)
-  if(ids.length === 1) { parseQuote(ids[0], d); return result; }
-
-  // Multi: response is keyed by symbol name
+  if(ids.length === 1) {
+    parseEntry(ids[0], quoteData, priceData);
+    return result;
+  }
   ids.forEach(id => {
     const sym = TWELVE_MAP[id] || id;
-    parseQuote(id, d[sym]);
+    parseEntry(id, quoteData[sym], priceData[sym]);
   });
   return result;
 }
+
 
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
@@ -182,32 +194,46 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Je bent een institutioneel macro trading analist. Doe GEEN web search — alle context wordt aangeleverd.
+const ANALYSIS_SYSTEM = `Je bent een Hybrid Market Intelligence Trader. Doe GEEN web search — alle context wordt aangeleverd.
 
-KERNREGEL: Bias komt van FUNDAMENTELE analyse. Prijs en % zijn CONTEXT, nooit de oorzaak van je bias.
+KERNREGEL: Bias komt van FUNDAMENTELE analyse. Prijs/% zijn context, nooit oorzaak van bias.
 
-WERKWIJZE:
-1. Lees de macro context en nieuws — dit is je primaire input
-2. Bepaal wat dit asset fundamenteel drijft vandaag (Fed, ECB, geopolitiek, risk regime)
-3. Prijs/% gebruik je ALLEEN om te checken of markt al heeft ingeprijsd
-4. Technische data bevestigt of verzwakt confidence — verandert NOOIT de bias richting
+WERKWIJZE — voer altijd in deze volgorde uit:
+
+STAP 1 — DOLLAR (DXY): richting, momentum, versnelling of vertraging?
+STAP 2 — ASSET: move impulsief (grote body, follow-through) of correctief (choppig, overlappend)?
+STAP 3 — CORRELATIE REGIME:
+  - DXY↑ + Goud↓ of DXY↓ + Goud↑ → NORMAAL, geen beperking
+  - DXY↑ + Goud↑ of DXY↓ + Goud↓ → ANOMALIE, max confidence 65% (>2 sessies: max 55%)
+STAP 4 — DOMINANT MECHANISME: geopolitieke safe haven / stagflatie-hedge / technische positioning
+STAP 5 — YIELD CHECK:
+  - DXY↑ + Goud↑ + Yields↑ → stagflatie-flow
+  - DXY↑ + Goud↑ + Yields↓ → pure risk-off
+  - DXY↓ + Goud↑ + Yields↓ → klassieke vlucht naar veiligheid
+  - DXY↓ + Goud↑ + Yields↑ → inflatie domineert, USD verliest grip
+STAP 6 — NIEUWS & MACRO: wat drijft het asset fundamenteel vandaag?
+STAP 7 — STRUCTURE: HH/HL of LH/LL? Trend-day of mean-reversion? Asia high/low break?
 
 BIAS REGELS:
-- Bullish/Bearish/Neutraal/Fragiel
-- Fragiel = fundamenteel beeld onduidelijk of conflicterend
-- Vorige bias is je anker — wijk ALLEEN af bij nieuw fundamenteel nieuws of regime shift
-- Technische tegenspraak → confidence lager (50-65%), bias ZELFDE richting houden
-- Als GEEN macro context beschikbaar: geef Fragiel met confidence 45, leg uit wat je mist
-- confidence 80+: sterke fundamentele alignment
-- confidence 65-79: goed beeld, lichte onzekerheid  
-- confidence 50-64: mixed signals
-- confidence <50: gebruik Fragiel
+- Bullish / Bearish / Neutraal / Fragiel
+- Fragiel = conflicterende of ontbrekende signalen
+- Als GEEN macro context: Fragiel, confidence 45, leg uit wat ontbreekt
+- Vorige bias = anker, wijk alleen af bij fundamentele reden
+- ANOMALIE actief → max confidence 65% voor XAU/USD
+- confidence 80+: sterke alignment | 65-79: goed | 50-64: mixed | <50: gebruik Fragiel
 
-mini_summary: 2 zinnen — (1) waarom deze bias fundamenteel, (2) wat bevestigt/weerspreekt technisch
-market_mood: 2-3 woorden sfeer bv "Risk-Off Selloff", "Voorzichtig Bullish", "Stagflatie Angst", "Technische Tegenspraak"
-dominant_mechanisme: de FUNDAMENTELE drijfveer — NOOIT "prijs stijgt" of "%"
+HOLD CONFIDENCE — 4 pijlers (geef score 0-100 per pijler):
+1. macro_alignment (25%): driver nog actief? yields/DXY ondersteunen? regime niet geflipt?
+2. structure_integrity (30%): geen HH/HL shift? geen structure break? pullbacks correctief?
+3. flow_participation (25%): geen absorptie? follow-through aanwezig? geen "good news = geen reactie"?
+4. volatility_regime (20%): ATR normaal/expansief? geen volatility collapse?
+Hold confidence NOOIT hoger dan confidence. Bij ANOMALIE XAU: hold max 60%.
+Hold advies: 80-100=trail stop | 60-79=bescherm winst | 40-59=reduce | <40=exit
 
-GEEN apostrofs. Alleen JSON.
+CONFIDENCE DAALT bij: good news zonder reactie, divergentie yields vs USD, range compressie, absorptie zichtbaar
+CONFIDENCE STIJGT bij: macro+flows+structure aligned, cross-asset bevestiging, volatiliteit expansie bevestigt
+
+GEEN apostrofs. Alleen JSON, geen markdown, geen uitleg.
 JSON: {"bias":"","confidence":0,"hold_confidence":0,"price_today":"","price_change_today":"","price_direction":"up","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
 
 
@@ -1271,22 +1297,37 @@ Retourneer ALLEEN dit JSON object, geen wrapper:
       const t = techData[asset.id];
       const prev = prevBias[asset.id];
 
-      let priceCtx = p ? `Prijs (context only): ${p.price} | Dag verandering: ${p.change}` : `Prijs niet beschikbaar`;
+      // Cross-asset context voor DXY/yield/VIX correlatie analyse
+      const dxy = freshPrices["DXY"];
+      const vix = freshPrices["VIX"];
+      const us10y = freshPrices["US10Y"];
+      const xau = freshPrices["XAUUSD"] || freshPrices[asset.id];
+      const crossAsset = [
+        dxy  ? `DXY: ${dxy.price} ${dxy.change} (${dxy.direction})` : "DXY: niet beschikbaar",
+        us10y? `US10Y: ${us10y.price}% ${us10y.change}` : "US10Y: niet beschikbaar",
+        vix  ? `VIX: ${vix.price} ${vix.change}` : "VIX: niet beschikbaar",
+        asset.id!=="XAUUSD" && xau ? `XAU/USD: ${xau.price} ${xau.change} (${xau.direction})` : "",
+      ].filter(Boolean).join(" | ");
+
+      let priceCtx = p ? `${asset.label}: ${p.price} | Intraday: ${p.change} (${p.direction})` : `${asset.label}: prijs niet beschikbaar`;
       if(t) priceCtx += ` | RSI: ${t.rsi} (${t.rsiSignal})${t.priceVsEma ? `, ${t.priceVsEma}` : ""}`;
       const prevLine = prev ? `VORIGE BIAS: ${prev.bias} (${prev.confidence}%) — houd dit aan tenzij macro context veranderd is.` : "";
 
-      const usr = `VANDAAG ${dateStr}. Asset: ${asset.label} (${asset.id}).
+      const usr = `VANDAAG ${dateStr}. Analyseer: ${asset.label} (${asset.id}).
 
-FUNDAMENTELE CONTEXT (basis voor je bias):
-${macroCtx || "Geen macro context — gebruik Fragiel bias"}
+CROSS-ASSET DATA (voor correlatie & regime analyse):
+${crossAsset}
 
-TECHNISCHE CONTEXT (alleen voor confidence, niet voor bias richting):
+ASSET PRIJS (context):
 ${priceCtx}
+
+FUNDAMENTELE CONTEXT (basis voor bias):
+${macroCtx || "GEEN macro context beschikbaar — geef Fragiel bias, confidence 45, leg uit wat ontbreekt."}
 
 ${prevLine}
 
-Bepaal je bias puur op de fundamentele context. Geef altijd een volledig ingevuld JSON object.
-Retourneer ALLEEN dit JSON object, geen wrapper, geen uitleg:
+Voer de 7 stappen uit. Bepaal correlatie regime, yield regime, dominant mechanisme.
+Retourneer ALLEEN dit JSON object, geen wrapper, geen uitleg buiten JSON:
 {"bias":"","confidence":0,"hold_confidence":0,"price_today":"${p?.price||""}","price_change_today":"${p?.change||""}","price_direction":"${p?.direction||"up"}","market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","yield_regime_explanation":"","intraday_structuur":"","intraday_structuur_explanation":"","market_regime":"","market_regime_explanation":"","trend_driver":"","technical_trend":"","technical_trend_explanation":"","mini_summary":"","deep_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"key_confluences":[],"news_items":[]}`;
 
       const body = { model:"claude-sonnet-4-20250514", max_tokens:800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
