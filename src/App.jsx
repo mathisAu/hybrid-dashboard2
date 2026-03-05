@@ -176,17 +176,21 @@ function INTEL_USER_NOW(assetLabels) {
   return `TODAY: ${dateStr}, ${timeStr} CET.
 Assets: ${assetLabels.join(", ")}.
 
-Doe deze searches in volgorde:
-1. "Reuters market news ${dateStr}"
-2. "Bloomberg breaking markets today"
-3. "FinancialJuice breaking news"
-4. "Fed ECB BoE news ${dateStr}"
-5. "ForexFactory high impact events this week"
-6. "gold dollar euro pound market ${dateStr}"
+Doe ALLE volgende searches, in volgorde:
+1. site:forexfactory.com/news — ForexFactory breaking news feed vandaag
+2. site:financialjuice.com — FinancialJuice breaking macro nieuws
+3. "reuters.com" forex markets news ${dateStr}
+4. "bloomberg.com" markets breaking news today
+5. Federal Reserve statement OR Fed speaker ${dateStr}
+6. ECB statement OR Lagarde ${dateStr}
+7. Bank of England OR Bailey ${dateStr}
+8. CPI OR NFP OR PMI OR GDP release ${dateStr}
+9. gold XAU dollar DXY news ${dateStr}
+10. EUR/USD GBP/USD market outlook ${dateStr}
 
-Geef per news_item de impact op: ${assetLabels.join(", ")}.
+Geef per news_item de directe impact op: ${assetLabels.join(", ")}.
 Economische kalender: today=vandaag, tomorrow=${fmt(tomorrow)}, day_after=${fmt(dayAfter)}.
-Minimaal 6 nieuws items. Alleen JSON.`;
+Minimaal 8 nieuws items van ECHTE bronnen. Alleen JSON.`;
 }
 
 
@@ -1148,7 +1152,7 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1500, system:sys, messages:[{role:"user",content:usr}] })
+          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:sys, messages:[{role:"user",content:usr}] })
         });
         if(res.status===429){
           const waitSec = attempt * 20;
