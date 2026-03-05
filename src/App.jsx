@@ -2116,77 +2116,84 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
                     </div>
                   )}
                 </div>
-                {/* Rechter kolom: sessie info + key events */}
+                {/* Rechter kolom: v6.3 correlatie status + high impact events */}
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                  {/* Sessie status */}
-                  {presession&&(
-                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
-                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>{presession.session?.toUpperCase()||"SESSIE"}</div>
-                        {presession.analysed_at&&<div style={{fontSize:8,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(presession.analysed_at)}</div>}
+
+                  {/* DXY / Gold correlatie — kern van v6.3 */}
+                  {(()=>{
+                    const dxy  = livePrices["DXY"];
+                    const xau  = livePrices["XAUUSD"];
+                    const us10y= livePrices["US10Y"];
+                    const vix  = livePrices["VIX"];
+                    if(!dxy||!xau) return null;
+                    const dxyUp  = dxy.raw  > 0;
+                    const xauUp  = xau.raw  > 0;
+                    const anomalie = (dxyUp && xauUp) || (!dxyUp && !xauUp);
+                    const corrColor = anomalie ? "#f97316" : "#22c55e";
+                    const corrLabel = anomalie ? "⚠️ ANOMALIE" : "✓ NORMAAL";
+                    const corrText  = anomalie
+                      ? (dxyUp ? "DXY↑ + Goud↑ — max confidence 65%" : "DXY↓ + Goud↓ — max confidence 65%")
+                      : (dxyUp ? "DXY↑ + Goud↓ — inverse relatie actief" : "DXY↓ + Goud↑ — inverse relatie actief");
+                    // Yield regime
+                    const yieldsUp = us10y?.raw > 0;
+                    let yieldRegime = "";
+                    if(dxyUp && xauUp && yieldsUp)  yieldRegime = "Stagflatie-flow";
+                    else if(dxyUp && xauUp && !yieldsUp) yieldRegime = "Pure risk-off / safe haven";
+                    else if(!dxyUp && xauUp && !yieldsUp) yieldRegime = "Klassieke risk-off";
+                    else if(!dxyUp && xauUp && yieldsUp)  yieldRegime = "Inflatie domineert";
+                    else yieldRegime = "Normaal macro regime";
+                    return (
+                      <div style={{background:"#111214",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
+                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
+                        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                          <span style={{fontSize:11,fontWeight:700,color:corrColor}}>{corrLabel}</span>
+                        </div>
+                        <div style={{fontSize:10,color:"#6b7280",marginBottom:8}}>{corrText}</div>
+                        {/* DXY / XAU / US10Y / VIX live */}
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
+                          {[["DXY",dxy],["XAU/USD",xau],["US10Y",us10y],["VIX",vix]].filter(([,v])=>v).map(([label,v])=>(
+                            <div key={label} style={{background:"rgba(255,255,255,0.02)",borderRadius:5,padding:"5px 8px"}}>
+                              <div style={{fontSize:8,color:"#374151",letterSpacing:"0.08em"}}>{label}</div>
+                              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:v.raw>0?"#22c55e":"#ef4444"}}>{v.change}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {yieldRegime&&<div style={{fontSize:9,color:"#6366f1",background:"rgba(99,102,241,0.08)",borderRadius:4,padding:"4px 8px"}}>{yieldRegime}</div>}
                       </div>
-                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:6}}>
-                        <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>
-                        <span style={{fontSize:12,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
-                        <span style={{fontSize:10,color:"#4b5563"}}>{presession.mood_score}%</span>
-                        {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
-                      </div>
-                      <div style={{fontSize:10,color:"#6b7280",lineHeight:1.5,marginBottom:presession.session_time?4:0}}>{presession.market_narrative}</div>
-                      {presession.session_time&&<div style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{presession.session_time}</div>}
-                    </div>
-                  )}
-                  {/* Aankomende events vandaag */}
-                  {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&!e.actual&&e.impact==="high").slice(0,4).length>0&&(
+                    );
+                  })()}
+
+                  {/* High impact events vandaag */}
+                  {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).length>0&&(
                     <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
                       <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:8}}>🔴 HIGH IMPACT VANDAAG</div>
-                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                        {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&!e.actual&&e.impact==="high").slice(0,4).map((e,i)=>(
+                      <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                        {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).map((e,i)=>(
                           <div key={i} style={{display:"flex",gap:8,alignItems:"center"}}>
-                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:accent,fontWeight:700,flexShrink:0}}>{e.time}</span>
-                            <span style={{fontSize:10,color:"#e5e7eb"}}>{e.event}</span>
+                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:e.actual?accent:"#e5e7eb",fontWeight:700,flexShrink:0}}>{e.time}</span>
+                            <span style={{fontSize:10,color:e.actual?"#4b5563":"#e5e7eb",flex:1}}>{e.event}</span>
+                            {e.actual&&<span style={{fontSize:9,fontWeight:700,color:accent,fontFamily:"'IBM Plex Mono',monospace"}}>{e.actual}</span>}
+                            {!e.actual&&<span style={{fontSize:8,color:"#374151"}}>→</span>}
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-                  {/* Sessie context block — Past zich aan op actieve sessie */}
-                  {(()=>{
-                    const cH=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
-                    const cM=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
-                    const cMins=cH*60+cM;
-                    const isPreNY = cMins>=780&&cMins<930;
-                    const isNY    = cMins>=930;
-                    if(!presession) return null;
-                    if(isPreNY) return (
-                      <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"12px 14px"}}>
-                        <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:6}}>🗽 PRE-NY OUTLOOK</div>
-                        <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
-                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>NY opent 15:30 Amsterdam tijd</div>
-                      </div>
-                    );
-                    if(isNY) return (
-                      <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.15)",borderRadius:8,padding:"12px 14px"}}>
-                        <div style={{fontSize:9,color:"#22c55e",letterSpacing:"0.1em",marginBottom:6}}>🗽 NEW YORK SESSIE ACTIEF</div>
-                        <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
-                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>15:30–00:00 Amsterdam</div>
-                      </div>
-                    );
-                    return null;
-                  })()}
                 </div>
               </div>
             )}
 
-            {/* PRE-SESSION BREAKDOWN */}
+            {/* SESSIE BREAKDOWN — 1x, compact, enkel blok */}
             <div style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.12em"}}>PRE-SESSIE BREAKDOWN</span>
+                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.12em"}}>SESSIE BREAKDOWN</span>
                   {psStatus==="done"&&presession&&<div style={{width:8,height:8,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>}
+                  {presession?.analysed_at&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(presession.analysed_at)}</span>}
                 </div>
                 <button onClick={runPresession} disabled={psStatus==="loading"} style={{...btnStyle(psStatus==="loading",accent),padding:"5px 12px",fontSize:9}}>
                   <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
-                  {psStatus==="loading"?`LADEN...`:"BREAKDOWN LADEN"}
+                  {psStatus==="loading"?`LADEN...`:"↺ SESSIE"}
                 </button>
               </div>
 
@@ -2194,19 +2201,14 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
 
               {psStatus==="done"&&presession&&(
                 <div style={{background:"#0f1011",border:`1px solid ${accent}18`,borderRadius:7,padding:"9px 14px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
-                  {/* Session badge */}
                   <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                     <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 5px ${moodColor(presession.mood)}`}}/>
                     <span style={{fontSize:11,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
                     <span style={{fontSize:9,color:"#374151"}}>{presession.mood_score||""}%</span>
                   </div>
-                  {/* Session */}
                   {presession.session&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:9,color:"#374151"}}>SESSIE</span><span style={{fontSize:10,fontWeight:600,color:accent,fontFamily:"'IBM Plex Mono',monospace"}}>{presession.session}</span>{presession.session_time&&<span style={{fontSize:9,color:"#374151"}}>{presession.session_time}</span>}</div>}
-                  {/* Volatility */}
                   {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
-                  {/* Key events */}
                   {presession.key_events_today?.slice(0,3).map((e,i)=><Badge key={i} label={e} color={accent}/>)}
-                  {/* Narrative */}
                   <span style={{fontSize:10,color:"#6b7280",flex:1,minWidth:160,lineHeight:1.4}}>{presession.market_narrative}</span>
 
                 </div>
