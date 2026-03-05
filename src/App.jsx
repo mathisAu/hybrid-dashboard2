@@ -150,7 +150,8 @@ BIAS STABILITEIT — verplicht:
 
 Elke asset krijgt ANDERE bias — verplicht.
 
-mini_summary: 2-3 zinnen. (1) waarom deze bias, (2) welke macro driver domineert, (3) wat is het risico.
+mini_summary: MAX 1 zin voor op de kaart — bondig, kernboodschap alleen.
+analyse_uitgebreid: 3-4 zinnen voor in de uitgebreide analyse. (1) waarom deze bias op basis van nieuws, (2) welke macro driver domineert, (3) wat zijn de risicos, (4) wat maakt deze situatie anders dan normaal.
 hold_advies: hoe LANG vasthoudenl bijv. "Meerdere sessies" / "Alleen intraday" / "Wacht op bevestiging". NIET over richting.
 fail_condition: wanneer bias ongeldig, max 8 woorden.
 technical_trend: Bullish/Bearish/Neutraal — macro momentum gebaseerd.
@@ -159,7 +160,7 @@ market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy.
 intraday_structuur: HH/HL of LH/LL of Ranging.
 
 GEEN apostrofs. Alleen JSON:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
 
 
 
@@ -582,7 +583,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Deep summary */}
             <div style={{background:`linear-gradient(135deg,${acc}08,rgba(99,102,241,0.04))`,border:`1px solid ${acc}20`,borderRadius:8,padding:"16px 18px"}}>
               <div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:8}}>UITGEBREIDE ANALYSE</div>
-              <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8}}>{data?.deep_summary||data?.mini_summary||"—"}</div>
+              <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8}}>{data?.analyse_uitgebreid||data?.deep_summary||data?.mini_summary||"—"}</div>
             </div>
 
             {/* Bias switch history */}
@@ -1349,7 +1350,7 @@ VRAAG: Is er reden om de bias te veranderen?
 - Zo NEE: retourneer exact dezelfde bias en confidence
 - Zo JA: retourneer nieuwe bias met uitleg in mini_summary
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
 
       } else {
         // ── FRESH MODE: geen marktvisie — normale analyse
@@ -1362,7 +1363,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 CONTEXT:
 ${macroCtx || "Geen Intel geladen."}
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       }
 
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
@@ -1375,17 +1376,33 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
       newData.analysed_at = new Date().toISOString();
       if(newData.bias) {
         const oldBias = prevBias[asset.id]?.bias;
-        // Nieuws context: breaking news + Intel nieuws top 5
         const newsCtx = [
           ...breakingNews.slice(0,3).map(n=>({source:n.source, headline:n.headline, url:n.url||""})),
           ...(iResult?.news_items||[]).slice(0,3).map(n=>({source:n.source, headline:n.headline, url:n.url||""})),
         ].slice(0,5);
-        recordBiasChange(asset.id, oldBias, newData.bias, newData.confidence, newsCtx);
+
+        // Bouw history direct — niet wachten op state update
+        let updatedHistory = biasHistory[asset.id] || [];
+        if(oldBias && oldBias !== newData.bias) {
+          const newEntry = {
+            time: new Date().toISOString(),
+            van: oldBias,
+            naar: newData.bias,
+            confidence: newData.confidence,
+            nieuws: newsCtx,
+          };
+          updatedHistory = [newEntry, ...updatedHistory].slice(0, 5);
+          setBiasHistory(prev => ({...prev, [asset.id]: updatedHistory}));
+        }
+        // Attach direct aan newData — geen async delay
+        newData.bias_switch_history = updatedHistory;
         setPrevBias(prev=>({...prev,[asset.id]:{bias:newData.bias,confidence:newData.confidence}}));
+      } else {
+        newData.bias_switch_history = biasHistory[asset.id] || [];
       }
-      // Sla biasHistory op in newData zodat DeepDive hem kan tonen
-      newData.bias_switch_history = biasHistory[asset.id] || [];
       setAResult(prev=>prev?{...prev,assets:{...prev.assets,[asset.id]:newData}}:prev);
+      // Update deepAsset als die open staat voor dit asset — zodat switch direct zichtbaar is
+      setDeepAsset(prev => prev?.asset?.id===asset.id ? {...prev, data:newData} : prev);
       if(openDeepDive) setDeepAsset({asset,data:newData});
     } catch(e){ console.error(e); }
     setRefreshingAssets(prev=>{ const s=new Set(prev); s.delete(asset.id); return s; });
@@ -1489,7 +1506,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
         ? macroCtx.split("\n").slice(0,10).join("\n")
         : "Geen Intel geladen — baseer op cross-asset data.";
 
-      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `${dateStr}. Cross-asset: ${crossAsset}
