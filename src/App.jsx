@@ -1045,7 +1045,11 @@ export default function HybridDashboard() {
         newItems.slice(0,2).forEach(n=>sendNotification("📰 Breaking News", n.headline, n.url));
       }
       setSeenHeadlines(new Set(filtered.map(n=>n.headline)));
-      setBreakingNews(filtered);
+      // Merge met bestaande items (Intel nieuws behouden), Finnhub items updaten
+      setBreakingNews(prev => {
+        const nonFinnhub = prev.filter(p => p.source !== "Finnhub" && !filtered.some(f=>f.headline===p.headline));
+        return [...filtered, ...nonFinnhub].sort((a,b)=>b.time-a.time).slice(0,40);
+      });
     } catch(e) { console.error("News:", e); }
     setBnLoading(false);
   }
