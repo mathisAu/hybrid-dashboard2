@@ -1074,7 +1074,7 @@ export default function HybridDashboard() {
     } catch(e){ console.error(e); setPsStatus("error"); }
   }
 
-  async function refreshSingleAsset(asset) {
+  async function refreshSingleAsset(asset, openDeepDive=false) {
     if(deepRefreshing) return;
     setDeepRefreshing(true);
     try {
@@ -1101,7 +1101,7 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
       const newData=robustParse(text);
       if(newData.bias) setPrevBias(prev=>({...prev,[asset.id]:{bias:newData.bias,confidence:newData.confidence}}));
       setAResult(prev=>prev?{...prev,assets:{...prev.assets,[asset.id]:newData}}:prev);
-      setDeepAsset({asset,data:newData});
+      if(openDeepDive) setDeepAsset({asset,data:newData});
     } catch(e){ console.error(e); }
     setDeepRefreshing(false);
   }
