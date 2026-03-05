@@ -30,6 +30,31 @@ async function fetchTwelvePrice(id, apiKey) {
   };
 }
 
+// Batch fetch voor meerdere assets tegelijk (1 API call)
+async function fetchTwelveBatch(ids, apiKey) {
+  const syms = ids.map(id => TWELVE_MAP[id] || id).join(",");
+  const url = `https://api.twelvedata.com/quote?symbol=${syms}&apikey=${apiKey}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const d = await res.json();
+  const result = {};
+  ids.forEach(id => {
+    const sym = TWELVE_MAP[id] || id;
+    const q = d[sym] || (ids.length === 1 ? d : null);
+    if(!q || q.status==="error" || !q.close) return;
+    const price = parseFloat(q.close);
+    const prev  = parseFloat(q.previous_close);
+    const chg   = prev ? ((price - prev) / prev * 100) : 0;
+    const isFx  = id.includes("USD") && !id.startsWith("XAU") && !id.startsWith("BTC") && !id.startsWith("ETH");
+    result[id] = {
+      price: price.toFixed(isFx ? 4 : 2),
+      change: (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%",
+      direction: chg >= 0 ? "up" : "down",
+      raw: chg,
+    };
+  });
+  return result;
+}
+
 async function fetchYahooPrice(id) {
   const sym = YAHOO_MAP[id] || id;
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
@@ -522,13 +547,14 @@ function AssetCard({ asset, data, index, loading, onClick, onUpdate, accent, liv
     e.stopPropagation();
     if(updating || !onUpdate) return;
     setUpdating(true);
-    await onUpdate(asset);
+    try { await onUpdate(asset); } catch(_) {}
     setUpdating(false);
   };
 
   return (
-    <div onClick={data ? onClick : undefined} style={{background:"linear-gradient(145deg,#111214,#0d0e10)",border:`1px solid ${data?.bias?c.border+"44":"#1a1b1e"}`,borderRadius:8,padding:"16px 18px",opacity:vis?1:0,transform:vis?"translateY(0)":"translateY(10px)",transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",position:"relative",overflow:"visible",cursor:data?"pointer":"default"}}>
-      {data?.bias&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${c.border},transparent)`,borderRadius:"8px 8px 0 0"}}/>}
+    <div onClick={data ? onClick : undefined} style={{background:"linear-gradient(145deg,#111214,#0d0e10)",border:`1px solid ${updating?"#6366f144":data?.bias?c.border+"44":"#1a1b1e"}`,borderRadius:8,padding:"16px 18px",opacity:vis?1:0,transform:vis?"translateY(0)":"translateY(10px)",transition:"all 0.5s cubic-bezier(0.4,0,0.2,1)",position:"relative",overflow:"visible",cursor:data?"pointer":"default"}}>
+      {updating&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#6366f1,transparent)",borderRadius:"8px 8px 0 0",animation:"shimmer 1s ease-in-out infinite"}}/>}
+      {!updating&&data?.bias&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${c.border},transparent)`,borderRadius:"8px 8px 0 0"}}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2,flexWrap:"wrap"}}>
@@ -546,8 +572,8 @@ function AssetCard({ asset, data, index, loading, onClick, onUpdate, accent, liv
         <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
           {/* Update knop per asset */}
           <button onClick={handleUpdate} title="Update deze asset"
-            style={{background:"rgba(255,255,255,0.04)",border:"1px solid #1f2023",borderRadius:5,padding:"4px 7px",cursor:updating?"wait":"pointer",color:updating?acc:"#4b5563",fontSize:12,lineHeight:1,animation:updating?"spin 1s linear infinite":"none",display:"inline-block"}}>
-            ⟳
+            style={{background:updating?"rgba(99,102,241,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${updating?"#6366f144":"#1f2023"}`,borderRadius:5,padding:"4px 7px",cursor:updating?"wait":"pointer",display:"flex",alignItems:"center",justifyContent:"center",width:26,height:26}}>
+            <span style={{fontSize:12,color:updating?"#818cf8":"#4b5563",display:"inline-block",animation:updating?"spin 0.8s linear infinite":"none"}}>⟳</span>
           </button>
           {data?.bias
             ? <div style={{background:c.bg,border:`1px solid ${c.border}44`,borderRadius:5,padding:"4px 10px"}}><span style={{fontSize:11,fontWeight:700,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span></div>
@@ -817,27 +843,35 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen — Twelve Data max 8/min, requests spreiden
+  // Live prijzen — batch voor 12data, individueel voor Yahoo/Finnhub
   useEffect(()=>{
-    const allIds = [...assets.map(a=>a.id), "DXY","VIX","US10Y"];
-    let idx = 0;
-    let t = null;
-    function fetchNext() {
-      const id = allIds[idx % allIds.length];
-      fetchLivePrice(id, tdKey, fhKey, priceSource).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
-      idx++;
-    }
-    // Fetch all at start staggered 8s apart — dan pas interval starten
-    allIds.forEach((id, i) => {
-      setTimeout(()=>{
+    const nonFxIds = [...assets.map(a=>a.id).filter(id=>!FOREX_IDS.includes(id)), "DXY","VIX","US10Y"];
+    const fxIds = assets.map(a=>a.id).filter(id=>FOREX_IDS.includes(id));
+
+    async function fetchAll() {
+      // Forex altijd via Yahoo (real-time)
+      fxIds.forEach(id => {
+        fetchYahooPrice(id).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
+      });
+      // Indices/Gold: batch als 12data, anders individueel
+      if(priceSource==="twelvedata" && tdKey) {
+        try {
+          const batch = await fetchTwelveBatch(nonFxIds, tdKey);
+          if(Object.keys(batch).length > 0) {
+            setLivePrices(prev=>({...prev,...batch}));
+            return;
+          }
+        } catch(_) {}
+      }
+      // Finnhub of fallback Yahoo
+      nonFxIds.forEach(id => {
         fetchLivePrice(id, tdKey, fhKey, priceSource).then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); }).catch(()=>{});
-        // Start rolling interval pas na laatste initiële fetch
-        if(i === allIds.length - 1) {
-          t = setInterval(fetchNext, 8000);
-        }
-      }, i * 8000);
-    });
-    return()=>{ if(t) clearInterval(t); };
+      });
+    }
+
+    fetchAll();
+    const t = setInterval(fetchAll, 30000); // elke 30s refresh
+    return()=>clearInterval(t);
   },[assets, tdKey, fhKey, priceSource]);
 
   // ── Breaking News via RSS proxy ──────────────────────────────────────────────
@@ -1147,17 +1181,28 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
     const headers = {"Content-Type":"application/json"};
     if(apiKey.trim()){ headers["x-api-key"]=apiKey.trim(); headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
 
-    // Forceer verse prijzen — max 5s wachten totaal
+    // Forceer verse prijzen — batch voor 12data
     const freshPrices = {...livePrices};
-    await Promise.allSettled([...assets.map(a=>a.id), "DXY","VIX","US10Y"].map(async id => {
-      try {
-        const p = await Promise.race([
-          fetchLivePrice(id, tdKey, fhKey, priceSource),
-          new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),5000))
-        ]);
-        if(p) { freshPrices[id] = p; setLivePrices(prev=>({...prev,[id]:p})); }
-      } catch(_) {}
+    const nonFxIds = [...assets.map(a=>a.id).filter(id=>!FOREX_IDS.includes(id)), "DXY","VIX","US10Y"];
+    const fxIds = assets.map(a=>a.id).filter(id=>FOREX_IDS.includes(id));
+    // Forex via Yahoo
+    await Promise.allSettled(fxIds.map(async id => {
+      try { const p = await fetchYahooPrice(id); if(p) { freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); } } catch(_) {}
     }));
+    // Indices/Gold batch
+    if(priceSource==="twelvedata" && tdKey) {
+      try {
+        const batch = await fetchTwelveBatch(nonFxIds, tdKey);
+        Object.entries(batch).forEach(([id,p])=>{ freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); });
+      } catch(_) {}
+    } else {
+      await Promise.allSettled(nonFxIds.map(async id => {
+        try {
+          const p = await Promise.race([fetchLivePrice(id,tdKey,fhKey,priceSource), new Promise((_,r)=>setTimeout(()=>r(),5000))]);
+          if(p) { freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); }
+        } catch(_) {}
+      }));
+    }
 
     // Technische data ophalen
     const techData = {};
@@ -1276,6 +1321,7 @@ Geef ALTIJD een volledige analyse. Retourneer JSON met ALLEEN het ${asset.id} ob
         @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:0.8}}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
         *{box-sizing:border-box}
         ::-webkit-scrollbar{width:4px;background:#09090b}
         ::-webkit-scrollbar-thumb{background:#1f2023;border-radius:2px}
