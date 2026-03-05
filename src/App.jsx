@@ -683,7 +683,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 }
 
-function AssetCard({ asset, data, index, loading, updating: updatingProp, onClick, onUpdate, accent, livePrice }) {
+function AssetCard({ asset, data, index, loading, updating: updatingProp, onClick, onUpdate, accent, livePrice, breakingNews }) {
   const [vis, setVis] = useState(false);
   const [updatingLocal, setUpdatingLocal] = useState(false);
   const updating = updatingProp || updatingLocal;
@@ -691,8 +691,11 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
   useEffect(()=>{const t=setTimeout(()=>setVis(true),index*80);return()=>clearTimeout(t);},[data,loading]);
   const bias = resolveBias(data?.bias, data?.confidence);
   const c = biasColors[bias] || biasColors.Neutraal;
-  const displayPrice  = livePrice?.price  || data?.price_today        || null;
-  const displayChange = livePrice?.change || data?.price_change_today || null;
+  // Verberg prijs als 0, leeg, of "0.00"
+  const rawPrice  = livePrice?.price  || data?.price_today        || null;
+  const rawChange = livePrice?.change || data?.price_change_today || null;
+  const displayPrice  = rawPrice  && parseFloat(rawPrice)  > 0 ? rawPrice  : null;
+  const displayChange = rawChange && rawChange !== "+0.00%" && rawChange !== "-0.00%" ? rawChange : null;
   const priceUp = livePrice ? livePrice.direction === "up" : data?.price_direction === "up";
 
   const handleUpdate = async (e) => {
@@ -768,6 +771,30 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
           </div>
           <div style={{background:`${acc}09`,border:`1px solid ${acc}18`,borderRadius:5,padding:"7px 10px",marginBottom:6}}><div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:1}}>HOLD ADVIES</div><div style={{fontSize:11,color:"#d1d5db"}}>{data.hold_advies}</div></div>
           <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:5,padding:"7px 10px"}}><div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:1}}>FAIL CONDITION</div><div style={{fontSize:11,color:"#6b7280"}}>{data.fail_condition}</div></div>
+          {/* Breaking news relevant voor dit asset */}
+          {(()=>{
+            const assetKeywords = {
+              XAUUSD:["gold","xau","goud","haven","bullion"],
+              US30:["dow","djia","us30","wall street","nasdaq","index"],
+              US100:["nasdaq","tech","us100","ndx","qqq"],
+              EURUSD:["euro","eur","ecb","eurozone","lagarde"],
+              GBPUSD:["pound","gbp","boe","uk","sterling","bailey"],
+            };
+            const kw = assetKeywords[asset.id] || [asset.id.toLowerCase().replace("usd","")];
+            const relevant = (breakingNews||[]).filter(n => kw.some(k=>n.headline.toLowerCase().includes(k))).slice(0,2);
+            if(!relevant.length) return null;
+            return (
+              <div style={{marginTop:6,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:6}}>
+                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:5}}>NIEUWS</div>
+                {relevant.map((n,i)=>(
+                  <div key={i} onClick={e=>{e.stopPropagation();if(n.url)window.open(n.url,"_blank");}}
+                    style={{fontSize:10,color:"#6b7280",lineHeight:1.4,marginBottom:4,paddingLeft:6,borderLeft:"2px solid #374151",cursor:n.url?"pointer":"default"}}>
+                    <span style={{color:"#4b5563",marginRight:4}}>{n.timeStr}</span>{n.headline}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </>
       ) : loading ? (
         <div>{[85,65,45,100,75,55].map((w,i)=><Skeleton key={i} w={`${w}%`}/>)}</div>
@@ -1808,6 +1835,7 @@ Elk asset object: {"bias":"","confidence":0,"hold_confidence":0,"price_today":""
                   loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
                   updating={refreshingAssets.has(asset.id)}
                   accent={accent} livePrice={livePrices[asset.id]||null}
+                  breakingNews={breakingNews}
                   onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
                   onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
               ))}
