@@ -764,7 +764,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
   );
 }
 
-function MarketIntelPage({ data, loading, onRefresh, status, dots }) {
+function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick }) {
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:420,gap:14}}>
       <div style={{fontSize:40,opacity:0.4}}>📡</div>
@@ -829,13 +829,17 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots }) {
           <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:12}}>NIEUWS FEED</div>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {(data.news_items||[]).map((n,i)=>(
-              <div key={i} style={{borderLeft:`2px solid ${impactColor[n.impact]||"#374151"}`,paddingLeft:10}}>
+              <div key={i} onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
+                style={{borderLeft:`2px solid ${impactColor[n.impact]||"#374151"}`,paddingLeft:10,cursor:"pointer",borderRadius:"0 4px 4px 0",transition:"background 0.15s"}}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(99,102,241,0.06)"}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap"}}>
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time}</span>
                   <Badge label={n.source} color="#6b7280"/>
                   <Badge label={n.category} color="#6366f1"/>
                   {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
                   <span style={{fontSize:11,color:dirColor[n.direction]||"#9ca3af",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
+                  <span style={{fontSize:9,color:"#4b5563",marginLeft:"auto"}}>⚡ impact</span>
                 </div>
                 <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5,marginBottom:4}}>{n.headline}</div>
                 {n.assets_affected&&n.assets_affected.length>0&&(
@@ -1830,7 +1834,7 @@ Retourneer ALLEEN JSON, geen wrapper:
         {page==="intel"&&(
           <>
             {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
-            <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} status={iStatus} dots={dots}/>
+            <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)}/>
           </>
         )}
 
@@ -1900,7 +1904,8 @@ Retourneer ALLEEN JSON, geen wrapper:
                     {filteredNews.length===0&&<div style={{color:"#374151",fontSize:11,padding:"20px 0",textAlign:"center"}}>Geen nieuws voor dit filter</div>}
                     <div style={{display:"flex",flexDirection:"column",gap:10}}>
                       {filteredNews.map((n,i)=>(
-                        <div key={i} onClick={()=>n.url&&window.open(n.url,"_blank")} style={{background:"#111214",borderLeft:`3px solid ${dirColor[n.direction]||"#374151"}`,borderRadius:8,padding:"12px 14px",cursor:n.url?"pointer":"default"}}>
+                        <div key={i} style={{background:"#111214",borderLeft:`3px solid ${dirColor[n.direction]||"#374151"}`,borderRadius:8,padding:"12px 14px",cursor:"pointer"}}
+                          onClick={()=>setNewsImpact({headline:n.headline,source:n.source,url:n.url})}>
                           <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6,flexWrap:"wrap"}}>
                             <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time}</span>
                             {n.date&&<span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#374151"}}>{n.date}</span>}
@@ -1908,7 +1913,7 @@ Retourneer ALLEEN JSON, geen wrapper:
                             {n.category&&<Badge label={n.category} color="#6366f1"/>}
                             {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
                             <span style={{fontSize:11,color:dirColor[n.direction]||"#9ca3af",fontWeight:700,marginLeft:"auto"}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
-                            {n.url&&<span style={{fontSize:9,color:"#374151"}}>↗</span>}
+                            <span style={{fontSize:9,color:"#4b5563"}}>⚡ impact</span>
                           </div>
                           <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.55,marginBottom:5}}>{n.headline}</div>
                           {n.assets_affected?.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{n.assets_affected.map(a=><Badge key={a} label={a} color="#374151"/>)}</div>}
