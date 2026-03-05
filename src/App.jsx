@@ -848,41 +848,8 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
           </div>
         </div>
 
-        {/* Right column: calendar + signals + key levels */}
+        {/* Right column: signals + risk radar only */}
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          {/* Calendar */}
-          <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
-            <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>ECONOMISCHE KALENDER</div>
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {[...(data.economic_calendar||[])].sort((a,b)=>{
-                const dayOrder = {today:0,tomorrow:1,day_after:2};
-                const da = dayOrder[a.date]??3, db = dayOrder[b.date]??3;
-                if(da!==db) return da-db;
-                const t = s => { const m=String(s||"").match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
-                return t(a.time)-t(b.time);
-              }).map((e,i)=>(
-                <div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid #1f2023",borderRadius:6,padding:"10px 12px"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5,flexWrap:"wrap",gap:4}}>
-                    <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{e.time}</span>
-                      <span style={{fontSize:11,fontWeight:600,color:"#e5e7eb"}}>{e.event}</span>
-                    </div>
-                    <Badge label={(e.impact||"").toUpperCase()} color={impactColor[e.impact]||"#6b7280"}/>
-                  </div>
-                  {(e.actual||e.expected||e.previous)&&(
-                    <div style={{display:"flex",gap:10,marginBottom:5,flexWrap:"wrap"}}>
-                      {e.actual&&<div><span style={{fontSize:9,color:"#374151"}}>ACT </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:"#f97316"}}>{e.actual}</span></div>}
-                      {e.expected&&<div><span style={{fontSize:9,color:"#374151"}}>EXP </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"#6b7280"}}>{e.expected}</span></div>}
-                      {e.previous&&<div><span style={{fontSize:9,color:"#374151"}}>PRV </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"#6b7280"}}>{e.previous}</span></div>}
-                    </div>
-                  )}
-                  {e.verdict&&<div style={{marginBottom:4}}><Badge label={e.verdict.toUpperCase()} color={e.verdict.toLowerCase().includes("hot")||e.verdict.toLowerCase().includes("strong")?"#ef4444":"#22c55e"}/></div>}
-                  {e.effect&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{e.effect}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Cross-asset signals */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
@@ -2045,12 +2012,11 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
 
                 {iStatus==="loading"&&<div style={{background:"#0f1011",border:`1px solid ${accent}30`,borderRadius:8,padding:"14px 20px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}><div style={{width:20,height:20,border:`2px solid ${accent}22`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}}/><div style={{fontSize:12,color:accent,fontWeight:600}}>Kalender & nieuws ophalen...</div></div>}
 
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                  <div>
-                    <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>ECONOMISCHE KALENDER</div>
-                    {filteredCal.length===0&&<div style={{color:"#374151",fontSize:11,padding:"20px 0",textAlign:"center"}}>Geen events voor dit filter</div>}
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                    <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>📅 AANKOMENDE EVENTS</div>
+                    {filteredCal.filter(e=>!e.actual).length===0&&<div style={{color:"#374151",fontSize:11,padding:"20px 0",textAlign:"center"}}>Geen aankomende events voor dit filter</div>}
                     <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                      {filteredCal.map((e,i)=>(
+                      {filteredCal.filter(e=>!e.actual).map((e,i)=>(
                         <div key={i} style={{background:"#111214",borderLeft:`3px solid ${impactColor[e.impact]||"#374151"}`,borderRadius:8,padding:"12px 14px"}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,flexWrap:"wrap",gap:6}}>
                             <div style={{display:"flex",gap:7,alignItems:"center"}}>
@@ -2060,42 +2026,11 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                             </div>
                             <Badge label={(e.impact||"?").toUpperCase()} color={impactColor[e.impact]||"#6b7280"}/>
                           </div>
-                          {(e.actual||e.expected||e.previous)&&(
-                            <div style={{display:"flex",gap:14,marginBottom:7,flexWrap:"wrap"}}>
-                              {e.actual&&<div><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em"}}>ACTUEEL </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,fontWeight:700,color:accent}}>{e.actual}</span></div>}
-                              {e.expected&&<div><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em"}}>VERWACHT </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#6b7280"}}>{e.expected}</span></div>}
-                              {e.previous&&<div><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em"}}>VORIG </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#6b7280"}}>{e.previous}</span></div>}
-                            </div>
-                          )}
-                          {e.verdict&&<div style={{marginBottom:5}}><Badge label={e.verdict.toUpperCase()} color={e.verdict.toLowerCase().includes("hot")||e.verdict.toLowerCase().includes("strong")?"#ef4444":"#22c55e"}/></div>}
+                          {e.expected&&<div style={{display:"flex",gap:10,marginBottom:5}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em"}}>VERWACHT </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#6b7280"}}>{e.expected}</span>{e.previous&&<><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginLeft:8}}>VORIG </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#6b7280"}}>{e.previous}</span></>}</div>}
                           {e.effect&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.5}}>{e.effect}</div>}
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  <div>
-                    <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>NIEUWS FEED</div>
-                    {filteredNews.length===0&&<div style={{color:"#374151",fontSize:11,padding:"20px 0",textAlign:"center"}}>Geen nieuws voor dit filter</div>}
-                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                      {filteredNews.map((n,i)=>(
-                        <div key={i} style={{background:"#111214",borderLeft:`3px solid ${dirColor[n.direction]||"#374151"}`,borderRadius:8,padding:"12px 14px",cursor:"pointer"}}
-                          onClick={()=>setNewsImpact({headline:n.headline,source:n.source,url:n.url})}>
-                          <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6,flexWrap:"wrap"}}>
-                            <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time}</span>
-                            {n.date&&<span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#374151"}}>{n.date}</span>}
-                            <Badge label={n.source} color="#6b7280"/>
-                            {n.category&&<Badge label={n.category} color="#6366f1"/>}
-                            {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
-                            <span style={{fontSize:11,color:dirColor[n.direction]||"#9ca3af",fontWeight:700,marginLeft:"auto"}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
-                            <span style={{fontSize:9,color:"#4b5563"}}>⚡ impact</span>
-                          </div>
-                          <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.55,marginBottom:5}}>{n.headline}</div>
-                          {n.assets_affected?.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{n.assets_affected.map(a=><Badge key={a} label={a} color="#374151"/>)}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </>
             )}
