@@ -1297,7 +1297,13 @@ export default function HybridDashboard() {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
-          body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:sys, messages:[{role:"user",content:usr}] })
+          body:JSON.stringify({
+            model:"claude-sonnet-4-20250514",
+            max_tokens: 4000,
+            system: sys,
+            tools: [{ type:"web_search_20250305", name:"web_search" }],
+            messages:[{role:"user",content:usr}]
+          })
         });
         if(res.status===429){
           const waitSec = attempt * 20;
@@ -1311,6 +1317,7 @@ export default function HybridDashboard() {
         }
         if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`API fout: ${res.status}`);}
         const data=await res.json();
+        // Web search geeft meerdere content blocks terug — combineer alleen text blocks
         const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
         setResult(robustParse(text));
         setStatus("done");
