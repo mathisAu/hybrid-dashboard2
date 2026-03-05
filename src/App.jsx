@@ -1305,18 +1305,56 @@ export default function HybridDashboard() {
         xauP && asset.id!=="XAUUSD" ? `XAU:${xauP.price} ${xauP.change}` : "",
       ].filter(Boolean).join(" | ");
 
-      const prevLine = prev
-        ? `VORIGE BIAS: ${prev.bias} (${prev.confidence}%) — verander ALLEEN bij concreet nieuw macro nieuws`
-        : "geen vorige bias";
+      // Nieuw breaking news sinds de marktvisie gebouwd werd
+      const visietijd = iResult?.marktvisie?.marktvisie_tijd ? new Date(iResult.marktvisie.marktvisie_tijd) : null;
+      const nieuwBreaking = breakingNews.filter(n => !visietijd || n.time > visietijd).slice(0,5);
 
-      const usr = `${asset.id} | ${crossAsset} | ${prevLine}
+      const assetVisie = iResult?.marktvisie?.assets?.[asset.id];
+      const prevBiasData = prevBias[asset.id] || (aResult?.assets?.[asset.id] ? {bias: aResult.assets[asset.id].bias, confidence: aResult.assets[asset.id].confidence} : null);
+
+      let usr, systemPrompt;
+
+      if(assetVisie && prevBiasData) {
+        // ── VALIDATIE MODE: marktvisie bestaat — alleen checken of er reden is om te veranderen
+        systemPrompt = `Je bent een forex trader die een bestaande marktvisie valideert.
+REGEL: Geef de BESTAANDE bias terug tenzij er concreet NIEUW nieuws is dat de thesis ongeldig maakt.
+Kleine prijsbewegingen = GEEN reden om te veranderen.
+GEEN apostrofs. Alleen JSON.`;
+
+        usr = `BESTAANDE VISIE VOOR ${asset.id}:
+Bias: ${prevBiasData.bias} (${prevBiasData.confidence}%)
+Visie: ${assetVisie.visie}
+Key driver: ${assetVisie.key_driver}
+Risico: ${assetVisie.risico}
+
+CROSS-ASSET NU: ${crossAsset}
+
+NIEUW BREAKING NEWS SINDS VISIE (${nieuwBreaking.length} items):
+${nieuwBreaking.length > 0
+  ? nieuwBreaking.map(n=>`- [${n.source}] ${n.headline}`).join("\n")
+  : "GEEN nieuw breaking news — houd bestaande bias aan"}
+
+VRAAG: Is er reden om de bias te veranderen?
+- Zo NEE: retourneer exact dezelfde bias en confidence
+- Zo JA: retourneer nieuwe bias met uitleg in mini_summary
+
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+
+      } else {
+        // ── FRESH MODE: geen marktvisie — normale analyse
+        systemPrompt = ANALYSIS_SYSTEM;
+        const prevLine = prevBiasData
+          ? `VORIGE BIAS: ${prevBiasData.bias} (${prevBiasData.confidence}%) — verander ALLEEN bij concreet nieuw nieuws`
+          : "geen vorige bias";
+        usr = `${asset.id} | ${crossAsset} | ${prevLine}
 
 CONTEXT:
 ${macroCtx || "Geen Intel geladen."}
 
-JSON:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:ANALYSIS_SYSTEM,messages:[{role:"user",content:usr}]})});
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+      }
+
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
