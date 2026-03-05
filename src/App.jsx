@@ -1363,7 +1363,7 @@ ${recentNews}
 Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1459,7 +1459,7 @@ ${macroCtx || "Geen Intel geladen."}
 JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
       }
 
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1625,7 +1625,7 @@ ${newsLines}
 Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-haiku-4-5-20251001", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429) {
         if(attempt < 3) {
@@ -1798,7 +1798,7 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
         let visieRes = await fetch("https://api.anthropic.com/v1/messages",{
           method:"POST", headers,
           body: JSON.stringify({
-            model:"claude-sonnet-4-20250514",
+            model:"claude-haiku-4-5-20251001",
             max_tokens: 900,
             system: MARKTVISIE_SYSTEM,
             messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
@@ -1809,7 +1809,7 @@ Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke h
           await new Promise(r=>setTimeout(r,20000));
           visieRes = await fetch("https://api.anthropic.com/v1/messages",{
             method:"POST", headers,
-            body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
+            body: JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
           });
         }
         if(visieRes.ok) {
