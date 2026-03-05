@@ -143,7 +143,8 @@ Yields↑ sterk: goud bearish, US100 bearish, USD bullish
 XAU anomalie (DXY+goud BEIDE zelfde richting): max confidence 65%
 
 Elke asset krijgt ANDERE bias — verplicht.
-mini_summary: max 12 woorden. hold_advies: max 6 woorden. fail_condition: max 6 woorden.
+mini_summary: 2-3 zinnen. Leg uit: (1) waarom deze bias, (2) welk macro driver domineert, (3) wat is het risico. Geen bullet points.
+hold_advies: max 8 woorden. fail_condition: max 8 woorden.
 GEEN apostrofs. Alleen JSON:
 {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","hold_advies":"","fail_condition":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
 
@@ -647,16 +648,12 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
               <div style={{fontSize:9,color:"#9ca3af",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>{data.market_mood.toUpperCase()}</div>
             )}
             {data.correlatie_status&&(
-              <InfoTooltip text={data.correlatie_status==="Normaal"?"DXY en Gold bewegen in verwachte richting t.o.v. elkaar — geen anomalie.":"DXY en Gold bewegen beide dezelfde kant op — dit is een anomalie die confidence verlaagt."} color={corrColors[data.correlatie_status]||"#6b7280"}>
-                <Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>
-              </InfoTooltip>
+              <Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>
             )}
             {data.market_regime&&(
-              <InfoTooltip text={data.market_regime_explanation||"Het dominante karakter van de markt op dit moment."} color="#6366f1">
-                <Badge label={data.market_regime.toUpperCase()} color="#6366f1"/>
-              </InfoTooltip>
+              <Badge label={data.market_regime.toUpperCase()} color="#6366f1"/>
             )}
-            {data.yield_regime&&data.yield_regime!=="n.v.t."&&<YieldTooltip regime={data.yield_regime} explanation={data.yield_regime_explanation}/>}
+            {data.yield_regime&&data.yield_regime!=="n.v.t."&&<Badge label={data.yield_regime.toUpperCase()} color={yieldColors[data.yield_regime]||"#6b7280"}/>}
           </div>
           <div style={{marginBottom:8,background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.12)",borderRadius:6,padding:"9px 11px"}}>
             <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5}}>
@@ -765,7 +762,10 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick }
         <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
           <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:12}}>NIEUWS FEED</div>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {(data.news_items||[]).map((n,i)=>(
+            {[...(data.news_items||[])].sort((a,b)=>{
+              const t = s => { const m=String(s||"").match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
+              return t(b.time)-t(a.time);
+            }).map((n,i)=>(
               <div key={i} onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
                 style={{borderLeft:`2px solid ${impactColor[n.impact]||"#374151"}`,paddingLeft:10,cursor:"pointer",borderRadius:"0 4px 4px 0",transition:"background 0.15s"}}
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(99,102,241,0.06)"}
@@ -794,7 +794,13 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick }
           <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
             <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>ECONOMISCHE KALENDER</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {(data.economic_calendar||[]).map((e,i)=>(
+              {[...(data.economic_calendar||[])].sort((a,b)=>{
+                const dayOrder = {today:0,tomorrow:1,day_after:2};
+                const da = dayOrder[a.date]??3, db = dayOrder[b.date]??3;
+                if(da!==db) return da-db;
+                const t = s => { const m=String(s||"").match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
+                return t(a.time)-t(b.time);
+              }).map((e,i)=>(
                 <div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid #1f2023",borderRadius:6,padding:"10px 12px"}}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:5,flexWrap:"wrap",gap:4}}>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
@@ -1326,7 +1332,7 @@ Context: ${newsLines}
 Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:1200, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:1600, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429 && attempt < 3) {
         await new Promise(r=>setTimeout(r, attempt * 15000));
@@ -1400,14 +1406,19 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
       setIResult(result);
       if(result?.news_items?.length > 0) {
         const now = new Date();
-        const items = result.news_items.map(n => ({
-          headline: n.headline, source: n.source || "Intel", url: n.url || "",
-          time: now, timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
-          direction: n.direction, impact: n.impact, assets: n.assets_affected || [], isNew: true,
-        }));
+        const items = result.news_items.map((n,idx) => {
+          // Parseer tijd voor correcte sortering
+          const m = String(n.time||"").match(/(\d{1,2}):(\d{2})/);
+          const itemTime = m ? new Date(now.toDateString()+" "+m[0]) : new Date(now - idx*60000);
+          return {
+            headline: n.headline, source: n.source || "Intel", url: n.url || "",
+            time: itemTime, timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+            direction: n.direction, impact: n.impact, assets: n.assets_affected || [], isNew: true,
+          };
+        });
         setBreakingNews(prev => {
           const existing = prev.filter(p => !items.some(i => i.headline === p.headline));
-          return [...items, ...existing].slice(0, 30);
+          return [...items, ...existing].sort((a,b)=>b.time-a.time).slice(0, 30);
         });
       }
     }, setIError, setIStatus);
@@ -1428,12 +1439,16 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
         setIResult(result);
         if(result?.news_items?.length > 0) {
           const now = new Date();
-          const items = result.news_items.map(n => ({
-            headline: n.headline, source: n.source || "Intel", url: n.url || "",
-            time: now, timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
-            direction: n.direction, impact: n.impact, assets: n.assets_affected || [], isNew: true,
-          }));
-          setBreakingNews(prev => [...items, ...prev.filter(p => !items.some(i=>i.headline===p.headline))].slice(0,30));
+          const items = result.news_items.map((n,idx) => {
+            const m = String(n.time||"").match(/(\d{1,2}):(\d{2})/);
+            const itemTime = m ? new Date(now.toDateString()+" "+m[0]) : new Date(now - idx*60000);
+            return {
+              headline: n.headline, source: n.source || "Intel", url: n.url || "",
+              time: itemTime, timeStr: n.time || now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+              direction: n.direction, impact: n.impact, assets: n.assets_affected || [], isNew: true,
+            };
+          });
+          setBreakingNews(prev => [...items, ...prev.filter(p=>!items.some(i=>i.headline===p.headline))].sort((a,b)=>b.time-a.time).slice(0,30));
         }
         if(!intelDone) { intelDone = true; resolve(result); }
       };
@@ -1770,17 +1785,17 @@ Vul ALLE ${assets.length} assets in. Geen uitleg, geen extra tekst:
                   <div style={{width:7,height:7,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 8px #ef4444",animation:"pulse 1.5s infinite"}}/>
                   <span style={{fontSize:10,fontWeight:700,color:"#ef4444",letterSpacing:"0.12em"}}>BREAKING NEWS</span>
                 </div>
-                <span style={{fontSize:9,color:"#374151"}}>Reuters · Bloomberg · FinancialJuice · Fed/ECB — elke 15 min via AI</span>
+                <span style={{fontSize:9,color:"#374151"}}>Finnhub · Reuters · Bloomberg · ForexFactory · FinancialJuice · Fed/ECB</span>
                 {bnLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span> ophalen...</span>}
                 {!bnLoading&&<button onClick={fetchBreakingNews} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺ nu laden</button>}
               </div>
               <div style={{maxHeight:340,overflowY:"auto",padding:"10px 16px",display:"flex",flexDirection:"column",gap:8}}>
                 {breakingNews.length===0&&!bnLoading&&(
                   <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>
-                    {apiKey?.trim() ? "Klik '↺ nu laden' of wacht op auto-refresh" : "Voer Anthropic API key in voor live nieuws"}
+                    {fhKey?.trim() ? "Klik '↺ nu laden' om nieuws op te halen" : "Voer Finnhub API key in voor live nieuws"}
                   </div>
                 )}
-                {breakingNews.map((n,i)=>(
+                {[...breakingNews].sort((a,b)=>b.time-a.time).map((n,i)=>(
                   <div key={i}
                     onClick={()=>setNewsImpact(n)}
                     style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 10px",background:n.isNew&&i<3?"rgba(239,68,68,0.05)":"rgba(255,255,255,0.01)",borderRadius:6,border:n.isNew&&i<3?"1px solid rgba(239,68,68,0.15)":"1px solid transparent",cursor:"pointer",transition:"background 0.2s"}}
