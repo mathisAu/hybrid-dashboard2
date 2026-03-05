@@ -1276,23 +1276,40 @@ export default function HybridDashboard() {
     setPsStatus("loading");
     const assetList = assets.map(a=>a.label).join(", ");
     const now = new Date();
-    const hourUTC = now.getUTCHours();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
     const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-    const sessionCtx = hourUTC>=22||hourUTC<8 ? "Aziatische sessie" : hourUTC>=6&&hourUTC<16 ? "Londense sessie" : "New Yorkse sessie";
-    // Inject live prices so no web search needed
-    const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} ${p.change}`:a.label; }).join(", ");
-    // NY pre-market: 13:00-15:00 CET (London nog open maar NY opent om 15:30)
-    const cetHour = new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false});
-    const cetMin  = new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"});
-    const cetH = parseInt(cetHour); const cetM = parseInt(cetMin);
-    const isPreNY = (cetH===13||(cetH===14&&cetM<30)||(cetH===15&&cetM<30));
-    const sessionLabel = isPreNY ? "Pre-NY sessie (13:00-15:30 CET)" : sessionCtx;
+    // Nauwkeurige sessie detectie op basis van CET tijd
+    const getCetH = () => parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
+    const getCetM = () => parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
+    const cetH = getCetH(); const cetM = getCetM();
+    const cetMins = cetH*60+cetM; // minuten sinds middernacht CET
+    // Sessie grenzen in minuten CET:
+    // Asia: 00:00-07:00 = 0-420
+    // London: 07:00-16:00 = 420-960
+    // Pre-NY: 13:00-15:30 = 780-930 (overlap met London)
+    // NY: 15:30-00:00 = 930-1440
+    const isAsia   = cetMins < 420;
+    const isLondon = cetMins >= 420 && cetMins < 930 && !(cetMins >= 780 && cetMins < 930);
+    const isPreNY  = cetMins >= 780 && cetMins < 930;
+    const isNY     = cetMins >= 930;
+    const sessionLabel = isAsia ? "Aziatische sessie (00:00-07:00 CET)" :
+                         isPreNY ? "Pre-NY sessie (13:00-15:30 CET)" :
+                         isNY ? "New Yorkse sessie (15:30-00:00 CET)" :
+                         "Londense sessie (07:00-16:00 CET)";
+    const sessionName = isAsia?"Asia" : isPreNY?"Pre-NY" : isNY?"New York" : "London";
+    const sessionTime = isAsia?"00:00-07:00 CET" : isPreNY?"13:00-15:30 CET" : isNY?"15:30-00:00 CET" : "07:00-16:00 CET";
+    // Inject live prices — inclusief actuele prijs zodat AI geen verouderde levels gebruikt
+    const priceLines = assets.map(a=>{ const p=livePrices[a.id]; return p?`${a.label}: ${p.price} (${p.change})`:a.label; }).join(", ");
     const sys = `Pre-sessie analist. Geen web search nodig. Geen apostrofs in strings.
-${isPreNY ? "Het is nu PRE-NY sessie. Focus op: wat verwacht NY bij opening? Hoe reageert NY op wat London heeft gedaan? Wat zijn de key catalysts voor de NY-sessie (15:30 CET)?" : ""}
+HUIDIGE SESSIE: ${sessionName} (${sessionTime}).
+${isPreNY ? "PRE-NY: Focus op wat NY verwacht bij opening (15:30 CET). Hoe reageert NY op London? Key catalysts voor NY?" : ""}
+${isNY ? "NY SESSIE: Actief. Focus op US data, Fed speakers, equity flow." : ""}
+BELANGRIJK: Gebruik ALLEEN de aangeleverde live prijzen voor levels. Verzin GEEN prijsniveaus.
 Alleen JSON:
-{"session":"London","session_time":"07:00-16:00 CET","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","analysed_at":"ISO"}`;
-    const usr = `VANDAAG ${dateStr} ${timeStr} CET, ${sessionLabel}. Live prijzen: ${priceLines}. Geef pre-sessie breakdown. Alleen JSON.`;
+{"session":"${sessionName}","session_time":"${sessionTime}","mood":"Bullish","mood_score":65,"mood_explanation":"1 zin","volatility_outlook":"Normaal","key_events_today":["event 1"],"market_narrative":"2 zinnen","analysed_at":"ISO"}`;
+    const usr = `VANDAAG ${dateStr} ${timeStr} CET — ${sessionLabel}.
+Live prijzen (gebruik ALLEEN deze voor eventuele levels): ${priceLines}.
+Geef pre-sessie breakdown. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
@@ -1729,6 +1746,11 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
     // ── Stap 3: Analyse — gebruikt Intel + Marktvisie als context ──────────────
     setHybridStatus("analyse");
     await runAnalysis();
+
+    // ── Stap 4: Sessie breakdown — parallel uitvoeren na analyse ─────────────
+    setHybridStatus("sessie");
+    await runPresession();
+
     setHybridStatus("done");
     setTimeout(() => setHybridStatus("idle"), 4000);
   };
@@ -1926,13 +1948,14 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
               <button onClick={runHybrid}
                 disabled={hybridStatus!=="idle"&&hybridStatus!=="done"}
                 style={{...btnStyle(hybridStatus!=="idle"&&hybridStatus!=="done", accent), flex:2}}>
-                <span style={{display:"inline-block",animation:hybridStatus==="intel"||hybridStatus==="analyse"?"spin 0.8s linear infinite":"none"}}>
+                <span style={{display:"inline-block",animation:["intel","visie","analyse","sessie"].includes(hybridStatus)?"spin 0.8s linear infinite":"none"}}>
                   {hybridStatus==="done"?"✓":"⬤"}
                 </span>
-                {hybridStatus==="intel" ? `1/3 NIEUWS LADEN${".".repeat(dots)}` :
-                 hybridStatus==="visie" ? `2/3 MARKTVISIE${".".repeat(dots)}` :
-                 hybridStatus==="analyse" ? `3/3 ANALYSEREN${".".repeat(dots)}` :
-                 hybridStatus==="done" ? "✓ KLAAR" : "▶ HYBRID ANALYSE"}
+                {hybridStatus==="intel"   ? `1/4 NIEUWS LADEN${".".repeat(dots)}` :
+                 hybridStatus==="visie"   ? `2/4 MARKTVISIE${".".repeat(dots)}` :
+                 hybridStatus==="analyse" ? `3/4 ANALYSEREN${".".repeat(dots)}` :
+                 hybridStatus==="sessie"  ? `4/4 SESSIE${".".repeat(dots)}` :
+                 hybridStatus==="done"    ? "✓ KLAAR" : "▶ HYBRID ANALYSE"}
               </button>
               <button onClick={runAnalysis}
                 disabled={aStatus==="loading"}
@@ -2060,19 +2083,29 @@ Vul ALLE ${assets.length} assets in. Geen uitleg:
                       </div>
                     </div>
                   )}
-                  {/* Pre-NY outlook block — verschijnt 13:00-15:30 CET */}
+                  {/* Sessie context block — Past zich aan op actieve sessie */}
                   {(()=>{
-                    const h=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
-                    const m=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
-                    const isPreNY=(h===13||(h===14)|| (h===15&&m<30));
-                    if(!isPreNY||!presession) return null;
-                    return (
+                    const cH=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
+                    const cM=parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
+                    const cMins=cH*60+cM;
+                    const isPreNY = cMins>=780&&cMins<930;
+                    const isNY    = cMins>=930;
+                    if(!presession) return null;
+                    if(isPreNY) return (
                       <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:8,padding:"12px 14px"}}>
                         <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:6}}>🗽 PRE-NY OUTLOOK</div>
                         <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
-                        <div style={{fontSize:9,color:"#374151",marginTop:4}}>NY opent 15:30 CET</div>
+                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>NY opent 15:30 CET</div>
                       </div>
                     );
+                    if(isNY) return (
+                      <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.15)",borderRadius:8,padding:"12px 14px"}}>
+                        <div style={{fontSize:9,color:"#22c55e",letterSpacing:"0.1em",marginBottom:6}}>🗽 NEW YORK SESSIE ACTIEF</div>
+                        <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{presession.market_narrative}</div>
+                        <div style={{fontSize:9,color:"#374151",marginTop:4,fontFamily:"'IBM Plex Mono',monospace"}}>15:30–00:00 CET</div>
+                      </div>
+                    );
+                    return null;
                   })()}
                 </div>
               </div>
