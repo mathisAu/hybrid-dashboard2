@@ -183,7 +183,7 @@ Elke asset ANDERE bias verplicht — analyseer cross-asset verhoudingen.
 
 ━━━ OUTPUT VELDEN ━━━
 mini_summary: MAX 1 zin voor kaart — kernboodschap.
-analyse_uitgebreid: 3-4 zinnen — (1) bias reden op basis van SPECIFIEK nieuws, (2) dominante driver, (3) risicos, (4) wat uniek is nu.
+analyse_uitgebreid: 2-3 zinnen — (1) bias reden op basis van SPECIFIEK nieuws, (2) dominante driver + risico.
 hold_advies: HOE LANG vasthouden bijv. "Meerdere sessies" / "Alleen intraday". NIET over richting.
 fail_condition: wanneer bias ongeldig, max 8 woorden.
 technical_trend: Bullish/Bearish/Neutraal
@@ -1628,7 +1628,7 @@ ${newsLines}
 Voer de v6.3 analyse uit voor ALLE ${assets.length} assets. Gebruik specifieke headlines. Geen uitleg buiten JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:3500, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:5000, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429 && attempt < 3) {
         await new Promise(r=>setTimeout(r, attempt * 15000));
