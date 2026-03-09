@@ -1030,18 +1030,6 @@ export default function HybridDashboard() {
   const autoRefreshRef = useRef(null);
   const [nextRefreshIn, setNextRefreshIn] = useState(null);
   const countdownRef = useRef(null);
-  // Twitter/X feed
-  const [xKey,         setXKey]         = useState(() => { try { return localStorage.getItem("hd_xkey")||""; } catch(_){ return ""; }});
-  const [xTweets,      setXTweets]      = useState([]);
-  const [xLoading,     setXLoading]     = useState(false);
-  const X_ACCOUNTS = [
-    { id:"1312766671646539776", name:"Walter Bloomberg" },
-    { id:"31696594",            name:"Reuters Markets"  },
-    { id:"220193471",           name:"ForexFactory"     },
-    { id:"2381791208",          name:"ECB"              },
-    { id:"1308296830",          name:"Fed Reserve"      },
-    { id:"2467791",             name:"Bloomberg"        },
-  ];
 
   useEffect(()=>{
     if(aStatus==="loading"||iStatus==="loading"||psStatus==="loading"){
@@ -1337,25 +1325,6 @@ export default function HybridDashboard() {
         else await new Promise(r=>setTimeout(r,10000));
       }
     }
-  }
-
-  async function fetchXTweets() {
-    if(!xKey?.trim()) return;
-    setXLoading(true);
-    try {
-      // Via Vercel proxy — voorkomt CORS blokkade van Twitter API
-      const res = await fetch("/api/twitter", {
-        headers: { "x-bearer-token": xKey.trim() },
-        signal: AbortSignal.timeout(12000)
-      });
-      if(!res.ok) { setXLoading(false); return; }
-      const data = await res.json();
-      const tweets = (data.tweets||[])
-        .map(t => ({ ...t, time: new Date(t.time) }))
-        .sort((a,b) => b.time - a.time);
-      setXTweets(tweets);
-    } catch(e) { console.error("X fetch fout:", e); }
-    setXLoading(false);
   }
 
   async function runPresession() {
@@ -2042,17 +2011,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   <div style={{fontSize:9,color:"#4b5563",lineHeight:1.6,marginBottom:8}}>Yahoo Finance — gratis, geen key nodig. Futures 15 min vertraging, forex real-time.</div>
                 )}
 
-                {/* X/Twitter Bearer Token */}
-                <div style={{borderTop:"1px solid #1f2023",paddingTop:10,marginTop:4}}>
-                  <div style={{fontSize:9,color:"#1d9bf0",letterSpacing:"0.08em",marginBottom:6}}>𝕏 TWITTER LIVE FEED</div>
-                  <div style={{fontSize:9,color:"#4b5563",marginBottom:6,lineHeight:1.6}}>Bearer Token van <span style={{color:"#1d9bf0"}}>developer.twitter.com</span> — gratis, live tweets van Walter Bloomberg, Reuters etc.</div>
-                  <input type="password" value={xKey}
-                    onChange={e=>{ setXKey(e.target.value); try{localStorage.setItem("hd_xkey",e.target.value);}catch(_){} }}
-                    placeholder="Bearer Token..."
-                    style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:6}}/>
-                  {xKey?.trim()&&<div style={{fontSize:9,color:"#1d9bf0",marginBottom:6}}>✓ X feed actief</div>}
-                </div>
-
                 <button onClick={()=>setShowTdKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
               </div>
             )}
@@ -2330,7 +2288,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             </div>
 
             {/* BREAKING NEWS + X FEED — naast elkaar */}
-            <div style={{marginTop:8,display:"grid",gridTemplateColumns:xKey?.trim()?"1fr 320px":"1fr",gap:10}}>
+            <div style={{marginTop:8}}>
             <div style={{background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden"}}>
               <div style={{padding:"10px 16px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
@@ -2373,31 +2331,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 ))}
               </div>
             </div>
-            {/* X/Twitter feed */}
-            {xKey?.trim()&&(
-              <div style={{background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                <div style={{padding:"10px 14px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:12,color:"#1d9bf0",fontWeight:700}}>𝕏</span>
-                  <span style={{fontSize:10,fontWeight:700,color:"#1d9bf0",letterSpacing:"0.1em"}}>LIVE FEED</span>
-                  {xLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
-                  {!xLoading&&<button onClick={fetchXTweets} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺</button>}
-                </div>
-                <div style={{flex:1,overflowY:"auto",maxHeight:340,padding:"8px 12px",display:"flex",flexDirection:"column",gap:6}}>
-                  {xTweets.length===0&&!xLoading&&(
-                    <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>Geen tweets geladen</div>
-                  )}
-                  {xTweets.map((t,i)=>(
-                    <div key={t.id||i} style={{padding:"8px 10px",background:"rgba(29,155,240,0.03)",borderRadius:6,border:"1px solid rgba(29,155,240,0.08)"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                        <span style={{fontSize:9,fontWeight:700,color:"#1d9bf0"}}>{t.author}</span>
-                        <span style={{fontSize:8,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>{fmtDT(t.time)}</span>
-                      </div>
-                      <div style={{fontSize:10,color:"#d1d5db",lineHeight:1.5}}>{t.text}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             </div>
           </>
         )}
