@@ -1030,6 +1030,15 @@ export default function HybridDashboard() {
   const autoRefreshRef = useRef(null);
   const [nextRefreshIn, setNextRefreshIn] = useState(null);
   const countdownRef = useRef(null);
+  // RSS feed
+  const [rssItems,  setRssItems]  = useState([]);
+  const [rssLoading,setRssLoading]= useState(false);
+  const RSS_FEEDS = [
+    { url:"https://feeds.reuters.com/reuters/businessNews", name:"Reuters" },
+    { url:"https://www.forexfactory.com/rss", name:"ForexFactory" },
+    { url:"https://www.fxstreet.com/rss/news", name:"FXStreet" },
+    { url:"https://www.investing.com/rss/news_285.rss", name:"Investing.com" },
+  ];
 
   useEffect(()=>{
     if(aStatus==="loading"||iStatus==="loading"||psStatus==="loading"){
@@ -1325,6 +1334,36 @@ export default function HybridDashboard() {
         else await new Promise(r=>setTimeout(r,10000));
       }
     }
+  }
+
+  async function fetchRssFeeds() {
+    setRssLoading(true);
+    const proxy = "https://api.allorigins.win/get?url=";
+    const results = [];
+    for(const feed of RSS_FEEDS) {
+      try {
+        const res = await fetch(proxy + encodeURIComponent(feed.url), {signal: AbortSignal.timeout(8000)});
+        if(!res.ok) continue;
+        const data = await res.json();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data.contents, "text/xml");
+        const items = Array.from(xml.querySelectorAll("item")).slice(0,8);
+        items.forEach(item => {
+          const title = item.querySelector("title")?.textContent?.trim() || "";
+          const pubDate = item.querySelector("pubDate")?.textContent;
+          const link = item.querySelector("link")?.textContent?.trim() || "";
+          if(title) results.push({
+            headline: title,
+            source: feed.name,
+            time: pubDate ? new Date(pubDate) : new Date(),
+            link,
+          });
+        });
+      } catch(e) { console.warn("RSS fout", feed.name, e); }
+    }
+    results.sort((a,b) => b.time - a.time);
+    setRssItems(results.slice(0,30));
+    setRssLoading(false);
   }
 
   async function runPresession() {
@@ -2287,8 +2326,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               ))}
             </div>
 
-            {/* BREAKING NEWS + X FEED — naast elkaar */}
-            <div style={{marginTop:8}}>
+            {/* BREAKING NEWS + RSS FEED */}
+            <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 340px",gap:10}}>
             <div style={{background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden"}}>
               <div style={{padding:"10px 16px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
@@ -2327,6 +2366,30 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5}}>{n.headline}</div>
                     </div>
                     <span style={{fontSize:9,color:"#4b5563",flexShrink:0,marginTop:2}} title="Analyseer impact">⚡</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* RSS FEED */}
+            <div style={{background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+              <div style={{padding:"10px 14px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:10,fontWeight:700,color:"#f59e0b",letterSpacing:"0.1em"}}>📰 NEWS FEED</span>
+                <span style={{fontSize:9,color:"#374151"}}>Reuters · FF · FXStreet · Investing</span>
+                {rssLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
+                {!rssLoading&&<button onClick={fetchRssFeeds} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺</button>}
+              </div>
+              <div style={{flex:1,overflowY:"auto",maxHeight:340,padding:"8px 12px",display:"flex",flexDirection:"column",gap:6}}>
+                {rssItems.length===0&&!rssLoading&&(
+                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>Laden...</div>
+                )}
+                {rssItems.map((item,i)=>(
+                  <div key={i} style={{padding:"7px 9px",background:"rgba(245,158,11,0.03)",borderRadius:6,border:"1px solid rgba(245,158,11,0.07)",cursor:"pointer"}}
+                    onClick={()=>item.link&&window.open(item.link,"_blank")}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:3,gap:6}}>
+                      <span style={{fontSize:9,fontWeight:700,color:"#f59e0b"}}>{item.source}</span>
+                      <span style={{fontSize:8,color:"#374151",fontFamily:"'IBM Plex Mono',monospace",flexShrink:0}}>{fmtDT(item.time)}</span>
+                    </div>
+                    <div style={{fontSize:10,color:"#d1d5db",lineHeight:1.5}}>{item.headline}</div>
                   </div>
                 ))}
               </div>
