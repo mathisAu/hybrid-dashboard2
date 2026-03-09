@@ -1034,10 +1034,10 @@ export default function HybridDashboard() {
   const [rssItems,  setRssItems]  = useState([]);
   const [rssLoading,setRssLoading]= useState(false);
   const RSS_FEEDS = [
-    { url:"https://feeds.reuters.com/reuters/businessNews", name:"Reuters" },
-    { url:"https://www.forexfactory.com/rss", name:"ForexFactory" },
-    { url:"https://www.fxstreet.com/rss/news", name:"FXStreet" },
-    { url:"https://www.investing.com/rss/news_285.rss", name:"Investing.com" },
+    { url:"https://feeds.bbci.co.uk/news/business/rss.xml", name:"BBC Business" },
+    { url:"https://rss.nytimes.com/services/xml/rss/nyt/Business.xml", name:"NYT Business" },
+    { url:"https://www.marketwatch.com/rss/topstories", name:"MarketWatch" },
+    { url:"https://seekingalpha.com/feed.xml", name:"SeekingAlpha" },
   ];
 
   useEffect(()=>{
@@ -1338,31 +1338,12 @@ export default function HybridDashboard() {
 
   async function fetchRssFeeds() {
     setRssLoading(true);
-    const proxy = "https://api.allorigins.win/get?url=";
-    const results = [];
-    for(const feed of RSS_FEEDS) {
-      try {
-        const res = await fetch(proxy + encodeURIComponent(feed.url), {signal: AbortSignal.timeout(8000)});
-        if(!res.ok) continue;
-        const data = await res.json();
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(data.contents, "text/xml");
-        const items = Array.from(xml.querySelectorAll("item")).slice(0,8);
-        items.forEach(item => {
-          const title = item.querySelector("title")?.textContent?.trim() || "";
-          const pubDate = item.querySelector("pubDate")?.textContent;
-          const link = item.querySelector("link")?.textContent?.trim() || "";
-          if(title) results.push({
-            headline: title,
-            source: feed.name,
-            time: pubDate ? new Date(pubDate) : new Date(),
-            link,
-          });
-        });
-      } catch(e) { console.warn("RSS fout", feed.name, e); }
-    }
-    results.sort((a,b) => b.time - a.time);
-    setRssItems(results.slice(0,30));
+    try {
+      const res = await fetch("/api/rss", { signal: AbortSignal.timeout(15000) });
+      if(!res.ok) { setRssLoading(false); return; }
+      const data = await res.json();
+      setRssItems((data.items||[]).map(item => ({...item, time: new Date(item.time)})));
+    } catch(e) { console.warn("RSS fout:", e); }
     setRssLoading(false);
   }
 
