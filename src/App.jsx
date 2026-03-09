@@ -1343,23 +1343,16 @@ export default function HybridDashboard() {
     if(!xKey?.trim()) return;
     setXLoading(true);
     try {
-      const ids = X_ACCOUNTS.map(a=>a.id).join(",");
-      const url = `https://api.twitter.com/2/tweets/search/recent?query=from:${X_ACCOUNTS.map(a=>a.id).join(" OR from:")} -is:retweet&max_results=20&tweet.fields=created_at,author_id&expansions=author_id&user.fields=name,username`;
-      const res = await fetch(url, {
-        headers: { "Authorization": `Bearer ${xKey.trim()}` },
-        signal: AbortSignal.timeout(10000)
+      // Via Vercel proxy — voorkomt CORS blokkade van Twitter API
+      const res = await fetch("/api/twitter", {
+        headers: { "x-bearer-token": xKey.trim() },
+        signal: AbortSignal.timeout(12000)
       });
       if(!res.ok) { setXLoading(false); return; }
       const data = await res.json();
-      if(!data.data) { setXLoading(false); return; }
-      const users = {};
-      (data.includes?.users||[]).forEach(u => { users[u.id] = u.name || u.username; });
-      const tweets = data.data.map(t => ({
-        id: t.id,
-        text: t.text,
-        time: new Date(t.created_at),
-        author: users[t.author_id] || t.author_id,
-      })).sort((a,b) => b.time - a.time);
+      const tweets = (data.tweets||[])
+        .map(t => ({ ...t, time: new Date(t.time) }))
+        .sort((a,b) => b.time - a.time);
       setXTweets(tweets);
     } catch(e) { console.error("X fetch fout:", e); }
     setXLoading(false);
