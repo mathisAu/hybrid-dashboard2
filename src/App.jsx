@@ -2049,6 +2049,17 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   <div style={{fontSize:9,color:"#4b5563",lineHeight:1.6,marginBottom:8}}>Yahoo Finance — gratis, geen key nodig. Futures 15 min vertraging, forex real-time.</div>
                 )}
 
+                {/* X/Twitter Bearer Token */}
+                <div style={{borderTop:"1px solid #1f2023",paddingTop:10,marginTop:4}}>
+                  <div style={{fontSize:9,color:"#1d9bf0",letterSpacing:"0.08em",marginBottom:6}}>𝕏 TWITTER LIVE FEED</div>
+                  <div style={{fontSize:9,color:"#4b5563",marginBottom:6,lineHeight:1.6}}>Bearer Token van <span style={{color:"#1d9bf0"}}>developer.twitter.com</span> — gratis, live tweets van Walter Bloomberg, Reuters etc.</div>
+                  <input type="password" value={xKey}
+                    onChange={e=>{ setXKey(e.target.value); try{localStorage.setItem("hd_xkey",e.target.value);}catch(_){} }}
+                    placeholder="Bearer Token..."
+                    style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:6}}/>
+                  {xKey?.trim()&&<div style={{fontSize:9,color:"#1d9bf0",marginBottom:6}}>✓ X feed actief</div>}
+                </div>
+
                 <button onClick={()=>setShowTdKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
               </div>
             )}
