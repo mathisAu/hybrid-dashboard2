@@ -2389,59 +2389,39 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
         {/* CALENDAR PAGE */}
         {page==="calendar"&&(
-          <>
-            {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
-            {!iResult&&iStatus!=="loading"&&(
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:300,gap:12}}>
-                <div style={{fontSize:36,opacity:0.3}}>📅</div>
-                <div style={{color:"#374151",fontSize:12}}>Klik KALENDER LADEN om nieuws & events op te halen</div>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:400,gap:24,padding:"40px 20px"}}>
+            <div style={{textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:10}}>📅</div>
+              <div style={{fontSize:16,fontWeight:700,color:"#e5e7eb",letterSpacing:"0.08em",marginBottom:6}}>ECONOMISCHE KALENDER</div>
+              <div style={{fontSize:12,color:"#4b5563",maxWidth:400,lineHeight:1.6}}>Bekijk alle high-impact events, verwachte cijfers en historische data direct op ForexFactory.</div>
+            </div>
+            <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer"
+              style={{display:"flex",alignItems:"center",gap:14,background:"rgba(255,160,0,0.06)",border:"1px solid rgba(255,160,0,0.25)",borderRadius:12,padding:"18px 28px",cursor:"pointer",textDecoration:"none",minWidth:320}}>
+              <div style={{width:44,height:44,borderRadius:10,background:"rgba(255,160,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🏭</div>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#ffa000",letterSpacing:"0.06em",marginBottom:3}}>ForexFactory Calendar</div>
+                <div style={{fontSize:11,color:"#6b7280"}}>forexfactory.com/calendar</div>
               </div>
-            )}
-            {(iResult||iStatus==="loading")&&(
-              <>
-                <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.1em"}}>IMPACT:</span>
-                  {["all","high","medium","low"].map(f=>(
-                    <button key={f} onClick={()=>setCalFilter(f)} style={{background:calFilter===f?`${accent}22`:"rgba(255,255,255,0.03)",border:`1px solid ${calFilter===f?accent:"rgba(255,255,255,0.07)"}`,borderRadius:5,color:calFilter===f?accent:"#4b5563",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:700,letterSpacing:"0.08em",padding:"5px 12px",cursor:"pointer"}}>
-                      {f==="all"?"ALLES":f==="high"?"🔴 HIGH":f==="medium"?"🟡 MEDIUM":"⚪ LOW"}
-                    </button>
-                  ))}
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.1em",marginLeft:8}}>DAG:</span>
-                  {["all","today","tomorrow","day_after"].map(d=>(
-                    <button key={d} onClick={()=>setCalDayFilter(d)} style={{background:calDayFilter===d?`rgba(99,102,241,0.15)`:"rgba(255,255,255,0.03)",border:`1px solid ${calDayFilter===d?"#6366f1":"rgba(255,255,255,0.07)"}`,borderRadius:5,color:calDayFilter===d?"#818cf8":"#4b5563",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,fontWeight:700,letterSpacing:"0.08em",padding:"5px 12px",cursor:"pointer"}}>
-                      {d==="all"?"ALLES":d==="today"?"VANDAAG":d==="tomorrow"?"MORGEN":"OVERMORGEN"}
-                    </button>
-                  ))}
-                  <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
-                    {iResult?.timestamp&&<span style={{fontSize:9,color:"#374151",fontFamily:"'IBM Plex Mono',monospace"}}>📅 Geladen: {fmtDT(iResult.timestamp)}</span>}
-                  </div>
-                </div>
-
-                {iStatus==="loading"&&<div style={{background:"#0f1011",border:`1px solid ${accent}30`,borderRadius:8,padding:"14px 20px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}><div style={{width:20,height:20,border:`2px solid ${accent}22`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}}/><div style={{fontSize:12,color:accent,fontWeight:600}}>Kalender & nieuws ophalen...</div></div>}
-
-                <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                    <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>📅 AANKOMENDE EVENTS</div>
-                    {filteredCal.filter(e=>!e.actual).length===0&&<div style={{color:"#374151",fontSize:11,padding:"20px 0",textAlign:"center"}}>Geen aankomende events voor dit filter</div>}
-                    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                      {filteredCal.filter(e=>!e.actual).map((e,i)=>(
-                        <div key={i} style={{background:"#111214",borderLeft:`3px solid ${impactColor[e.impact]||"#374151"}`,borderRadius:8,padding:"12px 14px"}}>
-                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,flexWrap:"wrap",gap:6}}>
-                            <div style={{display:"flex",gap:7,alignItems:"center"}}>
-                              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:accent,fontWeight:700}}>{e.time}</span>
-                              {e.date&&e.date!=="today"&&<span style={{fontSize:9,color:"#6366f1",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.08em"}}>{e.date==="tomorrow"?"MORGEN":"OVERMORGEN"}</span>}
-                              <span style={{fontSize:12,fontWeight:700,color:"#e5e7eb"}}>{e.event}</span>
-                            </div>
-                            <Badge label={(e.impact||"?").toUpperCase()} color={impactColor[e.impact]||"#6b7280"}/>
-                          </div>
-                          {e.expected&&<div style={{display:"flex",gap:10,marginBottom:5}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em"}}>VERWACHT </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#6b7280"}}>{e.expected}</span>{e.previous&&<><span style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginLeft:8}}>VORIG </span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#6b7280"}}>{e.previous}</span></>}</div>}
-                          {e.effect&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.5}}>{e.effect}</div>}
-                        </div>
-                      ))}
-                    </div>
-                </div>
-              </>
-            )}
-          </>
+              <div style={{marginLeft:"auto",color:"#4b5563",fontSize:16}}>↗</div>
+            </a>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
+              {[
+                {label:"Investing.com", url:"https://www.investing.com/economic-calendar/", emoji:"📊"},
+                {label:"DailyFX",       url:"https://www.dailyfx.com/economic-calendar",   emoji:"📈"},
+                {label:"Myfxbook",      url:"https://www.myfxbook.com/forex-economic-calendar", emoji:"🗓"},
+              ].map(({label,url,emoji})=>(
+                <a key={label} href={url} target="_blank" rel="noopener noreferrer"
+                  style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.03)",border:"1px solid #1f2023",borderRadius:8,padding:"10px 16px",cursor:"pointer",textDecoration:"none"}}>
+                  <span style={{fontSize:14}}>{emoji}</span>
+                  <span style={{fontSize:11,color:"#9ca3af"}}>{label}</span>
+                  <span style={{fontSize:10,color:"#374151",marginLeft:4}}>↗</span>
+                </a>
+              ))}
+            </div>
+            <div style={{fontSize:10,color:"#374151",textAlign:"center",maxWidth:380,lineHeight:1.7}}>
+              💡 <span style={{color:"#4b5563"}}>Tip:</span> Intel haalt automatisch high-impact events op in de hybrid analyse.
+            </div>
+          </div>
         )}
       </div>
 
