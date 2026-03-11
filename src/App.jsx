@@ -1439,30 +1439,27 @@ export default function HybridDashboard() {
   useEffect(() => {
     async function loadSharedState() {
       try {
+        console.log("⏳ Gedeelde staat ophalen...");
         const res = await fetch("/api/state");
-        if (!res.ok) return;
+        if (!res.ok) { console.warn("⚠️ /api/state:", res.status); return; }
         const data = await res.json();
-        if (!data || !data.aResult) return;
-        // Zet state — vriend ziet dezelfde analyse als jij
+        if (!data || !data.aResult) { console.warn("⚠️ Geen aResult in opgeslagen staat"); return; }
         if (data.aResult)    setAResult(data.aResult);
         if (data.iResult)    setIResult(data.iResult);
         if (data.presession) setPresession(data.presession);
-        if (data.breakingNews?.length > 0) setBreakingNews(
-          data.breakingNews.map(n => ({...n, time: n.time ? new Date(n.time) : new Date()}))
-        );
-        if (data.rssItems?.length > 0) setRssItems(data.rssItems);
-        if (data.savedAt) setLastRefresh(new Date(data.savedAt));
-        console.log("✓ Gedeelde staat geladen van", data._savedAt || data.savedAt);
+        if (data.savedAt)    setLastRefresh(new Date(data.savedAt));
+        console.log("✓ Gedeelde staat geladen van", data.savedAt);
       } catch(e) {
-        // Geen staat beschikbaar — geen probleem
+        console.error("✗ loadSharedState fout:", e);
       }
     }
     loadSharedState();
   }, []);
 
   // ── Auto-save naar Redis zodra analyse klaar is ──────────────────────────────
+  const didRunRef = useRef(false);
   useEffect(() => {
-    if (hybridStatus !== "done" && hybridStatus !== "idle") return;
+    if (!didRunRef.current) return; // Sla over bij initiële mount/auto-load
     if (!aResult) return;
     const snapshot = {
       aResult,
@@ -1474,7 +1471,10 @@ export default function HybridDashboard() {
       method:  "POST",
       headers: {"Content-Type":"application/json"},
       body:    JSON.stringify(snapshot),
-    }).catch(() => {});
+    })
+      .then(r => r.json())
+      .then(r => console.log("✓ State opgeslagen in Redis", r))
+      .catch(e => console.error("✗ State opslaan mislukt", e));
   }, [aResult]);
 
 
@@ -2239,6 +2239,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     clearInterval(countdownRef.current);
     setHybridStatus("intel"); setLoadingSteps(["🔍 Intel ophalen — nieuws & macro data"]);
     setIError(""); setAError("");
+    didRunRef.current = true; // Markeer dat er een echte run plaatsvindt
     const labels = assets.map(a=>a.label);
 
 
