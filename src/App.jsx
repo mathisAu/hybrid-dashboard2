@@ -2628,7 +2628,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         <span style={{fontSize:9,color:"#111315",letterSpacing:"0.1em"}}>HYBRID DASHBOARD — GEEN FINANCIEEL ADVIES</span>
         <span style={{fontSize:9,color:"#111315",fontFamily:"'JetBrains Mono',monospace"}}>POWERED BY ANTHROPIC + WEB SEARCH</span>
       </div>
-    </div>
+      </div>
+      </div>
       </div>
     </div>
   );
