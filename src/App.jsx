@@ -287,8 +287,17 @@ correlatie_status: Normaal/Anomalie/Hersteld
 pulse: QUIET/WAIT/TRADABLE/WILD
 pulse_reden: 1 sentence reason for pulse label (in Dutch)
 
+Extra explanation fields — 2-3 sentences each, in Dutch, explaining WHY:
+technical_trend_uitleg: Why is the technical trend bullish/bearish/neutral? What price action or structure confirms this?
+structuur_uitleg: Why this intraday structure (HH/HL, LH/LL, Ranging)? What does it mean for the session?
+market_regime_uitleg: Why this market regime (Risk-On/Off/Stagflatie etc)? Which signals confirm it?
+yield_regime_uitleg: Why this yield regime? How do DXY, yields and gold interact right now?
+correlatie_uitleg: Why this correlation status (Normaal/Anomalie)? What is driving the divergence or alignment?
+macro_alignment_uitleg: Why this macro alignment score? Which of the 4 pillars are aligned or conflicting?
+flow_uitleg: Why this flow & participation score? Is there follow-through or absorption visible?
+
 NO apostrophes. JSON only:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
 
 
 
@@ -681,27 +690,28 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                     </div>
                   ))}
                 </div>
+                {data?.macro_alignment_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:10,marginTop:4}}><span style={{color:"#4b5563",fontSize:9,letterSpacing:"0.08em"}}>MACRO ALIGNMENT — </span>{data.macro_alignment_uitleg}</div>}
+                {data?.flow_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:10,marginTop:4}}><span style={{color:"#4b5563",fontSize:9,letterSpacing:"0.08em"}}>FLOW — </span>{data.flow_uitleg}</div>}
               </div>
             )}
 
             {/* Technical + Structure + Regime + Trend Driver */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TECHNISCHE TREND</div>
-                <div style={{fontSize:13,fontWeight:700,color:trendColor(data?.technical_trend)}}>{data?.technical_trend||"—"}</div>
-                {data?.trend_driver&&<div style={{fontSize:10,color:"#6b7280",marginTop:4}}>{data.trend_driver}</div>}
+                <div style={{fontSize:13,fontWeight:700,color:trendColor(data?.technical_trend),marginBottom:4}}>{data?.technical_trend||"—"}</div>
+                {data?.trend_driver&&<div style={{fontSize:10,color:"#6b7280",marginBottom:6}}>{data.trend_driver}</div>}
+                {data?.technical_trend_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.technical_trend_uitleg}</div>}
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>STRUCTUUR</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#9ca3af"}}>{data?.intraday_structuur||"—"}</div>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>INTRADAY STRUCTUUR</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#9ca3af",marginBottom:4}}>{data?.intraday_structuur||"—"}</div>
+                {data?.structuur_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.structuur_uitleg}</div>}
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>MARKET REGIME</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#6366f1"}}>{data?.market_regime?.toUpperCase()||"—"}</div>
-              </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>DOMINANT MECHANISME</div>
-                <div style={{fontSize:11,fontWeight:600,color:"#9ca3af",lineHeight:1.4}}>{data?.dominant_mechanisme||"—"}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#6366f1",marginBottom:4}}>{data?.market_regime?.toUpperCase()||"—"}</div>
+                {data?.market_regime_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.market_regime_uitleg}</div>}
               </div>
             </div>
 
@@ -713,7 +723,18 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                   <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.yield_regime]||"#6b7280",boxShadow:`0 0 8px ${yieldColors[data.yield_regime]||"#6b7280"}`}}/>
                   <span style={{fontSize:15,fontWeight:700,color:yieldColors[data.yield_regime]||"#9ca3af"}}>{data.yield_regime}</span>
                 </div>
-                {data.yield_regime_explanation&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.6}}>{data.yield_regime_explanation}</div>}
+                {(data.yield_regime_uitleg||data.yield_regime_explanation)&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.yield_regime_uitleg||data.yield_regime_explanation}</div>}
+              </div>
+            )}
+            {/* Correlatie uitleg */}
+            {data?.correlatie_status&&(
+              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>CORRELATIE STATUS</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:corrColors[data.correlatie_status]||"#6b7280"}}/>
+                  <span style={{fontSize:13,fontWeight:700,color:corrColors[data.correlatie_status]||"#9ca3af"}}>{data.correlatie_status}</span>
+                </div>
+                {data?.correlatie_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.correlatie_uitleg}</div>}
               </div>
             )}
 
@@ -1611,7 +1632,7 @@ VRAAG: Is er reden om de bias te veranderen?
 - Zo NEE: retourneer exact dezelfde bias en confidence
 - Zo JA: retourneer nieuwe bias met uitleg in mini_summary
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
 
       } else {
         // ── FRESH MODE: geen marktvisie — normale analyse
@@ -1624,7 +1645,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 CONTEXT:
 ${macroCtx || "Geen Intel geladen."}
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
       }
 
       const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
@@ -1799,7 +1820,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 
       const newsLines = macroCtx || "Geen Intel geladen — baseer op cross-asset data.";
 
-      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
+      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `DATUM: ${dateStr}
