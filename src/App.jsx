@@ -277,7 +277,7 @@ Confidence decay never changes bias direction. Low confidence only affects commu
 ━━━ OUTPUT FIELDS (all in Dutch) ━━━
 mini_summary: MAX 1 sentence for card — core message.
 analyse_uitgebreid: 2-3 sentences — (1) bias reason based on SPECIFIC news, (2) dominant driver + risk.
-hold_advies: HOW LONG to hold e.g. "Meerdere sessies" / "Alleen intraday". NOT about direction.
+hold_advies: Intraday hold advice combining RR target + fundamental reason. Format: "[RR target] — [fundamental reason], [session timing]". Examples: "Hold 3-5RR — Fed dovish + DXY weak confirm direction, exit NY open" / "Max 2RR — CPI within 1h, fundamental direction uncertain" / "Hold 4RR — yield regime and flow aligned, structure clean". Max 15 words. Include KEY fundamental driver that supports or limits the hold.
 fail_condition: when bias invalidates, max 8 words.
 technical_trend: Bullish/Bearish/Neutraal
 trend_driver: 3-5 words dominant force
@@ -461,7 +461,7 @@ function NewsImpactPopup({ news, apiKey, onClose }) {
         headers["anthropic-dangerous-direct-browser-access"] = "true";
       }
       try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
+        const res = await fetch("/api/anthropic", {
           method:"POST", headers,
           body: JSON.stringify({
             model:"claude-sonnet-4-20250514",
@@ -1440,7 +1440,7 @@ export default function HybridDashboard() {
     const maxRetries = 3;
     for(let attempt=1; attempt<=maxRetries; attempt++) {
       try {
-        const res = await fetch("https://api.anthropic.com/v1/messages",{
+        const res = await fetch("/api/anthropic",{
           method:"POST", headers,
           body:JSON.stringify({
             model:"claude-sonnet-4-20250514",
@@ -1466,7 +1466,7 @@ export default function HybridDashboard() {
         const data=await res.json();
         // Web search geeft meerdere content blocks terug — combineer alleen text blocks
         const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
-        setResult(robustParse(text));
+        setResult(sanitizeIntelResult(robustParse(text)));
         setStatus("done");
         return;
       } catch(e){
@@ -1530,8 +1530,8 @@ Recent breaking news (laatste uur):
 ${recentNews}
 Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
     try {
-      const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
+      const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01"}:{})};
+      const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1548,7 +1548,7 @@ Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. A
     setDeepRefreshing(true);
     try {
       const now = new Date();
-      const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}:{})};
+      const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01"}:{})};
       const p = livePrices[asset.id];
       const prev = prevBias[asset.id];
 
@@ -1627,7 +1627,7 @@ ${macroCtx || "Geen Intel geladen."}
 JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
       }
 
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
+      const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -1820,7 +1820,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 {"assets":{${assetsJson}}}`;
 
       const body = { model:"claude-sonnet-4-20250514", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
+      const res = await fetch("/api/anthropic",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429) {
         if(attempt < 3) {
           const waitSec = attempt * 30;
@@ -1915,7 +1915,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setIError("");
     const labels = assets.map(a=>a.label);
     callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels, livePrices), (result) => {
-      setIResult(result);
+      setIResult(sanitizeIntelResult(result));
       if(result?.news_items?.length > 0) {
         const now = new Date();
         const items = result.news_items.map((n,idx) => {
@@ -1953,7 +1953,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     await new Promise(resolve => {
       const origSet = (result) => {
         intelResult = result;
-        setIResult(result);
+        setIResult(sanitizeIntelResult(result));
         if(result?.news_items?.length > 0) {
           const now = new Date();
           const items = result.news_items.map((n,idx) => {
@@ -1980,7 +1980,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setHybridStatus("visie");
     if(intelResult) {
       try {
-        const headers = {"Content-Type":"application/json","x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};
+        const headers = {"Content-Type":"application/json","x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01"};
         const dxy = livePrices["DXY"]; const us10y = livePrices["US10Y"]; const vix = livePrices["VIX"];
         const crossAsset = [
           dxy   ? `DXY:${dxy.price} ${dxy.change}` : "DXY:?",
@@ -1989,7 +1989,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         ].join(" | ");
         // Geef breaking news ook mee aan marktvisie
         const intelMetBreaking = {...intelResult, breakingItems: breakingNews.slice(0,6)};
-        let visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+        let visieRes = await fetch("/api/anthropic",{
           method:"POST", headers,
           body: JSON.stringify({
             model:"claude-sonnet-4-20250514",
@@ -2001,7 +2001,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         // 429 retry voor marktvisie
         if(visieRes.status===429) {
           await new Promise(r=>setTimeout(r,20000));
-          visieRes = await fetch("https://api.anthropic.com/v1/messages",{
+          visieRes = await fetch("/api/anthropic",{
             method:"POST", headers,
             body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
           });
@@ -2592,3 +2592,30 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     </div>
   );
 }
+// Strip citation tags that AI sometimes adds to headlines
+function sanitizeText(text) {
+  if(typeof text !== "string") return text;
+  return text
+    .replace(/<cite[^>]*>/gi, "")
+    .replace(/<\/cite>/gi, "")
+    .replace(/\[\d+(-\d+)?\]/g, "")
+    .trim();
+}
+
+function sanitizeIntelResult(obj) {
+  if(!obj || typeof obj !== "object") return obj;
+  if(Array.isArray(obj)) return obj.map(sanitizeIntelResult);
+  const out = {};
+  for(const [k,v] of Object.entries(obj)) {
+    if(k === "headline" || k === "mini_summary" || k === "analyse_uitgebreid" || k === "desk_view") {
+      out[k] = sanitizeText(v);
+    } else if(typeof v === "object") {
+      out[k] = sanitizeIntelResult(v);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+
