@@ -581,329 +581,326 @@ function YieldTooltip({ regime, explanation }) {
 
 function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accent }) {
   const bias = resolveBias(data?.bias, data?.confidence);
-  const c = biasColors[bias] || biasColors.Neutraal;
+  const bc = biasColors[bias] || biasColors.Neutraal;
   const acc = accent || DEFAULT_ACCENT;
-  const trendColor = (t) => {
-    if (!t) return "#6b7280"; const l = t.toLowerCase();
-    if (l.includes("strong up")) return "#22c55e";
-    if (l.includes("choppy up")) return "#84cc16";
+
+  const trendCol = (t) => {
+    if (!t) return "#6b7280";
+    const l = t.toLowerCase();
+    if (l.includes("strong up"))   return "#22c55e";
+    if (l.includes("choppy up"))   return "#84cc16";
     if (l.includes("strong down")) return "#ef4444";
     if (l.includes("choppy down")) return acc;
-    if (l.includes("compres")) return "#a855f7";
+    if (l.includes("compres"))     return "#a855f7";
     return "#6b7280";
   };
-  const pijlerTooltips = {
-    "Macro Alignment":"Hoe goed sluiten macro-factoren (yields, DXY, risk sentiment) aan bij de trade richting. 25% gewicht in hold score.",
-    "Structure Integrity":"Houdt de prijs een hogere lows structuur aan? Geen structure break? 30% gewicht — zwaarste pijler.",
-    "Flow & Participation":"Is er echte follow-through en volume achter de move? Geen absorptie of reversed reaction? 25% gewicht.",
-    "Volatility Regime":"Is de ATR normaal of expansief? Geen extreme compressie of volatility collapse? 20% gewicht.",
+
+  const holdLabel = (h) => {
+    if (h >= 80) return { label: "Voluit holden",      color: "#22c55e" };
+    if (h >= 70) return { label: "Goede hold",         color: "#84cc16" };
+    if (h >= 60) return { label: "Twijfelachtig",      color: "#f59e0b" };
+    if (h >= 40) return { label: "Niet holden",        color: acc };
+    return        { label: "Definitief niet holden",   color: "#ef4444" };
   };
-  const priceDir = data?.price_direction;
-  const priceChange = data?.price_change_today;
+
+  const confLabel = (v) => {
+    if (v >= 80) return { label: "Zeer sterke bias", pos: "Vol", color: "#22c55e" };
+    if (v >= 70) return { label: "Sterke bias",      pos: "75%", color: "#84cc16" };
+    if (v >= 60) return { label: "Redelijke bias",   pos: "50%", color: "#f59e0b" };
+    if (v >= 50) return { label: "Lichte bias",      pos: "25%", color: "#f97316" };
+    return        { label: "Niet traden",            pos: "0%",  color: "#ef4444" };
+  };
+
+  const pulseColors = { QUIET:"#4b5563", WAIT:"#f59e0b", TRADABLE:"#22c55e", WILD:"#ef4444" };
+  const pulseLabels = ["QUIET","WAIT","TRADABLE","WILD"];
+  const pc = pulseColors[data?.pulse] || "#6b7280";
+  const pulseIdx = pulseLabels.indexOf(data?.pulse);
+
+  const conf  = data?.confidence || 0;
+  const hold  = data?.macro_hold || 0;
+  const cInfo = confLabel(conf);
+  const hInfo = holdLabel(hold);
+
+  // Small reusable label
+  const Lbl = ({text, color="#4b5563"}) => (
+    <div style={{fontSize:9,fontWeight:600,letterSpacing:"0.1em",color,marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>{text}</div>
+  );
+
+  // Card wrapper
+  const Card = ({children, style={}}) => (
+    <div style={{background:"#0f1013",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"16px 18px",...style}}>
+      {children}
+    </div>
+  );
+
+  // Thin bar
+  const ThinBar = ({value, max=100, color}) => (
+    <div style={{height:3,borderRadius:2,background:"rgba(255,255,255,0.06)",overflow:"hidden",marginTop:6}}>
+      <div style={{height:"100%",width:`${Math.min(100,(value/max)*100)}%`,background:color,borderRadius:2,transition:"width 0.5s ease"}}/>
+    </div>
+  );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.88)",backdropFilter:"blur(8px)",overflowY:"auto",display:"flex",flexDirection:"column"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="deep-enter" style={{background:"#09090b",minHeight:"100vh",width:"100%",display:"flex",flexDirection:"column"}}>
-        {/* Top accent bar */}
-        <div style={{height:3,background:`linear-gradient(90deg,transparent,${c.border},transparent)`,flexShrink:0}}/>
+    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto"}}
+      onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:"#080a0d",minHeight:"100vh",width:"100%",fontFamily:"'Syne',system-ui,sans-serif"}}>
 
-        {/* Header */}
-        <div style={{padding:"18px 32px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,flexShrink:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:14}}>
-            <span style={{flexShrink:0}}><AssetLogo id={asset.id} size={26}/></span>
+        {/* Top color line */}
+        <div style={{height:2,background:`linear-gradient(90deg,transparent 0%,${bc.border} 30%,${bc.border} 70%,transparent 100%)`}}/>
+
+        {/* ── HEADER ── */}
+        <div style={{padding:"20px 32px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center",gap:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <AssetLogo id={asset.id} size={36}/>
             <div>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:3,flexWrap:"wrap"}}>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:24,fontWeight:700,color:"#e5e7eb"}}>{asset.label}</span>
-                <div style={{background:c.bg,border:`1px solid ${c.border}55`,borderRadius:5,padding:"5px 14px"}}>
-                  <span style={{fontSize:14,fontWeight:700,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
-                </div>
-                {priceChange&&(
-                  <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.04)",borderRadius:5,padding:"4px 10px"}}>
-                    <span style={{fontSize:11,fontWeight:700,color:priceDir==="up"?"#22c55e":"#ef4444",fontFamily:"'JetBrains Mono',monospace"}}>{priceDir==="up"?"↑":"↓"} {priceChange} vandaag</span>
-                  </div>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+                <span style={{fontSize:22,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em"}}>{asset.label}</span>
+                <span style={{fontSize:11,fontWeight:700,color:bc.text,background:bc.bg,border:`1px solid ${bc.border}55`,borderRadius:5,padding:"4px 12px",letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
+                {data?.price_change_today&&(
+                  <span style={{fontSize:11,fontWeight:700,color:data.price_direction==="up"?"#22c55e":"#ef4444",fontFamily:"'JetBrains Mono',monospace",background:"rgba(255,255,255,0.04)",borderRadius:5,padding:"4px 10px"}}>
+                    {data.price_direction==="up"?"↑":"↓"} {data.price_change_today}
+                  </span>
                 )}
-                {data?.price_today&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,fontWeight:700,color:"#e5e7eb"}}>{data.price_today}</span>}
-                {data?.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
+                {data?.price_today&&<span style={{fontSize:14,fontWeight:700,color:"#9ca3af",fontFamily:"'JetBrains Mono',monospace"}}>{data.price_today}</span>}
               </div>
-              <div style={{fontSize:12,color:"#4b5563"}}>{asset.full}</div>
-              {data?.analysed_at&&<div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>📊 Geanalyseerd: {fmtDT(data.analysed_at)}</div>}
+              <div style={{fontSize:12,color:"#4b5563"}}>{asset.full}{data?.analysed_at&&<span style={{marginLeft:10,fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:"#2d3748"}}>geanalyseerd {fmtDT(data.analysed_at)}</span>}</div>
             </div>
           </div>
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <button onClick={onRefreshAsset} disabled={refreshing} style={{...btnStyle(refreshing,acc),padding:"7px 16px",fontSize:10}}>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={onRefreshAsset} disabled={refreshing}
+              style={{background:refreshing?`${acc}22`:`${acc}18`,border:`1px solid ${acc}44`,borderRadius:7,color:acc,padding:"8px 18px",fontSize:10,fontWeight:700,cursor:refreshing?"not-allowed":"pointer",letterSpacing:"0.06em",fontFamily:"'JetBrains Mono',monospace",display:"flex",alignItems:"center",gap:6}}>
               <span style={{display:"inline-block",animation:refreshing?"spin 0.8s linear infinite":"none"}}>↺</span>
-              {refreshing?"UPDATING...":"UPDATE ASSET"}
+              {refreshing?"BEZIG...":"UPDATE"}
             </button>
-            <button onClick={onClose} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,color:"#9ca3af",padding:"7px 16px",cursor:"pointer",fontSize:12,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+            <button onClick={onClose}
+              style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:7,color:"#6b7280",padding:"8px 18px",fontSize:10,fontWeight:700,cursor:"pointer",letterSpacing:"0.06em",fontFamily:"'JetBrains Mono',monospace"}}>
               ← TERUG
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div style={{padding:"24px 32px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,maxWidth:1400,width:"100%",margin:"0 auto",flex:1}}>
+        {/* ── GRID CONTENT ── */}
+        <div style={{padding:"24px 32px",maxWidth:1400,margin:"0 auto",display:"grid",gridTemplateColumns:"340px 1fr 300px",gap:14}}>
 
-          {/* LEFT COLUMN */}
-          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          {/* ── COL 1: Scores ── */}
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
-            {/* Confidence cards */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>BIAS CONFIDENCE</div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:30,fontWeight:700,color:acc,marginBottom:8}}>{data?.confidence}%</div>
-                <Bar value={data?.confidence||0} color={acc}/>
-                {(()=>{
-                  const c = data?.confidence||0;
-                  const [label,pos,col] = c>=80?["Zeer sterke bias","Volle positie","#22c55e"]:c>=70?["Sterke bias","75% positie","#84cc16"]:c>=60?["Redelijke bias","50% positie","#f59e0b"]:c>=50?["Lichte bias","25% positie","#f97316"]:["Niet traden","0% positie","#ef4444"];
-                  return <div style={{marginTop:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:10,color:col,fontWeight:600}}>{label}</span>
-                    <span style={{fontSize:9,color:"#4b5563"}}>{pos}</span>
-                  </div>;
-                })()}
-                {data?.confidence_label&&<div style={{fontSize:10,color:"#6b7280",marginTop:6,lineHeight:1.5,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:6}}>{data.confidence_label}</div>}
+            {/* Confidence */}
+            <Card>
+              <Lbl text="BIAS CONFIDENCE"/>
+              <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:4}}>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:42,fontWeight:700,color:cInfo.color,lineHeight:1}}>{conf}%</span>
               </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>MACRO HOLD CONTEXT</div>
-                <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:8}}>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:34,fontWeight:700,color:"#6366f1"}}>{data?.macro_hold||0}</span>
-                  <span style={{fontSize:12,color:"#374151"}}>/100</span>
-                </div>
-                <Bar value={data?.macro_hold||0} color="#6366f1"/>
-                {(()=>{
-                  const h = data?.macro_hold||0;
-                  const [emoji,label,range,col] =
-                    h>=80?["🟢","Voluit holden","80-100 — macro volledig aligned","#22c55e"]:
-                    h>=70?["🟢","Goede hold","70-79 — macro ondersteunt de trade","#84cc16"]:
-                    h>=60?["🟡","Zeer twijfelachtig","60-69 — macro gemengd, risicovol","#f59e0b"]:
-                    h>=40?["⚠️","Niet holden","40-59 — macro te onduidelijk",acc]:
-                           ["🔴","Definitief niet holden","0-39 — macro heeft gedraaid","#ef4444"];
-                  return(
-                    <div style={{marginTop:10}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{fontSize:13}}>{emoji}</span>
-                          <span style={{fontSize:12,fontWeight:700,color:col}}>{label}</span>
-                        </div>
-                        <span style={{fontSize:9,color:"#374151"}}>{range}</span>
-                      </div>
-                      {data?.macro_hold_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.7,borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:8,marginTop:4}}>{data.macro_hold_uitleg}</div>}
-                    </div>
-                  );
-                })()}
+              <ThinBar value={conf} color={cInfo.color}/>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}>
+                <span style={{fontSize:11,fontWeight:600,color:cInfo.color}}>{cInfo.label}</span>
+                <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{cInfo.pos} positie</span>
               </div>
-            </div>
+              {data?.confidence_label&&<div style={{fontSize:10,color:"#6b7280",marginTop:8,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",lineHeight:1.6}}>{data.confidence_label}</div>}
+            </Card>
 
-            {/* PULSE */}
-            {data?.pulse&&(()=>{
-              const pulseColors={QUIET:"#4b5563",WAIT:"#f59e0b",TRADABLE:"#22c55e",WILD:"#ef4444"};
-              const pulseEmoji={QUIET:"🔇",WAIT:"⏳",TRADABLE:"✅",WILD:"⚡"};
-              const labels=["QUIET","WAIT","TRADABLE","WILD"];
-              const pc=pulseColors[data.pulse]||"#6b7280";
-              const idx=labels.indexOf(data.pulse);
-              return(
-                <div style={{background:`${pc}09`,border:`1px solid ${pc}30`,borderRadius:8,padding:"14px 16px"}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <span style={{fontSize:14}}>{pulseEmoji[data.pulse]}</span>
-                      <span style={{fontSize:9,color:pc,letterSpacing:"0.12em",fontWeight:700}}>PULSE INDICATOR</span>
-                    </div>
-                    <span style={{fontSize:16,fontWeight:700,color:pc,letterSpacing:"0.06em"}}>{data.pulse}</span>
-                  </div>
-                  <div style={{display:"flex",gap:4,marginBottom:10}}>
-                    {labels.map((l,i)=>(
-                      <div key={l} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-                        <div style={{width:"100%",height:4,borderRadius:2,background:i===idx?pulseColors[l]:"rgba(255,255,255,0.06)"}}/>
-                        <span style={{fontSize:8,color:i===idx?pulseColors[l]:"#374151",letterSpacing:"0.06em"}}>{l}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {data.pulse_reden&&<div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{data.pulse_reden}</div>}
+            {/* Macro Hold */}
+            <Card>
+              <Lbl text="MACRO HOLD"/>
+              <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:4}}>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:42,fontWeight:700,color:"#6366f1",lineHeight:1}}>{hold}</span>
+                <span style={{fontSize:12,color:"#374151"}}>/100</span>
+              </div>
+              <ThinBar value={hold} color="#6366f1"/>
+              <div style={{marginTop:8}}>
+                <span style={{fontSize:11,fontWeight:600,color:hInfo.color}}>{hInfo.label}</span>
+              </div>
+              {data?.macro_hold_uitleg&&<div style={{fontSize:10,color:"#6b7280",marginTop:8,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",lineHeight:1.6}}>{data.macro_hold_uitleg}</div>}
+            </Card>
+
+            {/* Pulse */}
+            {data?.pulse&&(
+              <Card style={{background:`${pc}08`,border:`1px solid ${pc}25`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <Lbl text="PULSE" color={pc}/>
+                  <span style={{fontSize:13,fontWeight:800,color:pc,letterSpacing:"0.06em"}}>{data.pulse}</span>
                 </div>
-              );
-            })()}
-
-            {/* Macro Hold Pijlers */}
-            {(data?.macro_alignment!=null)&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:12}}>MACRO HOLD — SCORE OPBOUW</div>
-                <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                  {[
-                    {l:"Pillar Alignment", v:data?.macro_alignment, max:40},
-                    {l:"News Timing",      v:data?.pillar_news,     max:25},
-                    {l:"Cross-Asset",      v:data?.pillar_crossasset,max:20},
-                    {l:"Yield/DXY Regime",v:data?.pillar_yield,     max:15},
-                  ].map(({l,v,max})=>v!=null&&(
-                    <div key={l} style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:10,color:"#4b5563",width:120,flexShrink:0}}>{l}</span>
-                      <div style={{flex:1,height:4,borderRadius:2,background:"rgba(255,255,255,0.04)",overflow:"hidden"}}>
-                        <div style={{height:"100%",width:`${(v/max)*100}%`,background:v===max?"#22c55e":v>=max*0.6?"#6366f1":"#f59e0b",borderRadius:2,transition:"width 0.4s"}}/>
-                      </div>
-                      <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#9ca3af",width:40,textAlign:"right"}}>{v}/{max}</span>
+                <div style={{display:"flex",gap:3,marginBottom:10}}>
+                  {pulseLabels.map((l,i)=>(
+                    <div key={l} style={{flex:1}}>
+                      <div style={{height:3,borderRadius:2,background:i===pulseIdx?pulseColors[l]:"rgba(255,255,255,0.06)",marginBottom:3}}/>
+                      <div style={{fontSize:7,color:i===pulseIdx?pulseColors[l]:"#2d3748",letterSpacing:"0.08em",textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>{l}</div>
                     </div>
                   ))}
                 </div>
-              </div>
+                {data.pulse_reden&&<div style={{fontSize:10,color:"#9ca3af",lineHeight:1.6}}>{data.pulse_reden}</div>}
+              </Card>
             )}
 
-            {/* Technical + Structure + Regime + Trend Driver */}
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TECHNISCHE TREND</div>
-                <div style={{fontSize:13,fontWeight:700,color:trendColor(data?.technical_trend),marginBottom:4}}>{data?.technical_trend||"—"}</div>
-                {data?.trend_driver&&<div style={{fontSize:10,color:"#6b7280",marginBottom:6}}>{data.trend_driver}</div>}
-                {data?.technical_trend_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.technical_trend_uitleg}</div>}
-              </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>INTRADAY STRUCTUUR</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#9ca3af",marginBottom:4}}>{data?.intraday_structuur||"—"}</div>
-                {data?.structuur_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.structuur_uitleg}</div>}
-              </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>MARKET REGIME</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#6366f1",marginBottom:4}}>{data?.market_regime?.toUpperCase()||"—"}</div>
-                {data?.market_regime_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.market_regime_uitleg}</div>}
-              </div>
-            </div>
-
-            {/* Yield regime */}
-            {data?.yield_regime&&data.yield_regime!=="n.v.t."&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>YIELD REGIME</div>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.yield_regime]||"#6b7280",boxShadow:`0 0 8px ${yieldColors[data.yield_regime]||"#6b7280"}`}}/>
-                  <span style={{fontSize:15,fontWeight:700,color:yieldColors[data.yield_regime]||"#9ca3af"}}>{data.yield_regime}</span>
+            {/* Score breakdown */}
+            {data?.macro_alignment!=null&&(
+              <Card>
+                <Lbl text="HOLD SCORE OPBOUW"/>
+                <div style={{display:"flex",flexDirection:"column",gap:9}}>
+                  {[
+                    {l:"Pillar Alignment", v:data?.macro_alignment,    max:40},
+                    {l:"News Timing",      v:data?.pillar_news,        max:25},
+                    {l:"Cross-Asset",      v:data?.pillar_crossasset,  max:20},
+                    {l:"Yield/DXY",        v:data?.pillar_yield,       max:15},
+                  ].map(({l,v,max})=>v!=null&&(
+                    <div key={l}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                        <span style={{fontSize:10,color:"#6b7280"}}>{l}</span>
+                        <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:v===max?"#22c55e":v>=max*0.6?"#9ca3af":"#6b7280"}}>{v}/{max}</span>
+                      </div>
+                      <ThinBar value={v} max={max} color={v===max?"#22c55e":v>=max*0.6?"#6366f1":"#f59e0b"}/>
+                    </div>
+                  ))}
                 </div>
-                {(data.yield_regime_uitleg||data.yield_regime_explanation)&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.yield_regime_uitleg||data.yield_regime_explanation}</div>}
-              </div>
+              </Card>
             )}
-            {/* Correlatie uitleg */}
-            {data?.correlatie_status&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>CORRELATIE STATUS</div>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:corrColors[data.correlatie_status]||"#6b7280"}}/>
-                  <span style={{fontSize:13,fontWeight:700,color:corrColors[data.correlatie_status]||"#9ca3af"}}>{data.correlatie_status}</span>
-                </div>
-                {data?.correlatie_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.correlatie_uitleg}</div>}
-              </div>
-            )}
-
-            {/* Hold advies + Fail */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-
-              <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:6}}>FAIL CONDITION</div>
-                <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{data?.fail_condition||"—"}</div>
-              </div>
-            </div>
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          {/* ── COL 2: Analysis ── */}
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
-            {/* Deep summary */}
-            <div style={{background:`linear-gradient(135deg,${acc}08,rgba(99,102,241,0.04))`,border:`1px solid ${acc}20`,borderRadius:8,padding:"16px 18px"}}>
-              <div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:8}}>UITGEBREIDE ANALYSE</div>
-              <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8}}>{data?.analyse_uitgebreid||data?.deep_summary||data?.mini_summary||"—"}</div>
-            </div>
+            {/* Uitgebreide analyse — large */}
+            <Card style={{background:`linear-gradient(135deg,${acc}06,rgba(99,102,241,0.04))`,border:`1px solid ${acc}18`}}>
+              <Lbl text="UITGEBREIDE ANALYSE" color={acc}/>
+              <div style={{fontSize:13,color:"#d1d5db",lineHeight:1.85,fontWeight:400}}>{data?.analyse_uitgebreid||data?.mini_summary||"—"}</div>
+            </Card>
 
             {/* AI Opinie */}
             {data?.ai_opinie&&(
-              <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
-                  <span>🧠</span> AI OPINIE
-                </div>
-                <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.75,fontStyle:"italic"}}>{data.ai_opinie}</div>
-              </div>
+              <Card style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.12)"}}>
+                <Lbl text="AI OPINIE" color="#6366f1"/>
+                <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.8,fontStyle:"italic"}}>{data.ai_opinie}</div>
+              </Card>
+            )}
+
+            {/* 2-col: Trend + Structuur */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Card>
+                <Lbl text="TECHNISCHE TREND"/>
+                <div style={{fontSize:15,fontWeight:700,color:trendCol(data?.technical_trend),marginBottom:4}}>{data?.technical_trend||"—"}</div>
+                {data?.technical_trend_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:4}}>{data.technical_trend_uitleg}</div>}
+              </Card>
+              <Card>
+                <Lbl text="INTRADAY STRUCTUUR"/>
+                <div style={{fontSize:15,fontWeight:700,color:"#9ca3af",marginBottom:4}}>{data?.intraday_structuur||"—"}</div>
+                {data?.structuur_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:4}}>{data.structuur_uitleg}</div>}
+              </Card>
+            </div>
+
+            {/* 2-col: Market Regime + Yield Regime */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Card>
+                <Lbl text="MARKET REGIME"/>
+                <div style={{fontSize:14,fontWeight:700,color:"#6366f1",marginBottom:4}}>{data?.market_regime?.toUpperCase()||"—"}</div>
+                {data?.market_regime_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:4}}>{data.market_regime_uitleg}</div>}
+              </Card>
+              {data?.yield_regime&&data.yield_regime!=="n.v.t."?(
+                <Card>
+                  <Lbl text="YIELD REGIME"/>
+                  <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
+                    <div style={{width:7,height:7,borderRadius:"50%",background:yieldColors[data.yield_regime]||"#6b7280",flexShrink:0}}/>
+                    <div style={{fontSize:13,fontWeight:700,color:yieldColors[data.yield_regime]||"#9ca3af"}}>{data.yield_regime}</div>
+                  </div>
+                  {(data.yield_regime_uitleg||data.yield_regime_explanation)&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:4}}>{data.yield_regime_uitleg||data.yield_regime_explanation}</div>}
+                </Card>
+              ):(
+                <Card>
+                  <Lbl text="CORRELATIE"/>
+                  <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
+                    <div style={{width:7,height:7,borderRadius:"50%",background:corrColors[data?.correlatie_status]||"#6b7280",flexShrink:0}}/>
+                    <div style={{fontSize:13,fontWeight:700,color:corrColors[data?.correlatie_status]||"#9ca3af"}}>{data?.correlatie_status||"—"}</div>
+                  </div>
+                  {data?.correlatie_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:4}}>{data.correlatie_uitleg}</div>}
+                </Card>
+              )}
+            </div>
+
+            {/* Fail condition */}
+            {data?.fail_condition&&(
+              <Card style={{background:"rgba(239,68,68,0.04)",border:"1px solid rgba(239,68,68,0.14)"}}>
+                <Lbl text="FAIL CONDITION" color="#ef4444"/>
+                <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.7}}>{data.fail_condition}</div>
+              </Card>
             )}
 
             {/* Bias switch history */}
             {data?.bias_switch_history?.length>0&&(
-              <div style={{background:"rgba(239,68,68,0.04)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-                  <span>⚡</span> BIAS SWITCH GESCHIEDENIS
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <Card style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)"}}>
+                <Lbl text="BIAS SWITCH GESCHIEDENIS" color="#ef4444"/>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {data.bias_switch_history.map((s,i)=>{
                     const vanC = biasColors[s.van]||biasColors.Neutraal;
                     const naarC = biasColors[s.naar]||biasColors.Neutraal;
                     return (
-                      <div key={i} style={{borderLeft:"2px solid rgba(239,68,68,0.3)",paddingLeft:10}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,flexWrap:"wrap"}}>
+                      <div key={i} style={{display:"flex",flexDirection:"column",gap:5,paddingBottom:i<data.bias_switch_history.length-1?10:0,borderBottom:i<data.bias_switch_history.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                           <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(s.time)}</span>
-                          <span style={{fontSize:10,fontWeight:700,color:vanC.text,background:vanC.bg,border:`1px solid ${vanC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.van}</span>
-                          <span style={{fontSize:10,color:"#4b5563"}}>→</span>
-                          <span style={{fontSize:10,fontWeight:700,color:naarC.text,background:naarC.bg,border:`1px solid ${naarC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.naar}</span>
-                          <span style={{fontSize:9,color:"#374151"}}>{s.confidence}%</span>
+                          <span style={{fontSize:10,fontWeight:700,color:vanC.text,background:vanC.bg,border:`1px solid ${vanC.border}44`,borderRadius:3,padding:"1px 7px"}}>{s.van}</span>
+                          <span style={{fontSize:10,color:"#374151"}}>→</span>
+                          <span style={{fontSize:10,fontWeight:700,color:naarC.text,background:naarC.bg,border:`1px solid ${naarC.border}44`,borderRadius:3,padding:"1px 7px"}}>{s.naar}</span>
+                          <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{s.confidence}%</span>
                         </div>
-                        {s.nieuws?.length>0&&(
-                          <div style={{display:"flex",flexDirection:"column",gap:4}}>
-                            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:2}}>NIEUWS OP DAT MOMENT:</div>
-                            {s.nieuws.map((n,j)=>(
-                              <div key={j} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
-                                <span style={{fontSize:9,color:"#4b5563",flexShrink:0,marginTop:1}}>[{n.source}]</span>
-                                {n.url
-                                  ? <a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#6b7280",lineHeight:1.4,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color="#9ca3af"} onMouseLeave={e=>e.target.style.color="#6b7280"}>{n.headline}</a>
-                                  : <span style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{n.headline}</span>
-                                }
-                              </div>
-                            ))}
+                        {s.nieuws?.length>0&&s.nieuws.map((n,j)=>(
+                          <div key={j} style={{display:"flex",gap:5,alignItems:"flex-start",marginLeft:4}}>
+                            <span style={{fontSize:8,color:"#4b5563",flexShrink:0,fontFamily:"'JetBrains Mono',monospace"}}>[{n.source}]</span>
+                            {n.url
+                              ? <a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#6b7280",lineHeight:1.4,textDecoration:"none"}}>{n.headline}</a>
+                              : <span style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{n.headline}</span>}
                           </div>
-                        )}
+                        ))}
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              </Card>
             )}
+          </div>
 
-            {/* Mechanisme + Driver */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>DOMINANT MECHANISME</div>
-                <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.55}}>{data?.dominant_mechanisme||"—"}</div>
-              </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TREND DRIVER</div>
-                <div style={{fontSize:14,fontWeight:700,color:"#9ca3af"}}>{data?.trend_driver?.toUpperCase()||"—"}</div>
-              </div>
-            </div>
+          {/* ── COL 3: Context ── */}
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
-            {/* Key confluences */}
-            {data?.key_confluences?.length>0&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>KEY CONFLUENCES</div>
-                <div style={{display:"flex",flexDirection:"column",gap:7}}>
-                  {data.key_confluences.map((cf,i)=>(
-                    <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                      <div style={{width:5,height:5,borderRadius:"50%",background:acc,marginTop:5,flexShrink:0}}/>
-                      <span style={{fontSize:11,color:"#9ca3af",lineHeight:1.5}}>{cf}</span>
-                    </div>
-                  ))}
+            {/* Dominant mechanisme */}
+            <Card>
+              <Lbl text="DOMINANT MECHANISME"/>
+              <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.7}}>{data?.dominant_mechanisme||"—"}</div>
+            </Card>
+
+            {/* Trend driver */}
+            <Card>
+              <Lbl text="TREND DRIVER"/>
+              <div style={{fontSize:13,fontWeight:700,color:"#9ca3af",letterSpacing:"0.02em",lineHeight:1.4}}>{data?.trend_driver?.toUpperCase()||"—"}</div>
+            </Card>
+
+            {/* Correlatie (if yield was shown in col2) */}
+            {data?.yield_regime&&data.yield_regime!=="n.v.t."&&data?.correlatie_status&&(
+              <Card>
+                <Lbl text="CORRELATIE"/>
+                <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:corrColors[data.correlatie_status]||"#6b7280",flexShrink:0}}/>
+                  <div style={{fontSize:13,fontWeight:700,color:corrColors[data.correlatie_status]||"#9ca3af"}}>{data.correlatie_status}</div>
                 </div>
-              </div>
+                {data?.correlatie_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:4}}>{data.correlatie_uitleg}</div>}
+              </Card>
             )}
 
-            {/* News items — clickable */}
+            {/* Relevant news */}
             {data?.news_items?.length>0&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>RELEVANTE NIEUWS</div>
-                <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                  {data.news_items.map((n,i)=>(
-                    <div key={i} style={{borderLeft:`2px solid ${dirColor[n.direction]||"#374151"}`,paddingLeft:10,cursor:n.url?"pointer":"default"}}
+              <Card>
+                <Lbl text="RELEVANT NIEUWS"/>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {data.news_items.slice(0,4).map((n,i)=>(
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:3,paddingBottom:i<Math.min(3,data.news_items.length-1)?8:0,borderBottom:i<Math.min(3,data.news_items.length-1)?"1px solid rgba(255,255,255,0.04)":"none",cursor:n.url?"pointer":"default"}}
                       onClick={()=>n.url&&window.open(n.url,"_blank")}>
-                      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
-                        {n.time&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time}</span>}
-                        {n.date&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#374151"}}>{n.date}</span>}
-                        {n.source&&<Badge label={n.source} color="#6b7280"/>}
-                        <span style={{fontSize:11,color:dirColor[n.direction]||"#9ca3af",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
-                        {n.url&&<span style={{fontSize:9,color:"#374151",marginLeft:"auto"}}>↗ openen</span>}
+                      <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                        {n.time&&<span style={{fontSize:8,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{n.time}</span>}
+                        {n.source&&<span style={{fontSize:8,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.05)",borderRadius:3,padding:"1px 5px"}}>{n.source}</span>}
+                        <span style={{fontSize:9,color:dirColor[n.direction]||"#6b7280",fontWeight:700,marginLeft:"auto"}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
                       </div>
-                      <div style={{fontSize:11,color:n.url?"#d1d5db":"#9ca3af",lineHeight:1.5,textDecoration:n.url?"underline":"none",textDecorationColor:"rgba(255,255,255,0.1)"}}>{n.headline}</div>
+                      <div style={{fontSize:10,color:"#c9cdd4",lineHeight:1.5}}>{n.headline}</div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         </div>
