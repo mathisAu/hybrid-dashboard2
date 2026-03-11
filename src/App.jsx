@@ -2078,7 +2078,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       // Shared cache key — iedereen die hetzelfde uur runt krijgt dezelfde gecachede analyse
       const analyseKey = `analyse:${assets.map(a=>a.id).join("-")}:${new Date().toISOString().slice(0,13)}`;
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}], _cacheKey:analyseKey };
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:4500, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}], _cacheKey:analyseKey };
       const res = await fetch("/api/anthropic",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429) {
         if(attempt < 3) {
