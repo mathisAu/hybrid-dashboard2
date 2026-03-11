@@ -2107,7 +2107,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             <span style={{fontSize:10}}>📡</span>
             <span style={{fontSize:9,color:"#22c55e",letterSpacing:"0.08em"}}>LIVE DATA</span>
           </div>
-          {/* Auto-refresh */}}
+          {/* Auto-refresh */}
           <div style={{position:"relative"}}>
             <button onClick={()=>setAutoRefresh(v=>!v)} style={{background:autoRefresh?"rgba(99,102,241,0.12)":"rgba(255,255,255,0.03)",border:`1px solid ${autoRefresh?"#6366f1":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
               <span style={{fontSize:10,animation:autoRefresh?"spin 2s linear infinite":"none",display:"inline-block"}}>⟳</span>
