@@ -1811,6 +1811,7 @@ Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. A
       const psData = robustParse(text);
       if(!psData.analysed_at) psData.analysed_at = new Date().toISOString();
       setPresession(psData);
+      presessionFinal = psData;
       setPsStatus("done");
     } catch(e){ console.error(e); setPsStatus("error"); }
   }
@@ -2183,6 +2184,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     });
     setAResult(combined);
     setAStatus("done");
+    aResultFinal = combined;
   };
 
 
@@ -2217,12 +2219,15 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const [loadingSteps, setLoadingSteps] = useState([]);
   const runHybrid = async () => {
     if(hybridStatus !== "idle" && hybridStatus !== "done") return;
-    // Stop auto-refresh tijdens hybrid zodat geen parallel calls
     clearInterval(autoRefreshRef.current);
     clearInterval(countdownRef.current);
     setHybridStatus("intel"); setLoadingSteps(["🔍 Intel ophalen — nieuws & macro data"]);
     setIError(""); setAError("");
     const labels = assets.map(a=>a.label);
+
+    // Lokale vars voor auto-save na afloop
+    let aResultFinal = null;
+    let presessionFinal = null;
 
     // ── Stap 1: Intel — nieuws ophalen via web search ──────────────────────────
     let intelResult = null;
@@ -2309,41 +2314,20 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     const refreshTime = new Date();
     setLastRefresh(refreshTime);
 
-    // ── Auto-save naar Redis zodat vriend dezelfde data ziet ──────────────────
+    // ── Auto-save naar Redis — directe lokale variabelen, betrouwbaar ─────────
+    // aResult/intelResult/presession zijn hier lokale vars, niet via state
     try {
-      // We lezen de meest recente state via closures na de awaits
-      setTimeout(async () => {
-        // aResult/iResult/presession zijn op dit moment updated via state setters
-        // We kunnen ze niet direct lezen vanuit closure — gebruik een ref via callback
-        setAResult(currentAResult => {
-          setIResult(currentIResult => {
-            setPresession(currentPresession => {
-              setBreakingNews(currentBN => {
-                setRssItems(currentRss => {
-                  const snapshot = {
-                    aResult: currentAResult,
-                    iResult: currentIResult,
-                    presession: currentPresession,
-                    breakingNews: currentBN.slice(0,20),
-                    rssItems: currentRss.slice(0,10),
-                    savedAt: refreshTime.toISOString(),
-                  };
-                  fetch("/api/state", {
-                    method: "POST",
-                    headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify(snapshot),
-                  }).catch(() => {});
-                  return currentRss;
-                });
-                return currentBN;
-              });
-              return currentPresession;
-            });
-            return currentIResult;
-          });
-          return currentAResult;
-        });
-      }, 500);
+      const snapshot = {
+        aResult:      aResultFinal,
+        iResult:      intelResult,
+        presession:   presessionFinal,
+        savedAt:      refreshTime.toISOString(),
+      };
+      fetch("/api/state", {
+        method:  "POST",
+        headers: {"Content-Type":"application/json"},
+        body:    JSON.stringify(snapshot),
+      }).catch(() => {});
     } catch(_) {}
 
     // Herstart auto-refresh als het aan stond
