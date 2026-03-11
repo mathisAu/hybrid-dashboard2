@@ -1460,7 +1460,25 @@ export default function HybridDashboard() {
     loadSharedState();
   }, []);
 
-    // Live prijzen — alleen Finnhub of 12data (geen CORS problemen)
+  // ── Auto-save naar Redis zodra analyse klaar is ──────────────────────────────
+  useEffect(() => {
+    if (hybridStatus !== "done" && hybridStatus !== "idle") return;
+    if (!aResult) return;
+    const snapshot = {
+      aResult,
+      iResult,
+      presession,
+      savedAt: new Date().toISOString(),
+    };
+    fetch("/api/state", {
+      method:  "POST",
+      headers: {"Content-Type":"application/json"},
+      body:    JSON.stringify(snapshot),
+    }).catch(() => {});
+  }, [aResult]);
+
+
+  // Live prijzen — alleen Finnhub of 12data (geen CORS problemen)
   useEffect(()=>{
     const allIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
 
@@ -1811,7 +1829,6 @@ Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. A
       const psData = robustParse(text);
       if(!psData.analysed_at) psData.analysed_at = new Date().toISOString();
       setPresession(psData);
-      presessionFinal = psData;
       setPsStatus("done");
     } catch(e){ console.error(e); setPsStatus("error"); }
   }
@@ -2184,7 +2201,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     });
     setAResult(combined);
     setAStatus("done");
-    aResultFinal = combined;
   };
 
 
@@ -2225,9 +2241,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setIError(""); setAError("");
     const labels = assets.map(a=>a.label);
 
-    // Lokale vars voor auto-save na afloop
-    let aResultFinal = null;
-    let presessionFinal = null;
 
     // ── Stap 1: Intel — nieuws ophalen via web search ──────────────────────────
     let intelResult = null;
@@ -2313,22 +2326,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setHybridStatus("done");
     const refreshTime = new Date();
     setLastRefresh(refreshTime);
-
-    // ── Auto-save naar Redis — directe lokale variabelen, betrouwbaar ─────────
-    // aResult/intelResult/presession zijn hier lokale vars, niet via state
-    try {
-      const snapshot = {
-        aResult:      aResultFinal,
-        iResult:      intelResult,
-        presession:   presessionFinal,
-        savedAt:      refreshTime.toISOString(),
-      };
-      fetch("/api/state", {
-        method:  "POST",
-        headers: {"Content-Type":"application/json"},
-        body:    JSON.stringify(snapshot),
-      }).catch(() => {});
-    } catch(_) {}
 
     // Herstart auto-refresh als het aan stond
     if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
