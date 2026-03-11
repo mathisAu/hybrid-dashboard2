@@ -1044,13 +1044,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             {/* Divider */}
             <div style={{height:1,background:"rgba(255,255,255,0.04)",marginBottom:12}}/>
 
-            {/* Tags row */}
-            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12,alignItems:"center"}}>
-              {data.pulse&&<PulseBadge pulse={data.pulse}/>}
-              {data.market_mood&&<span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>{data.market_mood.toUpperCase()}</span>}
-              {data.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
-              {data.market_regime&&<Badge label={data.market_regime.slice(0,18).toUpperCase()} color="#6366f1"/>}
-            </div>
+
 
             {/* AI Summary block */}
             <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.14)",borderRadius:10,padding:"11px 13px"}}>
