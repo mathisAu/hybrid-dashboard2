@@ -1386,6 +1386,10 @@ export default function HybridDashboard() {
   const [iStatus,       setIStatus]       = useState("idle");
   const [aResult,       setAResult]       = useState(null);
   const [iResult,       setIResult]       = useState(null);
+  // Refs zodat runHybrid altijd de meest recente waarden kan lezen voor de save
+  const aResultRef   = useRef(null);
+  const iResultRef   = useRef(null);
+  const presessionRef = useRef(null);
   const [marktvisie,    setMarktvisie]    = useState(null); // AI marktmening op basis van nieuws
   const [aError,        setAError]        = useState("");
   const [iError,        setIError]        = useState("");
@@ -1406,6 +1410,10 @@ export default function HybridDashboard() {
   const [newPairLabel,  setNewPairLabel]  = useState("");
   const [newPairFull,   setNewPairFull]   = useState("");
   const [presession,    setPresession]    = useState(null);
+  // Sync refs met state zodat ze altijd actueel zijn
+  useEffect(() => { aResultRef.current = aResult; }, [aResult]);
+  useEffect(() => { iResultRef.current = iResult; }, [iResult]);
+  useEffect(() => { presessionRef.current = presession; }, [presession]);
   const [psStatus,      setPsStatus]      = useState("idle");
   // Breaking news
   const [breakingNews,  setBreakingNews]  = useState([]);
@@ -2310,33 +2318,24 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setLastRefresh(refreshTime);
 
     // ── Direct opslaan in Redis na afloop ────────────────────────────────────
-    // Wacht 1s zodat alle setAResult/setIResult/setPresession calls verwerkt zijn
     setTimeout(() => {
-      setAResult(latest => {
-        setIResult(latestI => {
-          setPresession(latestPs => {
-            if (!latest) return latestPs;
-            console.log("💾 Opslaan naar Redis...");
-            fetch("/api/state", {
-              method:  "POST",
-              headers: {"Content-Type":"application/json"},
-              body:    JSON.stringify({
-                aResult:   latest,
-                iResult:   latestI,
-                presession: latestPs,
-                savedAt:   new Date().toISOString(),
-              }),
-            })
-              .then(r => r.json())
-              .then(r => console.log("✓ Opgeslagen in Redis:", r))
-              .catch(e => console.error("✗ Redis save fout:", e));
-            return latestPs;
-          });
-          return latestI;
-        });
-        return latest;
-      });
-    }, 1000);
+      const snapshot = {
+        aResult:    aResultRef.current,
+        iResult:    iResultRef.current,
+        presession: presessionRef.current,
+        savedAt:    new Date().toISOString(),
+      };
+      if (!snapshot.aResult) { console.warn("⚠️ Save: aResult nog leeg"); return; }
+      console.log("💾 Opslaan naar Redis...");
+      fetch("/api/state", {
+        method:  "POST",
+        headers: {"Content-Type":"application/json"},
+        body:    JSON.stringify(snapshot),
+      })
+        .then(r => r.json())
+        .then(r => console.log("✓ Opgeslagen in Redis:", r))
+        .catch(e => console.error("✗ Redis save fout:", e));
+    }, 1500);
 
     // Herstart auto-refresh als het aan stond
     if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
