@@ -262,13 +262,56 @@ technical_trend: Bullish/Bearish/Neutral | intraday_structuur: HH/HL or LH/LL or
 6.2 Market Regime: Risk-On / Risk-Off / Stagflatie / Neutraal / Choppy. Integrate into bias narrative.
 
 ━━━ PHASE 7 — BIAS RULES & CONFIDENCE ━━━
+
 7.1 Bias Stability: Change bias ONLY on fundamental new macro news or regime shift. Small price movements = NEVER a reason. When in doubt: keep previous bias, lower confidence. Each asset has independent bias.
 Confidence decay never changes bias direction. Low confidence only affects communication strength.
+
 7.2 Confidence Decay: 5% decrease per hour. Reconfirm or lower every refresh.
+
 7.3 Fail Condition & Hold Advice: fail_condition max 8 words. hold_advies: how long to hold intraday.
+
+7.4 BIAS CONFIDENCE — FIXED CALCULATION (mandatory, no AI estimation):
+Calculate confidence by adding points for each confirmed factor:
+
+  Pillar alignment (max 40pts):
+  - 4 pillars aligned = 40 | 3 aligned = 30 | 2 aligned = 18 | 1 aligned = 8 | 0 aligned = 0
+
+  Intermarket bevestiging (max 15pts):
+  - Related assets confirm bias = 15 | Partially = 8 | Diverging = 0
+
+  Momentum (max 15pts):
+  - Price confirms bias with follow-through = 15 | Neutral/developing = 7 | Diverging = 0
+
+  Nieuws niet ingeprijsd (max 10pts):
+  - News fresh + not yet priced in = 10 | Partially priced in = 5 | Fully priced in = 0
+
+  Sessie timing (max 10pts):
+  - Bias active at London open or forming during London = 10 | Bias >2h old, no new confirmation = 4
+
+  Geen anomalie/conflict (max 10pts):
+  - No correlation anomaly, no conflicting signals = 10 | Minor conflict = 5 | Active anomaly = 0
+
+Total = sum of all factors. Cap at 65% if XAU correlation anomaly active. Cap at 55% if anomaly >2 sessions.
+
+CONFIDENCE LABELS (use in confidence_label field):
+0-40%   = Geen confirmatie — prijs zoekt richting, niet traden
+40-50%  = Zeer zwak — nauwelijks edge, niet traden
+50-60%  = Lichte bias — zwakke edge, lichte positie mogelijk
+60-70%  = Redelijke bias — versterkte confirmatie, redelijke edge
+70-80%  = Sterke bias — duidelijke edge, sterke fundamentele confirmatie
+80-100% = Zeer sterke bias — overduidelijke edge, meerdere factoren aligned
+
+POSITION SIZING GUIDE (include in confidence_label):
+<50%  = Niet traden
+50-60% = Maximaal 25% van normale positie
+60-70% = 50% van normale positie
+70-80% = 75% van normale positie
+>80%  = Volle positie
 
 ━━━ OUTPUT FIELDS (all in Dutch) ━━━
 mini_summary: MAX 1 sentence for card — core message.
+confidence_label: The confidence label based on the score e.g. "Sterke bias (74%) — 75% positie" — always include % and position sizing.
+ai_opinie: AI qualitative opinion separate from confidence score. 1-2 sentences. What does the AI think about the quality of this setup? Any concerns? e.g. "Structuur ziet er clean uit maar London volume nog laag — wacht op bevestiging eerste 15 min." 
 analyse_uitgebreid: 2-3 sentences — (1) bias reason based on SPECIFIC news, (2) dominant driver + risk.
 hold_advies: Intraday hold advice combining RR target + fundamental reason. Format: "[RR target] — [fundamental reason], [session timing]". Examples: "Hold 3-5RR — Fed dovish + DXY weak confirm direction, exit NY open" / "Max 2RR — CPI within 1h, fundamental direction uncertain" / "Hold 4RR — yield regime and flow aligned, structure clean". Max 15 words. Include KEY fundamental driver that supports or limits the hold.
 fail_condition: when bias invalidates, max 8 words.
@@ -290,7 +333,7 @@ macro_alignment_uitleg: Why this macro alignment score? Which of the 4 pillars a
 flow_uitleg: Why this flow & participation score? Is there follow-through or absorption visible?
 
 NO apostrophes. JSON only:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
 
 
 
@@ -620,7 +663,15 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>BIAS CONFIDENCE</div>
                 <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,fontWeight:700,color:acc,marginBottom:8}}>{data?.confidence}%</div>
                 <Bar value={data?.confidence||0} color={acc}/>
-                <div style={{fontSize:10,color:"#4b5563",marginTop:6}}>{data?.confidence>=80?"Sterk signaal":data?.confidence>=65?"Goed signaal":data?.confidence>=50?"Matig signaal":"Zwak / twijfelachtig"}</div>
+                {(()=>{
+                  const c = data?.confidence||0;
+                  const [label,pos,col] = c>=80?["Zeer sterke bias","Volle positie","#22c55e"]:c>=70?["Sterke bias","75% positie","#84cc16"]:c>=60?["Redelijke bias","50% positie","#f59e0b"]:c>=50?["Lichte bias","25% positie","#f97316"]:["Niet traden","0% positie","#ef4444"];
+                  return <div style={{marginTop:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:10,color:col,fontWeight:600}}>{label}</span>
+                    <span style={{fontSize:9,color:"#4b5563"}}>{pos}</span>
+                  </div>;
+                })()}
+                {data?.confidence_label&&<div style={{fontSize:10,color:"#6b7280",marginTop:6,lineHeight:1.5,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:6}}>{data.confidence_label}</div>}
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>HOLD CONFIDENCE</div>
@@ -751,6 +802,16 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               <div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:8}}>UITGEBREIDE ANALYSE</div>
               <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8}}>{data?.analyse_uitgebreid||data?.deep_summary||data?.mini_summary||"—"}</div>
             </div>
+
+            {/* AI Opinie */}
+            {data?.ai_opinie&&(
+              <div style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                  <span>🧠</span> AI OPINIE
+                </div>
+                <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.75,fontStyle:"italic"}}>{data.ai_opinie}</div>
+              </div>
+            )}
 
             {/* Bias switch history */}
             {data?.bias_switch_history?.length>0&&(
@@ -947,11 +1008,15 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             );
           })()}
           <div style={{marginBottom:8,background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.12)",borderRadius:6,padding:"9px 11px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5}}>
-              <span style={{fontSize:10,color:"#6366f1"}}>✦</span>
-              <span style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",fontWeight:600}}>AI ANALYSE</span>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
+              <div style={{display:"flex",alignItems:"center",gap:5}}>
+                <span style={{fontSize:10,color:"#6366f1"}}>✦</span>
+                <span style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",fontWeight:600}}>AI ANALYSE</span>
+              </div>
+              {data.confidence_label&&<span style={{fontSize:9,color:"#6366f1",opacity:0.7}}>{data.confidence_label}</span>}
             </div>
-            <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{data.mini_summary||"—"}</div>
+            <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6,marginBottom:data.ai_opinie?6:0}}>{data.mini_summary||"—"}</div>
+            {data.ai_opinie&&<div style={{fontSize:10,color:"#4b5563",lineHeight:1.55,borderTop:"1px solid rgba(99,102,241,0.08)",paddingTop:5,fontStyle:"italic"}}>{data.ai_opinie}</div>}
           </div>
           <div style={{background:`${acc}09`,border:`1px solid ${acc}18`,borderRadius:5,padding:"7px 10px",marginBottom:6}}><div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:1}}>HOLD ADVIES</div><div style={{fontSize:11,color:"#d1d5db"}}>{data.hold_advies}</div></div>
           <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:5,padding:"7px 10px"}}><div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:1}}>FAIL CONDITION</div><div style={{fontSize:11,color:"#6b7280"}}>{data.fail_condition}</div></div>
@@ -1619,7 +1684,7 @@ VRAAG: Is er reden om de bias te veranderen?
 - Zo NEE: retourneer exact dezelfde bias en confidence
 - Zo JA: retourneer nieuwe bias met uitleg in mini_summary
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
 
       } else {
         // ── FRESH MODE: geen marktvisie — normale analyse
@@ -1632,7 +1697,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 CONTEXT:
 ${macroCtx || "Geen Intel geladen."}
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
       }
 
       const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
@@ -1807,7 +1872,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 
       const newsLines = macroCtx || "Geen Intel geladen — baseer op cross-asset data.";
 
-      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `DATUM: ${dateStr}
