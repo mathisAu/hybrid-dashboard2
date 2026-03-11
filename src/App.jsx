@@ -2113,8 +2113,11 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           --text2: #6b7280;
           --text3: #374151;
           --acc: ${accent};
-          --sidebar-w: 64px;
+          --sidebar-w: 260px;
         }
+        .nav-item{transition:all 0.15s ease;border-radius:8px;}
+        .nav-item:hover{background:rgba(255,255,255,0.04)!important;color:#9ca3af!important;}
+        .nav-item.active{background:${accent}15!important;color:${accent}!important;}
         *{box-sizing:border-box;margin:0;padding:0}
         body{background:var(--bg)}
         ::-webkit-scrollbar{width:3px;background:transparent}
@@ -2138,59 +2141,108 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       `}</style>
 
       {/* ── SIDEBAR ── */}
-      <div style={{width:64,minHeight:"100vh",background:"#0a0a0d",borderRight:"1px solid rgba(255,255,255,0.05)",display:"flex",flexDirection:"column",alignItems:"center",paddingTop:20,gap:6,position:"fixed",left:0,top:0,zIndex:100}}>
-        {/* HybridTrader Logo */}
-        <div style={{marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <svg width="36" height="36" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Arrow up-right */}
-            <path d="M55 25 L90 25 L90 60" stroke={accent} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            <path d="M30 90 L88 27" stroke={accent} strokeWidth="8" strokeLinecap="round" fill="none"/>
-            {/* H/T letterform */}
-            <path d="M25 45 L25 80 M25 62 L50 62 M50 45 L50 80" stroke={accent} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.7"/>
-            {/* Speed lines */}
-            <path d="M20 88 L55 75" stroke={accent} strokeWidth="4" strokeLinecap="round" opacity="0.4"/>
-            <path d="M15 98 L60 82" stroke={accent} strokeWidth="3" strokeLinecap="round" opacity="0.25"/>
-          </svg>
+      <div style={{width:260,minHeight:"100vh",background:"#08080b",borderRight:"1px solid rgba(255,255,255,0.05)",display:"flex",flexDirection:"column",position:"fixed",left:0,top:0,zIndex:100,flexShrink:0}}>
+        {/* Logo area */}
+        <div style={{padding:"24px 20px 20px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <img src="/logo.png" alt="HybridTrader" style={{width:32,height:32,objectFit:"contain"}}/>
+            <div>
+              <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#e2e4e9",lineHeight:1.1}}>Hybrid<span style={{color:accent}}>Trader</span></div>
+              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1}}>DASHBOARD v6.3</div>
+            </div>
+          </div>
         </div>
-        {/* Nav items */}
-        {[
-          {id:"analyse", icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>, label:"Analyse"},
-          {id:"intel",   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>, label:"Intel"},
-          {id:"calendar",icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>, label:"Kalender"},
-        ].map(({id,icon,label})=>(
-          <button key={id} onClick={()=>setPage(id)} title={label} style={{
-            width:44,height:44,borderRadius:10,border:"none",
-            background:page===id?`${accent}22`:"transparent",
-            color:page===id?accent:"#374151",
-            display:"flex",alignItems:"center",justifyContent:"center",
-            position:"relative",
-          }}>
-            {icon}
-            {page===id&&<div style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:2,height:20,background:accent,borderRadius:"0 2px 2px 0"}}/>}
-          </button>
-        ))}
-        {/* Bottom: live indicator */}
-        <div style={{marginTop:"auto",marginBottom:20,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-          <div style={{width:6,height:6,borderRadius:"50%",background:loading?accent:aResult?"#22c55e":"#1f2937",animation:loading?"blink 1s infinite":"none",boxShadow:loading?`0 0 8px ${accent}`:aResult?"0 0 6px #22c55e":"none"}}/>
-          {lastRefresh&&<div style={{fontSize:7,color:"#2d3748",textAlign:"center",maxWidth:48,lineHeight:1.3}}>{timeSinceRefresh}</div>}
+
+        {/* Live price strip */}
+        <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",flexWrap:"wrap",gap:6}}>
+          {assets.slice(0,5).map(a => {
+            const p = livePrices[a.id];
+            return (
+              <div key={a.id} style={{display:"flex",alignItems:"center",gap:4}}>
+                <AssetLogo id={a.id} size={14}/>
+                <span style={{fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:p ? (p.direction==="up"?"#22c55e":"#ef4444") : "#374151",fontWeight:600}}>
+                  {p ? p.price : "—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Navigation */}
+        <div style={{padding:"16px 12px",flex:1}}>
+          <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",padding:"0 8px",marginBottom:8}}>NAVIGATIE</div>
+          {[
+            {id:"analyse", label:"Analyse", sub:"Bias & Confidence",
+              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>},
+            {id:"intel",   label:"Intel",   sub:"Nieuws & Macro",
+              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            {id:"calendar",label:"Kalender",sub:"Links & Tools",
+              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+          ].map(({id,label,sub,icon})=>(
+            <button key={id} onClick={()=>setPage(id)}
+              className={`nav-item${page===id?" active":""}`}
+              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left"}}>
+              <div style={{width:30,height:30,borderRadius:8,background:page===id?`${accent}20`:"rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                {icon}
+              </div>
+              <div>
+                <div style={{fontSize:12,fontWeight:600,letterSpacing:"0.01em"}}>{label}</div>
+                <div style={{fontSize:10,color:page===id?`${accent}88`:"#2d3748",marginTop:1}}>{sub}</div>
+              </div>
+              {page===id&&<div style={{marginLeft:"auto",width:3,height:20,background:accent,borderRadius:2,flexShrink:0}}/>}
+            </button>
+          ))}
+
+          {/* Divider */}
+          <div style={{height:1,background:"rgba(255,255,255,0.04)",margin:"12px 8px"}}/>
+
+          {/* Session status card */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 12px",margin:"0 0 8px"}}>
+            <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>SESSIE STATUS</div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+              <div style={{width:6,height:6,borderRadius:"50%",background:loading?accent:aResult?"#22c55e":"#1f2937",animation:loading?"blink 1s infinite":"none",boxShadow:loading?`0 0 6px ${accent}`:aResult?"0 0 5px #22c55e":"none",flexShrink:0}}/>
+              <span style={{fontSize:11,fontWeight:600,color:loading?accent:aResult?"#22c55e":"#374151"}}>
+                {loading?"RUNNING...":aResult?"LIVE":"STANDBY"}
+              </span>
+            </div>
+            {lastRefresh&&<div style={{fontSize:10,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>Update: {timeSinceRefresh}</div>}
+            {presession&&<div style={{fontSize:10,color:"#6b7280",marginTop:3}}>{presession.session} · Mood: <span style={{color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#9ca3af"}}>{presession.mood}</span></div>}
+          </div>
+
+          {/* Asset quick-view */}
+          {aResult&&<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 12px"}}>
+            <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>BIAS OVERZICHT</div>
+            {assets.map(a => {
+              const d = aResult.assets?.[a.id];
+              if(!d) return null;
+              const bColor = d.bias?.toLowerCase().includes("bull")?"#22c55e":d.bias?.toLowerCase().includes("bear")?"#ef4444":accent;
+              return (
+                <div key={a.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                  <AssetLogo id={a.id} size={14}/>
+                  <span style={{fontSize:10,color:"#6b7280",flex:1,fontFamily:"'JetBrains Mono',monospace"}}>{a.label}</span>
+                  <span style={{fontSize:9,fontWeight:700,color:bColor,letterSpacing:"0.06em"}}>{d.bias?.toUpperCase().slice(0,4)||"—"}</span>
+                  <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{d.confidence||0}%</span>
+                </div>
+              );
+            })}
+          </div>}
+        </div>
+
+        {/* Bottom */}
+        <div style={{padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+          <div style={{fontSize:9,color:"#1f2023",letterSpacing:"0.1em",textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>GEEN FINANCIEEL ADVIES</div>
         </div>
       </div>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:64,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+      <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh"}}>
 
       {/* ── HEADER ── */}
       <div style={{borderBottom:"1px solid rgba(255,255,255,0.05)",padding:"0 28px",height:56,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"rgba(6,6,8,0.95)",backdropFilter:"blur(12px)",zIndex:50}}>
         {/* Left: title + status */}
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <svg width="28" height="28" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M55 25 L90 25 L90 60" stroke={accent} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <path d="M30 90 L88 27" stroke={accent} strokeWidth="9" strokeLinecap="round" fill="none"/>
-              <path d="M25 45 L25 80 M25 62 L50 62 M50 45 L50 80" stroke={accent} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.6"/>
-              <path d="M20 88 L55 75" stroke={accent} strokeWidth="5" strokeLinecap="round" opacity="0.35"/>
-              <path d="M15 98 L60 82" stroke={accent} strokeWidth="3.5" strokeLinecap="round" opacity="0.2"/>
-            </svg>
+            <img src="/logo.png" alt="HybridTrader" style={{width:28,height:28,objectFit:"contain"}}/>
             <div>
               <div style={{fontSize:16,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1,color:"#e2e4e9"}}>
                 Hybrid<span style={{color:accent}}>Trader</span>
@@ -2250,7 +2302,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
-        <div style={{position:"fixed",inset:0,marginLeft:64,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"fixed",inset:0,marginLeft:260,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"#0d0d10",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:"32px 40px",minWidth:340,maxWidth:420}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -2624,10 +2676,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         />
       )}
 
-      <div style={{padding:"10px 24px",borderTop:"1px solid rgba(255,255,255,0.03)",display:"flex",justifyContent:"space-between"}}>
-        <span style={{fontSize:9,color:"#111315",letterSpacing:"0.1em"}}>HYBRID DASHBOARD — GEEN FINANCIEEL ADVIES</span>
-        <span style={{fontSize:9,color:"#111315",fontFamily:"'JetBrains Mono',monospace"}}>POWERED BY ANTHROPIC + WEB SEARCH</span>
-      </div>
+
       </div>
     </div>
   );
