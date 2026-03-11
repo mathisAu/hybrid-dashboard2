@@ -643,7 +643,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   return (
     <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#080a0d",minHeight:"100vh",width:"100%",fontFamily:"'Syne',system-ui,sans-serif"}}>
+      <div style={{background:"#080a0d",minHeight:"100vh",width:"100%",fontFamily:"'Inter',system-ui,sans-serif"}}>
 
         {/* Top color line */}
         <div style={{height:2,background:`linear-gradient(90deg,transparent 0%,${bc.border} 30%,${bc.border} 70%,transparent 100%)`}}/>
@@ -1258,7 +1258,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             <div style={{fontSize:11,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
               {dateStr.toUpperCase()} · {timeStr} AMS
             </div>
-            <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.03em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
+            <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
               HybridTrader<br/><span style={{color:acc}}>Dashboard</span>
             </h1>
             <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
@@ -2377,9 +2377,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
 
   return (
-    <div style={{minHeight:"100vh",background:"#060608",fontFamily:"'Syne',system-ui,sans-serif",color:"#e2e4e9",display:"flex"}}>
+    <div style={{minHeight:"100vh",background:"#060608",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",display:"flex"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
           --bg: #060608;
           --bg2: #0d0d10;
