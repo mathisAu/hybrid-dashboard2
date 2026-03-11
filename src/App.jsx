@@ -1234,7 +1234,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             {dateStr.toUpperCase()} · {timeStr} AMS
           </div>
           <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1.1,color:"var(--t1)",marginBottom:8}}>
-            AI Market<br/><span style={{color:acc}}>Intelligence</span>
+            HybridTrading<br/><span style={{color:acc}}>Dashboard</span>
           </h1>
           {presession ? (
             <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
