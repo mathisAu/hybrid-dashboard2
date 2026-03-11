@@ -21,12 +21,12 @@ const TWELVE_MAP = {
   USDCHF:"USD/CHF", USOIL:"WTI",   SPX:"SPX",       DXY:"DXY", VIX:"VIX", US10Y:"TNX",
 };
 
-async function fetchTwelvePrice(id, apiKey) {
+async function fetchTwelvePrice(id) {
   const sym = TWELVE_MAP[id] || id;
   try {
     const [pr, qr] = await Promise.all([
-      fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(6000)}),
-      fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(sym)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(6000)}),
+      fetch(`/api/twelvedata?symbol=${encodeURIComponent(sym)}&endpoint=price`, {signal:AbortSignal.timeout(6000)}),
+      fetch(`/api/twelvedata?symbol=${encodeURIComponent(sym)}&endpoint=quote`, {signal:AbortSignal.timeout(6000)}),
     ]);
     const pd = await pr.json();
     const qd = await qr.json();
@@ -40,12 +40,12 @@ async function fetchTwelvePrice(id, apiKey) {
   } catch(_) { return null; }
 }
 
-async function fetchTwelveBatch(ids, apiKey) {
+async function fetchTwelveBatch(ids) {
   const syms = ids.map(id=>TWELVE_MAP[id]||id).join(",");
   try {
     const [pr, qr] = await Promise.all([
-      fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
-      fetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(syms)}&apikey=${apiKey}`, {signal:AbortSignal.timeout(8000)}),
+      fetch(`/api/twelvedata?symbol=${encodeURIComponent(syms)}&endpoint=price`, {signal:AbortSignal.timeout(8000)}),
+      fetch(`/api/twelvedata?symbol=${encodeURIComponent(syms)}&endpoint=quote`, {signal:AbortSignal.timeout(8000)}),
     ]);
     const pd = await pr.json(); const qd = await qr.json();
     if(!qd || qd.status==="error") return {};
@@ -73,10 +73,10 @@ const FINNHUB_MAP = {
   SPX:"OANDA:SPX500_USD",
 };
 
-async function fetchFinnhubPrice(id, apiKey) {
+async function fetchFinnhubPrice(id) {
   const sym = FINNHUB_MAP[id]; if(!sym) return null;
   try {
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${apiKey}`, {signal:AbortSignal.timeout(5000)});
+    const res = await fetch(`/api/finnhub?symbol=${encodeURIComponent(sym)}`, {signal:AbortSignal.timeout(5000)});
     const d = await res.json();
     if(!d.c || d.c===0) return null;
     const chg = d.dp ?? (d.pc ? ((d.c-d.pc)/d.pc*100) : 0);
@@ -87,15 +87,8 @@ async function fetchFinnhubPrice(id, apiKey) {
 
 // fetchLivePrice: Finnhub eerst, 12data als fallback
 const FOREX_IDS = ["EURUSD","GBPUSD","USDJPY","USDCHF"];
-async function fetchLivePrice(id, tdKey, fhKey, priceSource) {
-  if(priceSource==="finnhub" && fhKey) {
-    const p = await fetchFinnhubPrice(id, fhKey); if(p) return p;
-  }
-  if(priceSource==="twelvedata" && tdKey) {
-    const p = await fetchTwelvePrice(id, tdKey); if(p) return p;
-  }
-  if(fhKey) { const p = await fetchFinnhubPrice(id, fhKey); if(p) return p; }
-  if(tdKey) { const p = await fetchTwelvePrice(id, tdKey); if(p) return p; }
+async function fetchLivePrice(id) {
+  const p = await fetchFinnhubPrice(id); if(p) return p;
   return null;
 }
 
@@ -465,8 +458,7 @@ function NewsImpactPopup({ news, apiKey, onClose }) {
     async function analyse() {
       const headers = {"Content-Type":"application/json"};
       if(apiKey?.trim()) {
-        headers["x-api-key"] = apiKey.trim();
-        headers["anthropic-version"] = "2023-06-01";
+
         headers["anthropic-dangerous-direct-browser-access"] = "true";
       }
       try {
@@ -1164,15 +1156,10 @@ export default function HybridDashboard() {
   const [calFilter,     setCalFilter]     = useState("all");
   const [calDayFilter,  setCalDayFilter]  = useState("all");
   const [accent,        setAccent]        = useState(DEFAULT_ACCENT);
-  const [apiKey,        setApiKey]        = useState(() => { try { return localStorage.getItem("hd_apikey")||""; } catch(_){ return ""; }});
-  const [showKey,       setShowKey]       = useState(false);
-  const [tdKey,         setTdKey]         = useState(() => { try { return localStorage.getItem("hd_tdkey")||""; } catch(_){ return ""; }});
-  const [fhKey,         setFhKey]         = useState(() => { try { return localStorage.getItem("hd_fhkey")||""; } catch(_){ return ""; }});
-  const [priceSource,   setPriceSource]   = useState(() => { try { return localStorage.getItem("hd_psource")||"twelvedata"; } catch(_){ return "twelvedata"; }});
-  const [showTdKey,     setShowTdKey]     = useState(false);
+  const apiKey = ""; // API key now managed server-side
+  const [priceSource,   setPriceSource]   = useState("finnhub");
   const [livePrices,    setLivePrices]    = useState({});
 
-  const [showKeyVal,    setShowKeyVal]    = useState(false);
   const [showAccent,    setShowAccent]    = useState(false);
   const [assets,        setAssets]        = useState(BASE_ASSETS);
   const [showAddPair,   setShowAddPair]   = useState(false);
@@ -1213,34 +1200,34 @@ export default function HybridDashboard() {
     const allIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
 
     async function fetchAll() {
-      if(priceSource==="twelvedata" && tdKey) {
+      if(true) {
         // Batch call voor alle assets tegelijk
         try {
-          const batch = await fetchTwelveBatch(allIds, tdKey);
+          const batch = await fetchTwelveBatch(allIds);
           if(Object.keys(batch).length > 0) {
             setLivePrices(prev=>({...prev,...batch}));
             return;
           }
         } catch(_) {}
       }
-      if(priceSource==="finnhub" && fhKey) {
+      if(true) {
         // Individuele calls voor Finnhub (geen batch API)
         allIds.forEach(id => {
-          fetchFinnhubPrice(id, fhKey)
+          fetchFinnhubPrice(id)
             .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
             .catch(()=>{});
         });
         return;
       }
       // Fallback: probeer andere bron
-      if(tdKey) {
+      if(true) {
         try {
-          const batch = await fetchTwelveBatch(allIds, tdKey);
+          const batch = await fetchTwelveBatch(allIds);
           if(Object.keys(batch).length > 0) setLivePrices(prev=>({...prev,...batch}));
         } catch(_) {}
-      } else if(fhKey) {
+      } else if(true) {
         allIds.forEach(id => {
-          fetchFinnhubPrice(id, fhKey)
+          fetchFinnhubPrice(id)
             .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
             .catch(()=>{});
         });
@@ -1250,13 +1237,13 @@ export default function HybridDashboard() {
     fetchAll();
     const t = setInterval(fetchAll, 30000);
     return()=>clearInterval(t);
-  },[assets, tdKey, fhKey, priceSource]);
+  },[assets]);
 
   // ── Breaking News via Finnhub (gratis, 0 tokens, geen CORS) ─────────────────
   const MARKET_KEYWORDS = ["fed","rate","inflation","gold","dollar","dxy","yield","nasdaq","dow","gdp","cpi","fomc","ecb","boe","oil","recession","tariff","powell","lagarde","treasury","bond","forex","currency","payroll","pmi"];
 
   async function fetchBreakingNews() {
-    if(!fhKey?.trim()) return;
+
     // Geen breaking news fetch tijdens actieve API calls
     if(hybridStatus!=="idle"&&hybridStatus!=="done") return;
     if(aStatus==="loading"||iStatus==="loading") return;
@@ -1264,8 +1251,7 @@ export default function HybridDashboard() {
     try {
       const now = new Date();
       const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
-      const res = await fetch(`https://finnhub.io/api/v1/news?category=general&minId=0&token=${fhKey.trim()}`, {signal:AbortSignal.timeout(8000)});
-      if(!res.ok) { setBnLoading(false); return; }
+      const res = await fetch('/api/finnhub?type=news&category=general', {signal:AbortSignal.timeout(5000)}) return; }
       const items = await res.json();
       if(!Array.isArray(items)) { setBnLoading(false); return; }
 
@@ -1308,11 +1294,11 @@ export default function HybridDashboard() {
 
   // Nieuws laden zodra Finnhub key beschikbaar, elke 10 min — 0 tokens
   useEffect(() => {
-    if(!fhKey?.trim()) return;
+
     fetchBreakingNews();
     const t = setInterval(fetchBreakingNews, 10*60*1000);
     return () => clearInterval(t);
-  }, [fhKey]);
+  }, []);
 
   // ── Browser Notifications ────────────────────────────────────────────────────
   function requestNotifPermission() {
@@ -1454,22 +1440,23 @@ export default function HybridDashboard() {
     }
   }
 
-  async function callApi(sys, usr, setResult, setError, setStatus) {
+  async function callApi(sys, usr, setResult, setError, setStatus, cacheKey=null) {
     setStatus("loading");
     const headers = {"Content-Type":"application/json"};
-    if(apiKey.trim()) { headers["x-api-key"] = apiKey.trim(); headers["anthropic-version"] = "2023-06-01"; headers["anthropic-dangerous-direct-browser-access"] = "true"; }
     const maxRetries = 3;
     for(let attempt=1; attempt<=maxRetries; attempt++) {
       try {
+        const bodyObj = {
+          model:"claude-sonnet-4-20250514",
+          max_tokens: 4000,
+          system: sys,
+          tools: [{ type:"web_search_20250305", name:"web_search" }],
+          messages:[{role:"user",content:usr}]
+        };
+        if(cacheKey) bodyObj._cacheKey = cacheKey;
         const res = await fetch("/api/anthropic",{
           method:"POST", headers,
-          body:JSON.stringify({
-            model:"claude-sonnet-4-20250514",
-            max_tokens: 4000,
-            system: sys,
-            tools: [{ type:"web_search_20250305", name:"web_search" }],
-            messages:[{role:"user",content:usr}]
-          })
+          body:JSON.stringify(bodyObj)
         });
         if(res.status===429){
           if(attempt<maxRetries){
@@ -1551,7 +1538,7 @@ Recent breaking news (laatste uur):
 ${recentNews}
 Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
     try {
-      const hdrs = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01"}:{})};
+      const hdrs = {"Content-Type":"application/json"};
       const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
@@ -1569,7 +1556,7 @@ Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. A
     setDeepRefreshing(true);
     try {
       const now = new Date();
-      const hdrs2 = {"Content-Type":"application/json",...(apiKey.trim()?{"x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01"}:{})};
+      const hdrs2 = {"Content-Type":"application/json"};
       const p = livePrices[asset.id];
       const prev = prevBias[asset.id];
 
@@ -1723,21 +1710,21 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
     const now = new Date();
     const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
     const headers = {"Content-Type":"application/json"};
-    if(apiKey.trim()){ headers["x-api-key"]=apiKey.trim(); headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
+    
 
     // Verse prijzen ophalen — alleen Finnhub of 12data
     const freshPrices = {...livePrices};
     const allFetchIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
 
-    if(priceSource==="twelvedata" && tdKey) {
+    if(true) {
       try {
-        const batch = await fetchTwelveBatch(allFetchIds, tdKey);
+        const batch = await fetchTwelveBatch(allFetchIds);
         Object.entries(batch).forEach(([id,p])=>{ freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); });
       } catch(_) {}
-    } else if(priceSource==="finnhub" && fhKey) {
+    } else if(true) {
       await Promise.allSettled(allFetchIds.map(async id => {
         try {
-          const p = await fetchFinnhubPrice(id, fhKey);
+          const p = await fetchFinnhubPrice(id);
           if(p) { freshPrices[id]=p; setLivePrices(prev=>({...prev,[id]:p})); }
         } catch(_) {}
       }));
@@ -1954,7 +1941,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           return [...items, ...existing].sort((a,b)=>b.time-a.time).slice(0, 30);
         });
       }
-    }, setIError, setIStatus);
+    }, setIError, setIStatus, `intel:${new Date().toISOString().slice(0,13)}`);
   };
 
   // ── HYBRID: Intel (nieuws) → Analyse (bias) in één klik ─────────────────────
@@ -2001,7 +1988,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setHybridStatus("visie");
     if(intelResult) {
       try {
-        const headers = {"Content-Type":"application/json","x-api-key":apiKey.trim(),"anthropic-version":"2023-06-01"};
+        const headers = {"Content-Type":"application/json"};
         const dxy = livePrices["DXY"]; const us10y = livePrices["US10Y"]; const vix = livePrices["VIX"];
         const crossAsset = [
           dxy   ? `DXY:${dxy.price} ${dxy.change}` : "DXY:?",
@@ -2114,89 +2101,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         </div>
 
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {/* API Key */}
-          <div style={{position:"relative"}}>
-            <button onClick={()=>setShowKey(s=>!s)} style={{background:apiKey?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",border:`1px solid ${apiKey?"#22c55e44":"#ef444444"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
-              <span style={{fontSize:10}}>{apiKey?"🔑":"⚠️"}</span>
-              <span style={{fontSize:9,color:apiKey?"#22c55e":"#ef4444",letterSpacing:"0.08em"}}>{apiKey?"API ACTIEF":"API KEY"}</span>
-            </button>
-            {showKey&&(
-              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111214",border:"1px solid #1f2023",borderRadius:8,padding:"14px",zIndex:100,minWidth:300}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:6}}>ANTHROPIC API KEY</div>
-                <div style={{fontSize:9,color:"#4b5563",marginBottom:8,lineHeight:1.6}}>Haal je key op via <span style={{color:"#6366f1"}}>console.anthropic.com</span> → API Keys.</div>
-                <div style={{position:"relative",marginBottom:8}}>
-                  <input
-                    type={showKeyVal?"text":"password"}
-                    value={apiKey}
-                    onChange={e=>{ setApiKey(e.target.value); try{localStorage.setItem("hd_apikey",e.target.value);}catch(_){} }}
-                    placeholder="sk-ant-api03-..."
-                    style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 36px 7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none"}}
-                  />
-                  <button onClick={()=>setShowKeyVal(v=>!v)} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#4b5563",fontSize:13}}>
-                    {showKeyVal?"🙈":"👁️"}
-                  </button>
-                </div>
-                {apiKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Key opgeslagen</div>}
-                <button onClick={()=>setShowKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
-              </div>
-            )}
-          </div>
+
           {/* Prijs bron selector */}
-          <div style={{position:"relative"}}>
-            <button onClick={()=>setShowTdKey(s=>!s)} style={{background:(tdKey||fhKey)?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.03)",border:`1px solid ${(tdKey||fhKey)?"#22c55e44":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
-              <span style={{fontSize:10}}>📈</span>
-              <span style={{fontSize:9,color:(tdKey||fhKey)?"#22c55e":"#4b5563",letterSpacing:"0.08em"}}>
-                {(tdKey||fhKey) ? priceSource.toUpperCase().replace("TWELVEDATA","12DATA") : "PRIJS DATA"}
-              </span>
-            </button>
-            {showTdKey&&(
-              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111214",border:"1px solid #1f2023",borderRadius:8,padding:"14px",zIndex:100,minWidth:300}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:10}}>PRIJS DATA BRON</div>
-
-                {/* Source selector */}
-                <div style={{display:"flex",gap:6,marginBottom:12}}>
-                  {["twelvedata","finnhub","yahoo"].map(src=>(
-                    <button key={src} onClick={()=>{ setPriceSource(src); try{localStorage.setItem("hd_psource",src);}catch(_){} }}
-                      style={{flex:1,padding:"5px 0",fontSize:9,letterSpacing:"0.08em",borderRadius:5,border:`1px solid ${priceSource===src?"#22c55e44":"#1f2023"}`,background:priceSource===src?"rgba(34,197,94,0.1)":"transparent",color:priceSource===src?"#22c55e":"#4b5563",cursor:"pointer"}}>
-                      {src==="twelvedata"?"12DATA":src.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Twelve Data key */}
-                {priceSource==="twelvedata"&&(
-                  <>
-                    <div style={{fontSize:9,color:"#4b5563",marginBottom:6,lineHeight:1.6}}>Gratis key via <span style={{color:"#6366f1"}}>twelvedata.com</span> — 800 requests/dag.</div>
-                    <input type="password" value={tdKey}
-                      onChange={e=>{ setTdKey(e.target.value); try{localStorage.setItem("hd_tdkey",e.target.value);}catch(_){} }}
-                      placeholder="your_twelve_data_key"
-                      style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:8}}/>
-                    {tdKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Twelve Data actief</div>}
-                  </>
-                )}
-
-                {/* Finnhub key */}
-                {priceSource==="finnhub"&&(
-                  <>
-                    <div style={{fontSize:9,color:"#4b5563",marginBottom:6,lineHeight:1.6}}>Gratis key via <span style={{color:"#6366f1"}}>finnhub.io</span> — 60 requests/minuut, real-time.</div>
-                    <input type="password" value={fhKey}
-                      onChange={e=>{ setFhKey(e.target.value); try{localStorage.setItem("hd_fhkey",e.target.value);}catch(_){} }}
-                      placeholder="your_finnhub_key"
-                      style={{width:"100%",background:"#0d0e10",border:"1px solid #1f2023",borderRadius:5,color:"#e5e7eb",padding:"7px 10px",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",marginBottom:8}}/>
-                    {fhKey&&<div style={{fontSize:9,color:"#22c55e",marginBottom:8}}>✓ Finnhub actief — real-time data</div>}
-                  </>
-                )}
-
-                {/* Yahoo */}
-                {priceSource==="yahoo"&&(
-                  <div style={{fontSize:9,color:"#4b5563",lineHeight:1.6,marginBottom:8}}>Yahoo Finance — gratis, geen key nodig. Futures 15 min vertraging, forex real-time.</div>
-                )}
-
-                <button onClick={()=>setShowTdKey(false)} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center",padding:"7px"}}>SLUITEN</button>
-              </div>
-            )}
+          <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(34,197,94,0.06)",border:"1px solid #22c55e22",borderRadius:6,padding:"6px 10px"}}>
+            <span style={{fontSize:10}}>📡</span>
+            <span style={{fontSize:9,color:"#22c55e",letterSpacing:"0.08em"}}>LIVE DATA</span>
           </div>
-          {/* Auto-refresh */}
+          {/* Auto-refresh */}}
           <div style={{position:"relative"}}>
             <button onClick={()=>setAutoRefresh(v=>!v)} style={{background:autoRefresh?"rgba(99,102,241,0.12)":"rgba(255,255,255,0.03)",border:`1px solid ${autoRefresh?"#6366f1":"#1f2023"}`,borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
               <span style={{fontSize:10,animation:autoRefresh?"spin 2s linear infinite":"none",display:"inline-block"}}>⟳</span>
@@ -2483,7 +2394,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               <div style={{maxHeight:340,overflowY:"auto",padding:"10px 16px",display:"flex",flexDirection:"column",gap:8}}>
                 {breakingNews.length===0&&!bnLoading&&(
                   <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"20px 0"}}>
-                    {fhKey?.trim() ? "Klik '↺ nu laden' om nieuws op te halen" : "Voer Finnhub API key in voor live nieuws"}
+                    "Klik '↺ nu laden' om nieuws op te halen"
                   </div>
                 )}
                 {[...breakingNews].sort((a,b)=>b.time-a.time).map((n,i)=>(
