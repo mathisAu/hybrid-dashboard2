@@ -58,23 +58,23 @@ const DEFAULT_ACCENT = "#089981";
 const AssetLogo = ({ id, size=24 }) => {
   const s = size;
   const defs = {
-    XAUUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#F5C518"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#7A4F00">XAU</text></svg>,
-    US30:   <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1652F0"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DJI</text></svg>,
-    US100:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#7B2FBE"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">NQ</text></svg>,
-    EURUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1A3A8F"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="16" fontWeight="700" fill="#FFD700">€</text></svg>,
-    GBPUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#C8102E"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#fff">£</text></svg>,
-    BTCUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#F7931A"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">₿</text></svg>,
-    USDJPY: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#BC002D"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">¥</text></svg>,
-    USDCHF: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#D52B1E"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#fff">CHF</text></svg>,
-    USOIL:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#2C2C2C"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">OIL</text></svg>,
-    SPX:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1652F0"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">SPX</text></svg>,
-    DXY:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#374151"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DXY</text></svg>,
+    XAUUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#F5C518"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#7A4F00">XAU</text></svg>,
+    US30:   <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#1652F0"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DJI</text></svg>,
+    US100:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#7B2FBE"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">NQ</text></svg>,
+    EURUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#1A3A8F"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="16" fontWeight="700" fill="#FFD700">€</text></svg>,
+    GBPUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#C8102E"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#fff">£</text></svg>,
+    BTCUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#F7931A"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">₿</text></svg>,
+    USDJPY: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#BC002D"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">¥</text></svg>,
+    USDCHF: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#D52B1E"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#fff">CHF</text></svg>,
+    USOIL:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#2C2C2C"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">OIL</text></svg>,
+    SPX:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#1652F0"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">SPX</text></svg>,
+    DXY:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#374151"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DXY</text></svg>,
   };
   if(defs[id]) return defs[id];
   const colors = ["#089981","#1652F0","#7B2FBE","#F59E0B","#EF4444","#06B6D4"];
   const bg = colors[id.charCodeAt(0) % colors.length];
   const abbr = id.replace(/USD|EUR|GBP/,"").slice(0,3);
-  return <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill={bg}/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize={abbr.length>3?7:9} fontWeight="700" fill="#fff">{abbr}</text></svg>;
+  return <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill={bg}/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize={abbr.length>3?7:9} fontWeight="700" fill="#fff">{abbr}</text></svg>;
 };
 
 const ASSET_META = {
@@ -1268,10 +1268,11 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               {dateStr.toUpperCase()} · {timeStr} AMS
             </div>
             <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.03em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
-              AI Market<br/><span style={{color:acc}}>Intelligence</span>
+              HybridTrader<br/><span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
-              Institutioneel macro-analyse systeem. Bias geeft richting — CVD &amp; aggressor geven entry.
+            <p style={{fontSize:12,color:"#6b7280",lineHeight:1.6,maxWidth:400,marginTop:4}}>
+              Welkom terug — jouw persoonlijk institutioneel macro-analyse systeem.<br/>
+              <span style={{color:"#4b5563"}}>Bias geeft richting · CVD &amp; aggressor geven entry · London Session 07:00–14:00</span>
             </p>
             {presession&&(
               <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
@@ -1323,49 +1324,6 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         </div>
       )}
 
-      {/* Asset cards mini grid */}
-      <div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em"}}>ASSET OVERZICHT</div>
-          <button onClick={()=>onNavigate("analyse")}
-            className="btn-primary"
-            style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 14px",color:"#9ca3af",fontSize:10,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,letterSpacing:"0.06em"}}>
-            VOLLEDIGE ANALYSE
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
-          {assets.map(a=>{
-            const d = aResult?.assets?.[a.id];
-            const p = livePrices[a.id];
-            const bias = d ? resolveBias(d.bias,d.confidence) : null;
-            const bc = bias ? (biasColors[bias]||biasColors.Neutraal) : null;
-            const meta = ASSET_META[a.id]||{};
-            const priceUp = p?.direction==="up";
-            return (
-              <div key={a.id} onClick={()=>onNavigate("analyse")}
-                className="card-hover"
-                style={{background:"linear-gradient(160deg,#10111a,#0c0d13)",border:`1px solid ${bc?bc.border+"44":"rgba(255,255,255,0.06)"}`,borderRadius:8,padding:"14px 16px",cursor:"pointer",position:"relative",overflow:"hidden"}}>
-                {bc&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${bc.border},transparent)`}}/>}
-                <div style={{marginBottom:10}}>
-                  <AssetLogo id={a.id} size={32}/>
-                </div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:"#f1f2f4",marginBottom:3}}>{a.label}</div>
-                {p&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:600,color:priceUp?"#22c55e":"#ef4444",marginBottom:6}}>{priceUp?"↑":"↓"}{p.change}</div>}
-                {!p&&<div style={{fontSize:10,color:"#374151",marginBottom:6}}>—</div>}
-                {bias&&bc?(
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span style={{fontSize:9,fontWeight:700,color:bc.text,letterSpacing:"0.08em"}}>{bias.toUpperCase()}</span>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:acc}}>{d.confidence}%</span>
-                  </div>
-                ):(
-                  <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.06em"}}>GEEN ANALYSE</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Quick nav cards */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
@@ -2436,22 +2394,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             </div>
           </div>
         </div>
-
-        {/* Live price strip */}
-        <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",flexWrap:"wrap",gap:6}}>
-          {assets.slice(0,5).map(a => {
-            const p = livePrices[a.id];
-            return (
-              <div key={a.id} style={{display:"flex",alignItems:"center",gap:4}}>
-                <AssetLogo id={a.id} size={14}/>
-                <span style={{fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:p ? (p.direction==="up"?"#22c55e":"#ef4444") : "#374151",fontWeight:600}}>
-                  {p ? p.price : "—"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
         {/* Navigation */}
         <div style={{padding:"16px 12px",flex:1}}>
           <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",padding:"0 8px",marginBottom:8}}>NAVIGATIE</div>
