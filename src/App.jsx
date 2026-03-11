@@ -2139,9 +2139,18 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── SIDEBAR ── */}
       <div style={{width:64,minHeight:"100vh",background:"#0a0a0d",borderRight:"1px solid rgba(255,255,255,0.05)",display:"flex",flexDirection:"column",alignItems:"center",paddingTop:20,gap:6,position:"fixed",left:0,top:0,zIndex:100}}>
-        {/* Logo mark */}
-        <div style={{width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${accent},${accent}66)`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,boxShadow:`0 0 20px ${accent}44`}}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 17l4-8 4 4 4-6 4 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        {/* HybridTrader Logo */}
+        <div style={{marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <svg width="36" height="36" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Arrow up-right */}
+            <path d="M55 25 L90 25 L90 60" stroke={accent} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <path d="M30 90 L88 27" stroke={accent} strokeWidth="8" strokeLinecap="round" fill="none"/>
+            {/* H/T letterform */}
+            <path d="M25 45 L25 80 M25 62 L50 62 M50 45 L50 80" stroke={accent} strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.7"/>
+            {/* Speed lines */}
+            <path d="M20 88 L55 75" stroke={accent} strokeWidth="4" strokeLinecap="round" opacity="0.4"/>
+            <path d="M15 98 L60 82" stroke={accent} strokeWidth="3" strokeLinecap="round" opacity="0.25"/>
+          </svg>
         </div>
         {/* Nav items */}
         {[
@@ -2174,15 +2183,23 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       <div style={{borderBottom:"1px solid rgba(255,255,255,0.05)",padding:"0 28px",height:56,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"rgba(6,6,8,0.95)",backdropFilter:"blur(12px)",zIndex:50}}>
         {/* Left: title + status */}
         <div style={{display:"flex",alignItems:"center",gap:16}}>
-          <div>
-            <div style={{fontSize:16,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1}}>
-              <span style={{color:accent}}>HYBRID</span>
-              <span style={{color:"#e2e4e9"}}> DASHBOARD</span>
-            </div>
-            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>
-              {loading ? <span style={{color:accent,animation:"blink 1s infinite"}}>● RUNNING...</span>
-                : aResult ? <span style={{color:"#22c55e"}}>● LIVE {lastRefresh?"· "+timeSinceRefresh:""}</span>
-                : <span>● STANDBY</span>}
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <svg width="28" height="28" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M55 25 L90 25 L90 60" stroke={accent} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M30 90 L88 27" stroke={accent} strokeWidth="9" strokeLinecap="round" fill="none"/>
+              <path d="M25 45 L25 80 M25 62 L50 62 M50 45 L50 80" stroke={accent} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.6"/>
+              <path d="M20 88 L55 75" stroke={accent} strokeWidth="5" strokeLinecap="round" opacity="0.35"/>
+              <path d="M15 98 L60 82" stroke={accent} strokeWidth="3.5" strokeLinecap="round" opacity="0.2"/>
+            </svg>
+            <div>
+              <div style={{fontSize:16,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1,color:"#e2e4e9"}}>
+                Hybrid<span style={{color:accent}}>Trader</span>
+              </div>
+              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>
+                {loading ? <span style={{color:accent,animation:"blink 1s infinite"}}>● RUNNING...</span>
+                  : aResult ? <span style={{color:"#22c55e"}}>● LIVE {lastRefresh?"· "+timeSinceRefresh:""}</span>
+                  : <span>● STANDBY</span>}
+              </div>
             </div>
           </div>
         </div>
@@ -2612,7 +2629,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         <span style={{fontSize:9,color:"#111315",fontFamily:"'JetBrains Mono',monospace"}}>POWERED BY ANTHROPIC + WEB SEARCH</span>
       </div>
     </div>
-      </div>{/* end main content area */}
+      </div>
     </div>
   );
 }
