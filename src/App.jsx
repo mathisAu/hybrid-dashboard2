@@ -1435,7 +1435,32 @@ export default function HybridDashboard() {
     }
   },[aStatus,iStatus,psStatus]);
 
-  // Live prijzen — alleen Finnhub of 12data (geen CORS problemen)
+  // ── Auto-load gedeelde staat bij opstarten ──────────────────────────────────
+  useEffect(() => {
+    async function loadSharedState() {
+      try {
+        const res = await fetch("/api/state");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.aResult) return;
+        // Zet state — vriend ziet dezelfde analyse als jij
+        if (data.aResult)    setAResult(data.aResult);
+        if (data.iResult)    setIResult(data.iResult);
+        if (data.presession) setPresession(data.presession);
+        if (data.breakingNews?.length > 0) setBreakingNews(
+          data.breakingNews.map(n => ({...n, time: n.time ? new Date(n.time) : new Date()}))
+        );
+        if (data.rssItems?.length > 0) setRssItems(data.rssItems);
+        if (data.savedAt) setLastRefresh(new Date(data.savedAt));
+        console.log("✓ Gedeelde staat geladen van", data._savedAt || data.savedAt);
+      } catch(e) {
+        // Geen staat beschikbaar — geen probleem
+      }
+    }
+    loadSharedState();
+  }, []);
+
+    // Live prijzen — alleen Finnhub of 12data (geen CORS problemen)
   useEffect(()=>{
     const allIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
 
@@ -2281,7 +2306,46 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     await runPresession();
 
     setHybridStatus("done");
-    setLastRefresh(new Date());
+    const refreshTime = new Date();
+    setLastRefresh(refreshTime);
+
+    // ── Auto-save naar Redis zodat vriend dezelfde data ziet ──────────────────
+    try {
+      // We lezen de meest recente state via closures na de awaits
+      setTimeout(async () => {
+        // aResult/iResult/presession zijn op dit moment updated via state setters
+        // We kunnen ze niet direct lezen vanuit closure — gebruik een ref via callback
+        setAResult(currentAResult => {
+          setIResult(currentIResult => {
+            setPresession(currentPresession => {
+              setBreakingNews(currentBN => {
+                setRssItems(currentRss => {
+                  const snapshot = {
+                    aResult: currentAResult,
+                    iResult: currentIResult,
+                    presession: currentPresession,
+                    breakingNews: currentBN.slice(0,20),
+                    rssItems: currentRss.slice(0,10),
+                    savedAt: refreshTime.toISOString(),
+                  };
+                  fetch("/api/state", {
+                    method: "POST",
+                    headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify(snapshot),
+                  }).catch(() => {});
+                  return currentRss;
+                });
+                return currentBN;
+              });
+              return currentPresession;
+            });
+            return currentIResult;
+          });
+          return currentAResult;
+        });
+      }, 500);
+    } catch(_) {}
+
     // Herstart auto-refresh als het aan stond
     if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
     setTimeout(() => setHybridStatus("idle"), 4000);
