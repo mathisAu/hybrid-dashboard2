@@ -1251,7 +1251,7 @@ export default function HybridDashboard() {
     try {
       const now = new Date();
       const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
-      const res = await fetch('/api/finnhub?type=news&category=general', {signal:AbortSignal.timeout(5000)}) return; }
+      const res = await fetch('/api/finnhub?type=news&category=general', {signal:AbortSignal.timeout(5000)});
       const items = await res.json();
       if(!Array.isArray(items)) { setBnLoading(false); return; }
 
