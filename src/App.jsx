@@ -1819,7 +1819,6 @@ Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. A
       const psData = robustParse(text);
       if(!psData.analysed_at) psData.analysed_at = new Date().toISOString();
       setPresession(psData);
-      presessionRef.current = psData;
       setPsStatus("done");
     } catch(e){ console.error(e); setPsStatus("error"); }
   }
@@ -2191,7 +2190,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       }
     });
     setAResult(combined);
-    aResultRef.current = combined;
     setAStatus("done");
   };
 
@@ -2200,9 +2198,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setIError("");
     const labels = assets.map(a=>a.label);
     callApi(INTEL_SYSTEM, INTEL_USER_NOW(labels, livePrices), (result) => {
-      const sanitized = sanitizeIntelResult(result);
-      setIResult(sanitized);
-      iResultRef.current = sanitized;
+      setIResult(sanitizeIntelResult(result));
       if(result?.news_items?.length > 0) {
         const now = new Date();
         const items = result.news_items.map((n,idx) => {
@@ -2330,7 +2326,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         savedAt:    new Date().toISOString(),
       };
       if (!snapshot.aResult) { console.warn("⚠️ Save: aResult nog leeg"); return; }
-      console.log("💾 Opslaan naar Redis...", Object.keys(snapshot.aResult?.assets||{}).length, "assets");
+      console.log("💾 Opslaan naar Redis...");
       fetch("/api/state", {
         method:  "POST",
         headers: {"Content-Type":"application/json"},
@@ -2339,7 +2335,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .then(r => r.json())
         .then(r => console.log("✓ Opgeslagen in Redis:", r))
         .catch(e => console.error("✗ Redis save fout:", e));
-    }, 2000);
+    }, 1500);
 
     // Herstart auto-refresh als het aan stond
     if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
