@@ -610,7 +610,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
         {/* Header */}
         <div style={{padding:"18px 32px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,flexShrink:0}}>
           <div style={{display:"flex",alignItems:"center",gap:14}}>
-            <span style={{flexShrink:0}}><AssetLogo id={asset.id} size={36}/></span>
+            <span style={{flexShrink:0}}><AssetLogo id={asset.id} size={26}/></span>
             <div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:3,flexWrap:"wrap"}}>
                 <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:24,fontWeight:700,color:"#e5e7eb"}}>{asset.label}</span>
@@ -991,7 +991,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
         {/* Header row */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <AssetLogo id={asset.id} size={38}/>
+            <AssetLogo id={asset.id} size={26}/>
             <div>
               <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2}}>
                 <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:15,fontWeight:700,color:"#f1f2f4",letterSpacing:"0.04em"}}>{asset.label}</span>
@@ -1270,9 +1270,8 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.03em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
               HybridTrader<br/><span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:12,color:"#6b7280",lineHeight:1.6,maxWidth:400,marginTop:4}}>
-              Welkom terug — jouw persoonlijk institutioneel macro-analyse systeem.<br/>
-              <span style={{color:"#4b5563"}}>Bias geeft richting · CVD &amp; aggressor geven entry · London Session 07:00–14:00</span>
+            <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
+              Welkom terug — jouw institutioneel macro-analyse systeem voor de London session.
             </p>
             {presession&&(
               <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
@@ -2394,6 +2393,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             </div>
           </div>
         </div>
+
         {/* Navigation */}
         <div style={{padding:"16px 12px",flex:1}}>
           <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",padding:"0 8px",marginBottom:8}}>NAVIGATIE</div>
@@ -2792,21 +2792,19 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     <div key={i}
                       onClick={()=>setNewsImpact(n)}
                       className="news-item-hover"
-                      style={{display:"flex",gap:0,alignItems:"stretch",borderRadius:8,border:`1px solid ${n.isNew&&i<3?"rgba(239,68,68,0.2)":isHigh?"rgba(239,68,68,0.1)":"rgba(255,255,255,0.04)"}`,background:n.isNew&&i<3?"rgba(239,68,68,0.04)":"rgba(255,255,255,0.015)",cursor:"pointer",overflow:"hidden"}}>
-                      {/* Direction stripe */}
-                      <div style={{width:3,flexShrink:0,background:isBull?"#22c55e":isBear?"#ef4444":"rgba(255,255,255,0.06)"}}/>
-                      <div style={{flex:1,padding:"9px 12px"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,flexWrap:"wrap"}}>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#374151",letterSpacing:"0.04em"}}>{n.timeStr||fmtDT(n.time)}</span>
-                          <span style={{fontSize:9,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.05)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.06em"}}>{n.source}</span>
-                          {isHigh&&<span style={{fontSize:8,fontWeight:700,color:"#ef4444",background:"rgba(239,68,68,0.12)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.08em"}}>HIGH</span>}
-                          {n.isNew&&i<3&&<span style={{fontSize:8,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,0.12)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.08em"}}>NEW</span>}
-                          {(isBull||isBear)&&<span style={{fontSize:10,color:dirCol,fontWeight:700,marginLeft:"auto"}}>{isBull?"▲":"▼"}</span>}
+                      style={{display:"flex",gap:0,alignItems:"stretch",borderRadius:6,border:`1px solid ${n.isNew&&i<3?"rgba(239,68,68,0.2)":isHigh?"rgba(239,68,68,0.1)":"rgba(255,255,255,0.06)"}`,background:n.isNew&&i<3?"rgba(239,68,68,0.04)":"rgba(255,255,255,0.02)",cursor:"pointer"}}>
+                      <div style={{width:3,flexShrink:0,borderRadius:"6px 0 0 6px",background:isBull?"#22c55e":isBear?"#ef4444":"rgba(255,255,255,0.1)"}}/>
+                      <div style={{flex:1,padding:"10px 12px",minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6,flexWrap:"wrap"}}>
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#6b7280",letterSpacing:"0.04em",flexShrink:0}}>{n.timeStr||fmtDT(n.time)}</span>
+                          <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",background:"rgba(255,255,255,0.06)",borderRadius:3,padding:"1px 6px",letterSpacing:"0.06em",flexShrink:0}}>{n.source}</span>
+                          {isHigh&&<span style={{fontSize:8,fontWeight:700,color:"#ef4444",background:"rgba(239,68,68,0.15)",borderRadius:3,padding:"1px 6px",letterSpacing:"0.08em"}}>HIGH</span>}
+                          {n.isNew&&i<3&&<span style={{fontSize:8,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,0.15)",borderRadius:3,padding:"1px 6px",letterSpacing:"0.08em"}}>NEW</span>}
+                          {(isBull||isBear)&&<span style={{fontSize:10,color:dirCol,fontWeight:700,marginLeft:"auto",flexShrink:0}}>{isBull?"▲":"▼"}</span>}
                         </div>
-                        <div style={{fontSize:11.5,color:"#c9cdd4",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
-                        {n.assets?.length>0&&<div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>{n.assets.slice(0,4).map(a=><span key={a} style={{fontSize:8,color:"#4b5563",background:"rgba(255,255,255,0.04)",borderRadius:3,padding:"1px 5px",fontFamily:"'JetBrains Mono',monospace"}}>{a}</span>)}</div>}
+                        <div style={{fontSize:12,color:"#e2e4e9",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
                       </div>
-                      <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:"#2d3748",fontSize:14}}>›</div>
+                      <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:"#374151",fontSize:14,flexShrink:0}}>›</div>
                     </div>
                   );
                 })}
@@ -2828,16 +2826,16 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   <div key={i}
                     className="news-item-hover"
                     onClick={()=>item.link&&window.open(item.link,"_blank")}
-                    style={{borderRadius:8,border:"1px solid rgba(245,158,11,0.08)",background:"rgba(245,158,11,0.02)",cursor:"pointer",overflow:"hidden",display:"flex",alignItems:"stretch",gap:0}}>
-                    <div style={{width:3,flexShrink:0,background:"rgba(245,158,11,0.25)"}}/>
-                    <div style={{flex:1,padding:"9px 12px"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,gap:6}}>
-                        <span style={{fontSize:9,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{item.source}</span>
-                        <span style={{fontSize:8,color:"#374151",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{fmtDT(item.time)}</span>
+                    style={{borderRadius:6,border:"1px solid rgba(245,158,11,0.1)",background:"rgba(245,158,11,0.02)",cursor:"pointer",display:"flex",alignItems:"stretch",gap:0}}>
+                    <div style={{width:3,flexShrink:0,borderRadius:"6px 0 0 6px",background:"rgba(245,158,11,0.4)"}}/>
+                    <div style={{flex:1,padding:"10px 12px",minWidth:0}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5,gap:6}}>
+                        <span style={{fontSize:9,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em",flexShrink:0}}>{item.source}</span>
+                        <span style={{fontSize:8,color:"#6b7280",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{fmtDT(item.time)}</span>
                       </div>
-                      <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.55}}>{item.headline}</div>
+                      <div style={{fontSize:12,color:"#e2e4e9",lineHeight:1.55}}>{item.headline}</div>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"#2d3748",fontSize:14}}>›</div>
+                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"#374151",fontSize:14,flexShrink:0}}>›</div>
                   </div>
                 ))}
               </div>
