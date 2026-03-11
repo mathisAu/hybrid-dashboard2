@@ -54,55 +54,36 @@ async function fetchLivePrice(id) {
 // ── Accent colour (user-configurable) ─────────────────────────────────────────
 const DEFAULT_ACCENT = "#089981";
 
-// ── Asset logo's — flag + symbol style ──────────────────────────────────────
-const ASSET_META = {
-  XAUUSD: { bg:"linear-gradient(135deg,#F5C518,#e8a800)", symbol:"XAU", icon:"⚡", flag1:"us", flag2:null, color:"#F5C518" },
-  US30:   { bg:"linear-gradient(135deg,#1652F0,#0a3ecf)", symbol:"DJI", icon:"📈", flag1:"us", flag2:null, color:"#1652F0" },
-  US100:  { bg:"linear-gradient(135deg,#7B2FBE,#5a1fa0)", symbol:"NQ",  icon:"💻", flag1:"us", flag2:null, color:"#7B2FBE" },
-  EURUSD: { bg:"linear-gradient(135deg,#1A3A8F,#2855c7)", symbol:"EUR", icon:"🇪🇺", flag1:"eu", flag2:"us", color:"#1A3A8F" },
-  GBPUSD: { bg:"linear-gradient(135deg,#C8102E,#a00d24)", symbol:"GBP", icon:"🇬🇧", flag1:"gb", flag2:"us", color:"#C8102E" },
-  BTCUSD: { bg:"linear-gradient(135deg,#F7931A,#e07d0a)", symbol:"BTC", icon:"₿",  flag1:null,  flag2:null, color:"#F7931A" },
-  USDJPY: { bg:"linear-gradient(135deg,#BC002D,#960024)", symbol:"JPY", icon:"¥",  flag1:"us", flag2:"jp", color:"#BC002D" },
-  USDCHF: { bg:"linear-gradient(135deg,#D52B1E,#b02216)", symbol:"CHF", icon:"+",  flag1:"us", flag2:"ch", color:"#D52B1E" },
-  USOIL:  { bg:"linear-gradient(135deg,#2C2C2C,#444)",    symbol:"OIL", icon:"🛢",  flag1:null,  flag2:null, color:"#6b7280" },
-  SPX:    { bg:"linear-gradient(135deg,#1652F0,#0a3ecf)", symbol:"SPX", icon:"📊", flag1:"us", flag2:null, color:"#1652F0" },
-};
-
-const FlagImg = ({ code, size=14 }) => (
-  <img
-    src={`https://flagcdn.com/w${size*2}/${code}.png`}
-    width={size} height={Math.round(size*0.75)}
-    style={{borderRadius:2,objectFit:"cover",flexShrink:0}}
-    onError={e=>e.target.style.display="none"}
-    alt={code}
-  />
-);
-
+// ── TradingView-stijl asset logo's ──────────────────────────────────────────
 const AssetLogo = ({ id, size=24 }) => {
-  const meta = ASSET_META[id];
-  if(!meta) {
-    const colors = ["#089981","#1652F0","#7B2FBE","#F59E0B","#EF4444","#06B6D4"];
-    const bg = colors[id.charCodeAt(0) % colors.length];
-    const abbr = id.replace(/USD|EUR|GBP/,"").slice(0,3);
-    return (
-      <div style={{width:size,height:size,borderRadius:size*0.3,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-        <span style={{fontSize:size*0.38,fontWeight:700,color:"#fff",fontFamily:"'JetBrains Mono',monospace"}}>{abbr}</span>
-      </div>
-    );
-  }
-  return (
-    <div style={{width:size,height:size,borderRadius:size*0.3,background:meta.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,position:"relative",overflow:"hidden"}}>
-      {meta.flag1 ? (
-        <div style={{display:"flex",gap:1,alignItems:"center"}}>
-          <FlagImg code={meta.flag1} size={Math.round(size*0.55)}/>
-          {meta.flag2&&<FlagImg code={meta.flag2} size={Math.round(size*0.55)}/>}
-        </div>
-      ) : (
-        <span style={{fontSize:size*0.42,fontWeight:800,color:"#fff",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"-0.05em"}}>{meta.symbol}</span>
-      )}
-    </div>
-  );
+  const s = size;
+  const defs = {
+    XAUUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#F5C518"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#7A4F00">XAU</text></svg>,
+    US30:   <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1652F0"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DJI</text></svg>,
+    US100:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#7B2FBE"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">NQ</text></svg>,
+    EURUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1A3A8F"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="16" fontWeight="700" fill="#FFD700">€</text></svg>,
+    GBPUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#C8102E"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#fff">£</text></svg>,
+    BTCUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#F7931A"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">₿</text></svg>,
+    USDJPY: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#BC002D"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">¥</text></svg>,
+    USDCHF: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#D52B1E"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#fff">CHF</text></svg>,
+    USOIL:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#2C2C2C"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">OIL</text></svg>,
+    SPX:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1652F0"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">SPX</text></svg>,
+    DXY:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#374151"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DXY</text></svg>,
+  };
+  if(defs[id]) return defs[id];
+  const colors = ["#089981","#1652F0","#7B2FBE","#F59E0B","#EF4444","#06B6D4"];
+  const bg = colors[id.charCodeAt(0) % colors.length];
+  const abbr = id.replace(/USD|EUR|GBP/,"").slice(0,3);
+  return <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill={bg}/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize={abbr.length>3?7:9} fontWeight="700" fill="#fff">{abbr}</text></svg>;
 };
+
+const ASSET_META = {
+  XAUUSD: { color:"#F5C518" }, US30: { color:"#1652F0" }, US100: { color:"#7B2FBE" },
+  EURUSD: { color:"#1A3A8F" }, GBPUSD: { color:"#C8102E" }, BTCUSD: { color:"#F7931A" },
+  USDJPY: { color:"#BC002D" }, USDCHF: { color:"#D52B1E" }, USOIL: { color:"#2C2C2C" },
+  SPX: { color:"#1652F0" },
+};
+
 
 const BASE_ASSETS = [
   { id:"XAUUSD", label:"XAU/USD", full:"Gold / US Dollar",       group:"macro",  searchTerms:"gold XAU spot price" },
@@ -493,7 +474,7 @@ function Bar({ value, color }) {
 }
 
 function Badge({ label, color }) {
-  return <span style={{fontSize:9,padding:"2px 7px",borderRadius:3,border:`1px solid ${color}44`,background:`${color}11`,color,letterSpacing:"0.08em",fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>;
+  return <span style={{fontSize:9,padding:"2px 6px",borderRadius:3,border:`1px solid ${color}44`,background:`${color}11`,color,letterSpacing:"0.08em",fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>;
 }
 
 function Skeleton({ w="100%", h=8, mb=8 }) {
@@ -948,7 +929,7 @@ function PulseBadge({ pulse }) {
   };
   const c = cfg[pulse] || cfg.WAIT;
   return (
-    <div style={{display:"flex",alignItems:"center",gap:5,background:c.bg,border:`1px solid ${c.color}30`,borderRadius:20,padding:"3px 9px"}}>
+    <div style={{display:"flex",alignItems:"center",gap:5,background:c.bg,border:`1px solid ${c.color}30`,borderRadius:4,padding:"2px 8px"}}>
       <div style={{width:5,height:5,borderRadius:"50%",background:c.dot,animation:"pulseDot 2s ease-in-out infinite"}}/>
       <span style={{fontSize:9,fontWeight:700,color:c.color,letterSpacing:"0.1em"}}>{c.label}</span>
     </div>
@@ -990,7 +971,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       style={{
         background:"linear-gradient(160deg,#12131a,#0d0e14)",
         border:`1px solid ${data?.bias ? c.border+"55" : "rgba(255,255,255,0.06)"}`,
-        borderRadius:14,
+        borderRadius:8,
         padding:0,
         opacity:vis?1:0,
         transform:vis?"translateY(0)":"translateY(16px)",
@@ -1066,7 +1047,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             {/* Tags row */}
             <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12,alignItems:"center"}}>
               {data.pulse&&<PulseBadge pulse={data.pulse}/>}
-              {data.market_mood&&<span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:20,padding:"3px 9px",letterSpacing:"0.06em"}}>{data.market_mood.toUpperCase()}</span>}
+              {data.market_mood&&<span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>{data.market_mood.toUpperCase()}</span>}
               {data.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
               {data.market_regime&&<Badge label={data.market_regime.slice(0,18).toUpperCase()} color="#6366f1"/>}
             </div>
@@ -1257,7 +1238,7 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
 
 
 // ── HOME PAGE ─────────────────────────────────────────────────────────────────
-function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews }) {
+function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews, rssItems }) {
   const acc = accent || DEFAULT_ACCENT;
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
   const now = new Date();
@@ -1276,7 +1257,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
       {/* Hero header */}
-      <div style={{background:"linear-gradient(135deg,#0d0f14,#111318)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:"32px 36px",position:"relative",overflow:"hidden"}}>
+      <div style={{background:"linear-gradient(135deg,#0d0f14,#111318)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"32px 36px",position:"relative",overflow:"hidden"}}>
         {/* Background glow */}
         <div style={{position:"absolute",top:-60,right:-60,width:300,height:300,borderRadius:"50%",background:`radial-gradient(circle,${acc}12,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"absolute",bottom:-40,left:100,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,0.08),transparent 70%)",pointerEvents:"none"}}/>
@@ -1307,7 +1288,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
           <div style={{display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end"}}>
             <button onClick={onRunHybrid} disabled={isRunning}
               className="btn-primary"
-              style={{background:isRunning?`${acc}22`:`linear-gradient(135deg,${acc},${acc}bb)`,border:"none",borderRadius:12,padding:"14px 28px",color:isRunning?acc:"#000",fontWeight:800,fontSize:13,letterSpacing:"0.06em",display:"flex",alignItems:"center",gap:9,cursor:isRunning?"not-allowed":"pointer",boxShadow:isRunning?"none":`0 4px 20px ${acc}44`}}>
+              style={{background:isRunning?`${acc}22`:`linear-gradient(135deg,${acc},${acc}bb)`,border:"none",borderRadius:8,padding:"14px 28px",color:isRunning?acc:"#000",fontWeight:800,fontSize:13,letterSpacing:"0.06em",display:"flex",alignItems:"center",gap:9,cursor:isRunning?"not-allowed":"pointer",boxShadow:isRunning?"none":`0 4px 20px ${acc}44`}}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>
                 {isRunning
                   ? <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
@@ -1333,7 +1314,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
             {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
           ].map(({label,value,color,sub})=>(
-            <div key={label} style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"16px 18px"}}>
+            <div key={label} style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"16px 18px"}}>
               <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{label.toUpperCase()}</div>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:22,fontWeight:700,color,marginBottom:4}}>{value}</div>
               <div style={{fontSize:10,color:"#374151"}}>{sub}</div>
@@ -1364,7 +1345,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             return (
               <div key={a.id} onClick={()=>onNavigate("analyse")}
                 className="card-hover"
-                style={{background:"linear-gradient(160deg,#10111a,#0c0d13)",border:`1px solid ${bc?bc.border+"44":"rgba(255,255,255,0.06)"}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",position:"relative",overflow:"hidden"}}>
+                style={{background:"linear-gradient(160deg,#10111a,#0c0d13)",border:`1px solid ${bc?bc.border+"44":"rgba(255,255,255,0.06)"}`,borderRadius:8,padding:"14px 16px",cursor:"pointer",position:"relative",overflow:"hidden"}}>
                 {bc&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${bc.border},transparent)`}}/>}
                 <div style={{marginBottom:10}}>
                   <AssetLogo id={a.id} size={32}/>
@@ -1395,7 +1376,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
             className="card-hover"
-            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:`1px solid ${color}22`,borderRadius:12,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,border:`1px solid rgba(255,255,255,0.06)`}}>
+            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:`1px solid ${color}22`,borderRadius:8,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,border:`1px solid rgba(255,255,255,0.06)`}}>
             <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>
               {icon}
             </div>
@@ -1410,31 +1391,38 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ))}
       </div>
 
-      {/* Recent news strip */}
-      {breakingNews.length>0&&(
-        <div style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"16px 20px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#ef4444",animation:"pulseDot 2s ease-in-out infinite"}}/>
-              <span style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em"}}>LAATSTE NIEUWS</span>
+      {/* Recent news strip — RSS feed (clean, works well) */}
+      {(rssItems.length>0||breakingNews.length>0)&&(
+        <div style={{background:"#0d0e12",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"14px 18px"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:7}}>
+              <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+              <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>NEWS FEED</span>
             </div>
-            <button onClick={()=>onNavigate("analyse")} style={{background:"none",border:"none",color:"#374151",fontSize:10,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>MEER ›</button>
+            <button onClick={()=>onNavigate("analyse")} style={{background:"none",border:"none",color:"#374151",fontSize:9,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEER ›</button>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            {breakingNews.slice(0,4).map((n,i)=>(
-              <div key={i} onClick={()=>n.url&&window.open(n.url,"_blank")}
-                className="news-item-hover"
-                style={{display:"flex",alignItems:"flex-start",gap:10,padding:"8px 10px",borderRadius:8,border:"1px solid rgba(255,255,255,0.04)",cursor:n.url?"pointer":"default"}}>
-                <div style={{width:3,flexShrink:0,alignSelf:"stretch",borderRadius:2,background:n.direction==="bullish"?"#22c55e":n.direction==="bearish"?"#ef4444":"rgba(255,255,255,0.1)"}}/>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
-                    <span style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{n.timeStr}</span>
-                    <span style={{fontSize:9,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.04)",borderRadius:3,padding:"1px 5px"}}>{n.source}</span>
+          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+            {(rssItems.length>0?rssItems:breakingNews).slice(0,5).map((n,i)=>{
+              const headline = n.headline;
+              const source = n.source;
+              const time = n.time ? fmtDT(n.time) : n.timeStr||"";
+              const url = n.link||n.url||"";
+              return (
+                <div key={i} onClick={()=>url&&window.open(url,"_blank")}
+                  className="news-item-hover"
+                  style={{display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:4,border:"1px solid transparent",cursor:url?"pointer":"default"}}>
+                  <div style={{width:2,height:30,flexShrink:0,background:"rgba(245,158,11,0.35)",borderRadius:1}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
+                      <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{source}</span>
+                      <span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
+                    </div>
+                    <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.45,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{headline}</div>
                   </div>
-                  <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.5}}>{n.headline}</div>
+                  {url&&<span style={{fontSize:10,color:"#2d3748",flexShrink:0}}>›</span>}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -2444,7 +2432,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             </div>
             <div>
               <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1}}>Hybrid<span style={{color:accent}}>Trader</span></div>
-              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1}}>v6.3 · INSTITUTIONAL FLOW</div>
+              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1}}>DASHBOARD</div>
             </div>
           </div>
         </div>
@@ -2556,22 +2544,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
         {/* Right: add pair + run button */}
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {/* + Pair button */}
-          <div style={{position:"relative"}}>
-            <button onClick={()=>setShowAddPair(s=>!s)} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"7px 12px",display:"flex",alignItems:"center",gap:6,color:"#6b7280",fontSize:11,fontWeight:600}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              PAIR
-            </button>
-            {showAddPair&&(
-              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#111116",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"14px",zIndex:100,minWidth:220}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>NIEUW PAIR</div>
-                <input value={newPairLabel} onChange={e=>setNewPairLabel(e.target.value)} placeholder="bijv. BTC/USD" style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,color:"#e2e4e9",padding:"7px 10px",fontSize:11,marginBottom:6,fontFamily:"'JetBrains Mono',monospace",outline:"none"}}/>
-                <input value={newPairFull} onChange={e=>setNewPairFull(e.target.value)} placeholder="Naam (optioneel)" style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,color:"#e2e4e9",padding:"7px 10px",fontSize:11,marginBottom:10,fontFamily:"'Syne',sans-serif",outline:"none"}}/>
-                <button onClick={addCustomPair} style={{...btnStyle(false,accent),width:"100%",justifyContent:"center"}}>TOEVOEGEN</button>
-              </div>
-            )}
-          </div>
-
           {(page==="analyse"||page==="home") ? (
             <div style={{display:"flex",gap:6}}>
               <button onClick={runHybrid} disabled={isRunning}
@@ -2579,10 +2551,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>{isRunning?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M8 5l11 7-11 7V5z" fill="currentColor"/>}</svg>
                 {hybridStatus==="intel"?"1/4 NIEUWS":hybridStatus==="marktvisie"?"2/4 VISIE":hybridStatus==="analyse"?"3/4 ANALYSE":hybridStatus==="sessie"?"4/4 SESSIE":hybridStatus==="done"?"KLAAR":"HYBRID ANALYSE"}
               </button>
-              <button onClick={runAnalysis} disabled={aStatus==="loading"} title="Alleen analyse"
-                style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"8px 12px",color:"#6b7280",fontSize:11,fontWeight:600,display:"flex",alignItems:"center",gap:5}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                REFRESH
+              <button onClick={runAnalysis} disabled={aStatus==="loading"} title="Alleen analyse (geen Intel)"
+                style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 12px",color:"#6b7280",fontSize:11,fontWeight:600,display:"flex",alignItems:"center",gap:5}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3"/><path d="M12 8v4l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                SESSIE
               </button>
             </div>
           ) : page==="intel"
@@ -2601,7 +2573,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
         <div style={{position:"fixed",inset:0,marginLeft:260,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{background:"#0d0d10",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:"32px 40px",minWidth:340,maxWidth:420}}>
+          <div style={{background:"#0d0d10",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"32px 40px",minWidth:340,maxWidth:420}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><path d="M12 2a10 10 0 0 1 10 10" stroke={accent} strokeWidth="2.5" strokeLinecap="round"/></svg>
@@ -2660,6 +2632,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             onNavigate={switchPage}
             accent={accent}
             breakingNews={breakingNews}
+            rssItems={rssItems}
           />
         )}
 
@@ -2948,7 +2921,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               <div style={{fontSize:12,color:"#4b5563",maxWidth:400,lineHeight:1.6}}>Bekijk alle high-impact events, verwachte cijfers en historische data direct op ForexFactory.</div>
             </div>
             <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer"
-              style={{display:"flex",alignItems:"center",gap:14,background:"rgba(255,160,0,0.06)",border:"1px solid rgba(255,160,0,0.25)",borderRadius:12,padding:"18px 28px",cursor:"pointer",textDecoration:"none",minWidth:320}}>
+              style={{display:"flex",alignItems:"center",gap:14,background:"rgba(255,160,0,0.06)",border:"1px solid rgba(255,160,0,0.25)",borderRadius:8,padding:"18px 28px",cursor:"pointer",textDecoration:"none",minWidth:320}}>
               <div style={{width:44,height:44,borderRadius:10,background:"rgba(255,160,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🏭</div>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#ffa000",letterSpacing:"0.06em",marginBottom:3}}>ForexFactory Calendar</div>
