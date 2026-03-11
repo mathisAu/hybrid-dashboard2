@@ -14,54 +14,11 @@ const fmtTime = (d) => {
   return dt.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
 };
 
-// ── Twelve Data ───────────────────────────────────────────────────────────────
-const TWELVE_MAP = {
-  XAUUSD:"XAU/USD", US30:"DJI",    US100:"NDX",     EURUSD:"EUR/USD",
-  GBPUSD:"GBP/USD", BTCUSD:"BTC/USD", ETHUSD:"ETH/USD", USDJPY:"USD/JPY",
-  USDCHF:"USD/CHF", USOIL:"WTI",   SPX:"SPX",       DXY:"DXY", VIX:"VIX", US10Y:"TNX",
-};
-
-async function fetchTwelvePrice(id) {
-  const sym = TWELVE_MAP[id] || id;
-  try {
-    const [pr, qr] = await Promise.all([
-      fetch(`/api/twelvedata?symbol=${encodeURIComponent(sym)}&endpoint=price`, {signal:AbortSignal.timeout(6000)}),
-      fetch(`/api/twelvedata?symbol=${encodeURIComponent(sym)}&endpoint=quote`, {signal:AbortSignal.timeout(6000)}),
-    ]);
-    const pd = await pr.json();
-    const qd = await qr.json();
-    if(qd.status==="error") return null;
-    const price = parseFloat(pd.price) || parseFloat(qd.close);
-    if(!price) return null;
-    const prev = parseFloat(qd.previous_close);
-    const chg  = prev ? ((price-prev)/prev*100) : parseFloat(qd.percent_change)||0;
-    const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
-    return { price:price.toFixed(isFx?4:2), change:(chg>=0?"+":"")+chg.toFixed(2)+"%", direction:chg>=0?"up":"down", raw:chg };
-  } catch(_) { return null; }
-}
-
+// ── Price source: Finnhub only (no TwelveData) ───────────────────────────────
 async function fetchTwelveBatch(ids) {
-  const syms = ids.map(id=>TWELVE_MAP[id]||id).join(",");
-  try {
-    const [pr, qr] = await Promise.all([
-      fetch(`/api/twelvedata?symbol=${encodeURIComponent(syms)}&endpoint=price`, {signal:AbortSignal.timeout(8000)}),
-      fetch(`/api/twelvedata?symbol=${encodeURIComponent(syms)}&endpoint=quote`, {signal:AbortSignal.timeout(8000)}),
-    ]);
-    const pd = await pr.json(); const qd = await qr.json();
-    if(!qd || qd.status==="error") return {};
-    const result = {};
-    const parse = (id,q,p) => {
-      if(!q||q.status==="error") return;
-      const price = parseFloat(p?.price)||parseFloat(q.close); if(!price) return;
-      const prev = parseFloat(q.previous_close);
-      const chg  = prev ? ((price-prev)/prev*100) : parseFloat(q.percent_change)||0;
-      const isFx = ["EURUSD","GBPUSD","USDJPY","USDCHF"].includes(id);
-      result[id] = { price:price.toFixed(isFx?4:2), change:(chg>=0?"+":"")+chg.toFixed(2)+"%", direction:chg>=0?"up":"down", raw:chg };
-    };
-    if(ids.length===1){ parse(ids[0],qd,pd); return result; }
-    ids.forEach(id=>parse(id, qd[TWELVE_MAP[id]||id], pd[TWELVE_MAP[id]||id]));
-    return result;
-  } catch(_) { return {}; }
+  // Routes to Finnhub — kept for compatibility with existing call sites
+  const results = await Promise.all(ids.map(id => fetchFinnhubPrice(id).then(r => [id, r])));
+  return Object.fromEntries(results.filter(([,v])=>v));
 }
 
 // ── Finnhub ───────────────────────────────────────────────────────────────────
@@ -85,7 +42,7 @@ async function fetchFinnhubPrice(id) {
   } catch(_) { return null; }
 }
 
-// fetchLivePrice: Finnhub eerst, 12data als fallback
+// fetchLivePrice: Finnhub only
 const FOREX_IDS = ["EURUSD","GBPUSD","USDJPY","USDCHF"];
 async function fetchLivePrice(id) {
   const p = await fetchFinnhubPrice(id); if(p) return p;
@@ -1943,7 +1900,9 @@ Redeneer: past de prijsbeweging bij het nieuws? Is er follow-through of absorpti
 Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 {"assets":{${assetsJson}}}`;
 
-      const body = { model:"claude-sonnet-4-20250514", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}] };
+      // Shared cache key — iedereen die hetzelfde uur runt krijgt dezelfde gecachede analyse
+      const analyseKey = `analyse:${assets.map(a=>a.id).join("-")}:${new Date().toISOString().slice(0,13)}`;
+      const body = { model:"claude-sonnet-4-20250514", max_tokens:2800, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}], _cacheKey:analyseKey };
       const res = await fetch("/api/anthropic",{method:"POST",headers,body:JSON.stringify(body)});
       if(res.status===429) {
         if(attempt < 3) {
