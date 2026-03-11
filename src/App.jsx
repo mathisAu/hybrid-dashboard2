@@ -1456,28 +1456,6 @@ export default function HybridDashboard() {
     loadSharedState();
   }, []);
 
-  // ── Auto-save naar Redis zodra analyse klaar is ──────────────────────────────
-  const didRunRef = useRef(false);
-  useEffect(() => {
-    if (!didRunRef.current) return; // Sla over bij initiële mount/auto-load
-    if (!aResult) return;
-    const snapshot = {
-      aResult,
-      iResult,
-      presession,
-      savedAt: new Date().toISOString(),
-    };
-    fetch("/api/state", {
-      method:  "POST",
-      headers: {"Content-Type":"application/json"},
-      body:    JSON.stringify(snapshot),
-    })
-      .then(r => r.json())
-      .then(r => console.log("✓ State opgeslagen in Redis", r))
-      .catch(e => console.error("✗ State opslaan mislukt", e));
-  }, [aResult]);
-
-
   // Live prijzen — alleen Finnhub of 12data (geen CORS problemen)
   useEffect(()=>{
     const allIds = [...new Set([...assets.map(a=>a.id), "DXY","VIX","US10Y"])];
@@ -2243,7 +2221,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     clearInterval(countdownRef.current);
     setHybridStatus("intel"); setLoadingSteps(["🔍 Intel ophalen — nieuws & macro data"]);
     setIError(""); setAError("");
-    didRunRef.current = true; // Markeer dat er een echte run plaatsvindt
     const labels = assets.map(a=>a.label);
 
 
@@ -2331,6 +2308,35 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setHybridStatus("done");
     const refreshTime = new Date();
     setLastRefresh(refreshTime);
+
+    // ── Direct opslaan in Redis na afloop ────────────────────────────────────
+    // Wacht 1s zodat alle setAResult/setIResult/setPresession calls verwerkt zijn
+    setTimeout(() => {
+      setAResult(latest => {
+        setIResult(latestI => {
+          setPresession(latestPs => {
+            if (!latest) return latestPs;
+            console.log("💾 Opslaan naar Redis...");
+            fetch("/api/state", {
+              method:  "POST",
+              headers: {"Content-Type":"application/json"},
+              body:    JSON.stringify({
+                aResult:   latest,
+                iResult:   latestI,
+                presession: latestPs,
+                savedAt:   new Date().toISOString(),
+              }),
+            })
+              .then(r => r.json())
+              .then(r => console.log("✓ Opgeslagen in Redis:", r))
+              .catch(e => console.error("✗ Redis save fout:", e));
+            return latestPs;
+          });
+          return latestI;
+        });
+        return latest;
+      });
+    }, 1000);
 
     // Herstart auto-refresh als het aan stond
     if(autoRefresh) setTimeout(() => startAutoRefresh(), 5000);
