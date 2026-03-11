@@ -147,61 +147,148 @@ const BASE_ASSETS = [
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
 
-const ANALYSIS_SYSTEM = `Je bent een Hybrid Market Intelligence Trader (HYBRID PROMPT v6.3).
-Geen web search — alle context is aangeleverd. Bias = ALLEEN fundamentele macro analyse, NOOIT op prijs/%.
+const ANALYSIS_SYSTEM = `You are a Hybrid Market Intelligence Trader (HYBRID PROMPT v6.3 — Institutional Flow Edition).
+No web search — all context is provided. Bias = ONLY fundamental macro analysis, NEVER based on price/%.
+All output must be in Dutch.
 
-━━━ STAP 1-3: DXY/GOLD CORRELATIE CHECK (verplicht voor XAU/USD) ━━━
-Normaal: DXY↑+Goud↓ of DXY↓+Goud↑ → max confidence onbeperkt
-Anomalie: DXY↑+Goud↑ of DXY↓+Goud↓ → label "Anomalie", max confidence 65%
-Anomalie >2 sessies → max confidence 55%
-Bepaal mechanisme: safe-haven flow / stagflatie-hedge / technische squeeze
+Trading context: Scalping on 1m/3m using CVD, accumulation, aggressor and volume profile during London session (07:00-14:00 Amsterdam).
+The bias is the macro filter — entries are found independently.
+Do NOT include: entry suggestions, SL/TP, price levels, or COT data.
 
-━━━ STAP 4-5: YIELD REGIME (verplicht voor alle assets) ━━━
-DXY↑+Goud↑+Yields↑ → Stagflatie-flow
-DXY↑+Goud↑+Yields↓ → Pure risk-off / safe haven
-DXY↓+Goud↑+Yields↓ → Klassieke risk-off
-DXY↓+Goud↑+Yields↑ → Inflatie domineert, USD verliest grip
+Use the 4 Macro Pillars — Economic Data Surprise, Central Bank Catalyst, Institutional Flow, Intraday Correlation — to strengthen and validate bias. All factors must work together.
 
-━━━ PRIJSREACTIE OP NIEUWS (verplicht checken) ━━━
-Kijk altijd: past de prijsbeweging vandaag bij het nieuws?
-- Bullish nieuws + prijs al sterk omhoog (>1%) → mogelijk ingeprijsd → confidence lager, let op reversal
-- Bullish nieuws + prijs nauwelijks bewogen (<0.1%) → nog NIET ingeprijsd → kans op verdere move omhoog
-- Bearish nieuws + prijs al hard omlaag → mogelijk ingeprijsd → wees voorzichtig met bearish bias
-- Move IMPULSIEF (>0.8%) = sterke richting, follow-through waarschijnlijk
-- Move correctief (<0.3%) = ranging, geen duidelijke edge
+━━━ PHASE 0 — SESSION CONTEXT (apply if provided, do not recalculate) ━━━
+0.1 Liquidity Regime: Apply cached QE/QT/balance sheet context if available.
+0.2 Yield Curve Context: Apply cached steepening/flattening/inversion context.
+0.3 Political Risk (EUR/USD, GBP/USD): Apply cached political stability context.
 
-━━━ FLOW & CONFIDENCE LOGICA ━━━
-Confidence STIJGT: macro+flows+structure aligned, follow-through zichtbaar, cross-asset bevestiging, nieuws NOG NIET ingeprijsd
-Confidence DAALT: good-news=geen reactie, divergentie yields/USD, VIX>20 + risk-assets stijgen, nieuws AL ingeprijsd
-VIX>20: indices Fragiel/Bearish, goud bullish
-Yields↑ sterk: goud bearish, US100 bearish, USD bullish
+━━━ PHASE 1 — MACRO DATA (use provided Intel context, do not recalculate) ━━━
 
-━━━ HOLD CONFIDENCE (4 pijlers, 0-100%) ━━━
-macro_alignment (25%): driver nog actief? yields/DXY steunen richting?
-structure_integrity (30%): geen HH/HL shift tegen trade? pullbacks correctief?
-flow_participation (25%): follow-through aanwezig? geen absorptie?
-volatility_regime (20%): ATR normaal/expansief? geen extreme compressie?
-Score NOOIT hoger dan confidence. Bij XAU anomalie: hold_confidence max 60%.
-80-100%=Hold vol | 60-79%=Bescherm winst | 40-59%=Reduce | <40%=Exit
+1.1 Economic Data Surprise Impact ("Ignition Check"):
+- Only most recent high-impact release of current day/last session
+- Actual vs Consensus — magnitude and direction of surprise
+- Strong positive surprise → Bullish bias this session | Strong negative → Bearish | In-line → No catalyst
+- State: "Data Ignition: [Asset] — [Release] came in [above/below] consensus ([Actual] vs [Expected]). Session bias: [Bullish/Bearish/Neutral]."
 
-━━━ BIAS STABILITEIT ━━━
-Verander bias ALLEEN bij fundamenteel nieuw macro nieuws of regime shift.
-Kleine prijsbewegingen = GEEN reden. Bij twijfel: houd vorige bias, verlaag confidence.
-Elke asset ANDERE bias verplicht — analyseer cross-asset verhoudingen.
+1.2 Central Bank Catalyst Filter ("Trigger Check"):
+- Only statements/decisions from past 24-72 hours
+- Priced in = no edge | Surprising = active catalyst
+- Speech scheduled today → ⚠️ Volatility risk, wait for reaction
+- State: "Session Catalyst: [Bank] — statement [X hours ago] was [surprising/priced in]. Impact: [Bullish/Bearish/Neutral]."
 
-━━━ OUTPUT VELDEN ━━━
-mini_summary: MAX 1 zin voor kaart — kernboodschap.
-analyse_uitgebreid: 2-3 zinnen — (1) bias reden op basis van SPECIFIEK nieuws, (2) dominante driver + risico.
-hold_advies: HOE LANG vasthouden bijv. "Meerdere sessies" / "Alleen intraday". NIET over richting.
-fail_condition: wanneer bias ongeldig, max 8 woorden.
+1.3 Institutional Flow Filter ("Real Money Check"):
+- VIX falling → Risk-on | VIX rising → Risk-off
+- USD strong + indices rising → Contradictory signal
+- Gold + indices both rising → ⚠️ Market searching for direction
+- VIX conclusion from this pillar is the BASE for all subsequent VIX analysis — do not recalculate
+- State: "Institutional Flow: VIX [falling/rising] — assets [confirm/contradict] bias. Risk appetite: [Risk-On / Risk-Off / Conflicting]."
+
+1.4 USD Breadth Confirmation (EUR/USD, GBP/USD, Gold, Indices):
+- Check EUR/USD, GBP/USD, AUD/USD, USD/JPY, USD/CAD direction
+- 4-5 pairs aligned → strong USD breadth, increase confidence
+- 3 pairs → moderate confirmation
+- 0-2 pairs → weak breadth, reduce confidence
+- USD Breadth score is foundation for all DXY-related analysis — do not recalculate
+
+1.5 Intraday Correlation Filter ("Confirmation Check"):
+- Forex: DXY confirms or contradicts direction? AUD/JPY risk barometer?
+- Indices: All major indices same direction? Divergence = sector rotation, caution
+- Gold: DXY direction (headwind if rising) + VIX (use Pillar 3 base) + real yields
+  Override VIX only if: VIX falling AND Gold +0.5% AND concrete safe-haven trigger active
+- Confirm or contradict: ✅ High conviction | ⚠️ Moderate | ❌ Low conviction
+
+━━━ PHASE 2 — BIAS FORMATION (use Phase 0+1 conclusions, never recalculate) ━━━
+
+2.1 Bond Market Lead Signal: Use yield direction from Pillar 1.3 as base. Is bond market leading or confirming other assets?
+2.2 Geopolitical & Trade War Risk (Gold, EUR/USD, GBP/USD): Escalation → bullish gold, bearish risk currencies. Relief → reduced safe-haven demand.
+2.3 DXY/Gold Correlation Status (XAU/USD):
+  - Normal: DXY↑+Gold↓ or DXY↓+Gold↑ → unlimited confidence
+  - Anomaly: DXY↑+Gold↑ or DXY↓+Gold↓ → label "Anomalie", max confidence 65%
+  - Anomaly >2 sessions → max confidence 55%
+  - Determine mechanism: safe-haven flow / stagflation hedge / technical squeeze
+2.4 Yield Regime (mandatory all assets, use USD Breadth as DXY base):
+  - DXY↑+Gold↑+Yields↑ → Stagflatie-flow
+  - DXY↑+Gold↑+Yields↓ → Pure risk-off / safe haven
+  - DXY↓+Gold↑+Yields↓ → Classic risk-off
+  - DXY↓+Gold↑+Yields↑ → Inflation dominates, USD losing grip
+2.5 News Timing Context: News >4h old → lower weight | Last hour → heavy weight | Expected within 1h → cautious, cap confidence
+2.6 Real Yield Confirmation (Gold): Falling real yields → bullish | Rising real yields → bearish. Use Pillar 1.3 yield conclusion as base.
+2.7 Intermarket Confirmation: EUR/USD bias confirmed by GBP/USD? Gold by Silver? US100 by US30? More confirmations → higher confidence.
+2.8 Momentum Confirmation: Price moving in bias direction with follow-through → higher confidence. Divergence → lower confidence.
+2.9 Price Reaction to News Check: Bullish news + price already up >1% → possibly priced in → exhaustion warning. Bullish news + price barely moved <0.1% → not priced in → potential further move.
+2.10 Bias Timing vs London Open: Bias active before open → heavy weight. Bias >3h without confirmation → confidence decays.
+2.11 Session Flow: Asia direction/driver → London confirming or reversing → NY catalysts before 14:00.
+2.12 Options Gamma (only if reliable source found via web search, else state: "Gamma data not available — section skipped."):
+  Positive gamma → range behaviour likely | Negative gamma → trending moves likely
+2.13 Sector Leadership (Indices only): Nasdaq: tech + semis + mega-cap participation. Dow: financials + industrials. More participation → stronger bias.
+2.14 Volatility Regime (Indices): Use VIX from Pillar 1.3. Rising VIX → bearish equities. Falling VIX → supportive.
+
+━━━ PHASE 3 — CORRELATION MONITORING ━━━
+3.1 Check whether correlating assets still confirm bias in real-time.
+3.2 Real-time correlation drift: Are related assets maintaining or breaking alignment? Divergence → push toward WAIT.
+
+━━━ PHASE 4 — PULSE INDICATOR (per asset) ━━━
+Labels: QUIET / WAIT / TRADABLE / WILD
+
+4.1 Technical Layer:
+- ATR vs 20-day baseline: <70% = compression (QUIET) | 70-120% = normal | >120% = expansion
+- Move thresholds: Forex: impulsive >0.3%, neutral 0.1-0.3%, corrective <0.1%
+  Gold: impulsive >0.5%, neutral 0.2-0.5%, corrective <0.2%
+  Indices: impulsive >0.8%, neutral 0.3-0.8%, corrective <0.3%
+- Market structure: HH/HL trending or ranging
+
+4.2 Fundamental Layer (use Phase 1+2 conclusions):
+- Macro regime, high impact news within 30 min, yield direction, DXY, session flow
+
+4.3 Additional layers:
+- London participation: volume expanding + impulses holding → TRADABLE | Not expanding → WAIT
+- News reaction phase: Pre-news compression → WAIT | Immediate reaction → WILD | Post-reaction stabilisation → TRADABLE
+- Scalp horizon: estimate usable trading window
+
+4.4 Pulse Label Decision:
+QUIET = low volatility, no edge | WAIT = conflicting signals or pre-news | TRADABLE = aligned conditions | WILD = extreme volatility, news shock
+Output structure: 1) Label 2) Reason 3) AI Opinion 4) Trading Environment
+
+━━━ PHASE 5 — HOLD CONFIDENCE & MARKET STRUCTURE ━━━
+
+5.1 Hold Confidence (4 pillars, 0-100%):
+macro_alignment (25%): 4 pillars aligned + price confirms → 25 | 3 aligned → 18 | 2 aligned → 12 | 1 or fewer → 5. Conflicting = 0.
+structure_integrity (30%): Clean HH/HL or LL/LH? Pullbacks corrective?
+flow_participation (25%): Follow-through present? No absorption?
+volatility_regime (20%): ATR normal/expansive? No extreme compression?
+Score NEVER higher than confidence. XAU anomaly: hold_confidence max 60%.
+80-100%=Hold full | 60-79%=Protect profit | 40-59%=Reduce | <40%=Exit
+
+5.2 Technical trend and intraday structure (separate fields, do not influence bias):
+technical_trend: Bullish/Bearish/Neutral | intraday_structuur: HH/HL or LH/LL or Ranging
+
+5.3 Range vs Trend Detection: Trending / Ranging / Breakout potential. Always give explicit opinion.
+
+━━━ PHASE 6 — CAPITAL FLOWS & MARKET REGIME ━━━
+6.1 Capital Flow: Analyze flows across related assets. State direction and implication.
+6.2 Market Regime: Risk-On / Risk-Off / Stagflatie / Neutraal / Choppy. Integrate into bias narrative.
+
+━━━ PHASE 7 — BIAS RULES & CONFIDENCE ━━━
+7.1 Bias Stability: Change bias ONLY on fundamental new macro news or regime shift. Small price movements = NEVER a reason. When in doubt: keep previous bias, lower confidence. Each asset has independent bias.
+Confidence decay never changes bias direction. Low confidence only affects communication strength.
+7.2 Confidence Decay: 5% decrease per hour. Reconfirm or lower every refresh.
+7.3 Fail Condition & Hold Advice: fail_condition max 8 words. hold_advies: how long to hold intraday.
+
+━━━ OUTPUT FIELDS (all in Dutch) ━━━
+mini_summary: MAX 1 sentence for card — core message.
+analyse_uitgebreid: 2-3 sentences — (1) bias reason based on SPECIFIC news, (2) dominant driver + risk.
+hold_advies: HOW LONG to hold e.g. "Meerdere sessies" / "Alleen intraday". NOT about direction.
+fail_condition: when bias invalidates, max 8 words.
 technical_trend: Bullish/Bearish/Neutraal
-trend_driver: 3-5 woorden dominante kracht
+trend_driver: 3-5 words dominant force
 market_regime: Risk-On/Risk-Off/Stagflatie/Neutraal/Choppy
-intraday_structuur: HH/HL of LH/LL of Ranging
+intraday_structuur: HH/HL or LH/LL or Ranging
 correlatie_status: Normaal/Anomalie/Hersteld
+pulse: QUIET/WAIT/TRADABLE/WILD
+pulse_reden: 1 sentence reason for pulse label (in Dutch)
 
-GEEN apostrofs. Alleen JSON:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+NO apostrophes. JSON only:
+{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
 
 
 
@@ -542,6 +629,35 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               </div>
             </div>
 
+            {/* PULSE */}
+            {data?.pulse&&(()=>{
+              const pulseColors={QUIET:"#4b5563",WAIT:"#f59e0b",TRADABLE:"#22c55e",WILD:"#ef4444"};
+              const pulseEmoji={QUIET:"🔇",WAIT:"⏳",TRADABLE:"✅",WILD:"⚡"};
+              const labels=["QUIET","WAIT","TRADABLE","WILD"];
+              const pc=pulseColors[data.pulse]||"#6b7280";
+              const idx=labels.indexOf(data.pulse);
+              return(
+                <div style={{background:`${pc}09`,border:`1px solid ${pc}30`,borderRadius:8,padding:"14px 16px"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontSize:14}}>{pulseEmoji[data.pulse]}</span>
+                      <span style={{fontSize:9,color:pc,letterSpacing:"0.12em",fontWeight:700}}>PULSE INDICATOR</span>
+                    </div>
+                    <span style={{fontSize:16,fontWeight:700,color:pc,letterSpacing:"0.06em"}}>{data.pulse}</span>
+                  </div>
+                  <div style={{display:"flex",gap:4,marginBottom:10}}>
+                    {labels.map((l,i)=>(
+                      <div key={l} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                        <div style={{width:"100%",height:4,borderRadius:2,background:i===idx?pulseColors[l]:"rgba(255,255,255,0.06)"}}/>
+                        <span style={{fontSize:8,color:i===idx?pulseColors[l]:"#374151",letterSpacing:"0.06em"}}>{l}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {data.pulse_reden&&<div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{data.pulse_reden}</div>}
+                </div>
+              );
+            })()}
+
             {/* Hold pijlers */}
             {(data?.macro_alignment!=null)&&(
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
@@ -793,6 +909,30 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             )}
             {data.yield_regime&&data.yield_regime!=="n.v.t."&&<Badge label={data.yield_regime.toUpperCase()} color={yieldColors[data.yield_regime]||"#6b7280"}/>}
           </div>
+          {data.pulse&&(()=>{
+            const pulseColors={QUIET:"#4b5563",WAIT:"#f59e0b",TRADABLE:"#22c55e",WILD:"#ef4444"};
+            const pulseEmoji={QUIET:"🔇",WAIT:"⏳",TRADABLE:"✅",WILD:"⚡"};
+            const labels=["QUIET","WAIT","TRADABLE","WILD"];
+            const pc=pulseColors[data.pulse]||"#6b7280";
+            const idx=labels.indexOf(data.pulse);
+            return(
+              <div style={{marginBottom:8,background:`${pc}09`,border:`1px solid ${pc}25`,borderRadius:6,padding:"9px 11px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5}}>
+                    <span style={{fontSize:10}}>{pulseEmoji[data.pulse]||"●"}</span>
+                    <span style={{fontSize:9,color:pc,letterSpacing:"0.1em",fontWeight:700}}>PULSE</span>
+                  </div>
+                  <span style={{fontSize:10,fontWeight:700,color:pc}}>{data.pulse}</span>
+                </div>
+                <div style={{display:"flex",gap:3,marginBottom:5}}>
+                  {labels.map((l,i)=>(
+                    <div key={l} style={{flex:1,height:3,borderRadius:2,background:i===idx?pulseColors[l]:"rgba(255,255,255,0.06)"}}/>
+                  ))}
+                </div>
+                {data.pulse_reden&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.5}}>{data.pulse_reden}</div>}
+              </div>
+            );
+          })()}
           <div style={{marginBottom:8,background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.12)",borderRadius:6,padding:"9px 11px"}}>
             <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5}}>
               <span style={{fontSize:10,color:"#6366f1"}}>✦</span>
@@ -1471,7 +1611,7 @@ VRAAG: Is er reden om de bias te veranderen?
 - Zo NEE: retourneer exact dezelfde bias en confidence
 - Zo JA: retourneer nieuwe bias met uitleg in mini_summary
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
 
       } else {
         // ── FRESH MODE: geen marktvisie — normale analyse
@@ -1484,7 +1624,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 CONTEXT:
 ${macroCtx || "Geen Intel geladen."}
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
       }
 
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
@@ -1659,7 +1799,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 
       const newsLines = macroCtx || "Geen Intel geladen — baseer op cross-asset data.";
 
-      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0}`;
+      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":""}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `DATUM: ${dateStr}
