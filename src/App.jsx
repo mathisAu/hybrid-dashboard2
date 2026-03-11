@@ -68,7 +68,7 @@ const AssetLogo = ({ id, size=24 }) => {
     USDCHF: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#D52B1E"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#fff">CHF</text></svg>,
     USOIL:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#2C2C2C"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">OIL</text></svg>,
     SPX:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1652F0"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">SPX</text></svg>,
-    DXY:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#374151"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DXY</text></svg>,
+    DXY:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="var(--t3)"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DXY</text></svg>,
   };
   if(defs[id]) return defs[id];
   const colors = ["#089981","#1652F0","#7B2FBE","#F59E0B","#EF4444","#06B6D4"];
@@ -426,16 +426,16 @@ function resolveBias(bias, confidence) {
 const biasColors = {
   Bullish:  { bg:"rgba(34,197,94,0.1)",   border:"#22c55e", text:"#4ade80" },
   Bearish:  { bg:"rgba(239,68,68,0.1)",   border:"#ef4444", text:"#f87171" },
-  Neutraal: { bg:"rgba(107,114,128,0.1)", border:"#4b5563", text:"#9ca3af" },
+  Neutraal: { bg:"rgba(107,114,128,0.1)", border:"var(--t3)", text:"var(--t2)" },
   Fragiel:  { bg:"rgba(8,153,129,0.1)",   border:"#089981", text:"#0dd9b6" },
 };
 const corrColors  = { Normaal:"#22c55e", Anomalie:"#ef4444", Hersteld:"#089981" };
-const yieldColors = { "Risk-On":"#22c55e","Risk-Off":"#ef4444","Stagflatie":"#089981","Neutraal":"#6b7280" };
-const impactColor = { high:"#ef4444", medium:"#089981", low:"#4b5563" };
-const dirColor    = { bullish:"#22c55e", bearish:"#ef4444", neutraal:"#6b7280", up:"#22c55e", down:"#ef4444" };
+const yieldColors = { "Risk-On":"#22c55e","Risk-Off":"#ef4444","Stagflatie":"#089981","Neutraal":"var(--t2)" };
+const impactColor = { high:"#ef4444", medium:"#089981", low:"var(--t3)" };
+const dirColor    = { bullish:"#22c55e", bearish:"#ef4444", neutraal:"var(--t2)", up:"#22c55e", down:"#ef4444" };
 
 // Tooltip with ⓘ icon
-function InfoTooltip({ text, color="#6b7280", children }) {
+function InfoTooltip({ text, color="var(--t2)", children }) {
   const [show, setShow] = useState(false);
   const [pos, setPos] = useState({top:0,left:0});
   const ref = useRef(null);
@@ -456,9 +456,9 @@ function InfoTooltip({ text, color="#6b7280", children }) {
       {children}
       <span style={{fontSize:9,color:color,opacity:0.6,cursor:"help",lineHeight:1}}>ⓘ</span>
       {show&&text&&(
-        <div style={{position:"fixed",top:pos.top,left:pos.left,transform:"translate(-50%,-100%)",zIndex:9999,background:"#1a1b1e",border:`1px solid ${color}44`,borderRadius:7,padding:"9px 13px",minWidth:200,maxWidth:240,fontSize:11,color:"#d1d5db",lineHeight:1.55,boxShadow:"0 6px 24px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
+        <div style={{position:"fixed",top:pos.top,left:pos.left,transform:"translate(-50%,-100%)",zIndex:9999,background:"var(--line)",border:`1px solid ${color}44`,borderRadius:7,padding:"9px 13px",minWidth:200,maxWidth:240,fontSize:11,color:"#d1d5db",lineHeight:1.55,boxShadow:"0 6px 24px rgba(0,0,0,0.6)",pointerEvents:"none"}}>
           {text}
-          <div style={{position:"absolute",bottom:-5,left:"50%",transform:"translateX(-50%) rotate(45deg)",width:8,height:8,background:"#1a1b1e",borderRight:`1px solid ${color}44`,borderBottom:`1px solid ${color}44`}}/>
+          <div style={{position:"absolute",bottom:-5,left:"50%",transform:"translateX(-50%) rotate(45deg)",width:8,height:8,background:"var(--line)",borderRight:`1px solid ${color}44`,borderBottom:`1px solid ${color}44`}}/>
         </div>
       )}
     </div>
@@ -468,7 +468,7 @@ function InfoTooltip({ text, color="#6b7280", children }) {
 function Bar({ value, color }) {
   return (
     <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden"}}>
-      <div style={{height:"100%",width:`${value}%`,background:color,borderRadius:2,transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
+      <div style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:color,borderRadius:2,transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
     </div>
   );
 }
@@ -516,7 +516,7 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
     analyse();
   }, []);
 
-  const impactColor = i => i==="bullish"?"#22c55e":i==="bearish"?"#ef4444":"#6b7280";
+  const impactColor = i => i==="bullish"?"#22c55e":i==="bearish"?"#ef4444":"var(--t2)";
   const impactIcon  = i => i==="bullish"?"▲":i==="bearish"?"▼":"—";
   const pairs = [
     {id:"XAUUSD",label:"XAU/USD"},{id:"US30",label:"US30"},
@@ -525,12 +525,12 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
 
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#111214",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg1)",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
-          <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{news.headline}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16,flexShrink:0,padding:0}}>✕</button>
+          <div style={{fontSize:10,color:"var(--t2)",lineHeight:1.5,flex:1}}>{news.headline}</div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"var(--t3)",cursor:"pointer",fontSize:16,flexShrink:0,padding:0}}>✕</button>
         </div>
-        <div style={{height:1,background:"#1f2023",marginBottom:14}}/>
+        <div style={{height:1,background:"var(--line)",marginBottom:14}}/>
         {loading ? (
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {pairs.map(p=><Skeleton key={p.id} h={32}/>)}
@@ -544,15 +544,15 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
               if(!r) return null;
               return (
                 <div key={id} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,0.02)",border:"1px solid #1f2023",borderRadius:6,padding:"8px 12px"}}>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:"#6b7280",width:58,flexShrink:0}}>{label}</span>
+                  <span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:700,color:"var(--t2)",width:58,flexShrink:0}}>{label}</span>
                   <span style={{fontSize:13,color:impactColor(r.impact),fontWeight:700,width:16,flexShrink:0}}>{impactIcon(r.impact)}</span>
-                  <span style={{fontSize:11,color:"#9ca3af",flex:1}}>{r.reden}</span>
+                  <span style={{fontSize:11,color:"var(--t2)",flex:1}}>{r.reden}</span>
                 </div>
               );
             })}
           </div>
         )}
-        <div style={{marginTop:12,fontSize:9,color:"#374151",textAlign:"right"}}>klik buiten popup om te sluiten</div>
+        <div style={{marginTop:12,fontSize:9,color:"var(--t3)",textAlign:"right"}}>klik buiten popup om te sluiten</div>
       </div>
     </div>
   );
@@ -564,14 +564,14 @@ function btnStyle(disabled, accent=DEFAULT_ACCENT) {
     background:disabled?`${accent}11`:`linear-gradient(135deg,${accent}30,${accent}20)`,
     border:`1px solid ${disabled?accent+"33":accent}`,
     borderRadius:6, color:disabled?`${accent}55`:accent,
-    fontFamily:"'JetBrains Mono',monospace", fontSize:11, fontWeight:700,
+    fontFamily:"var(--mono)", fontSize:11, fontWeight:700,
     letterSpacing:"0.1em", padding:"9px 18px", cursor:disabled?"not-allowed":"pointer",
     display:"flex", alignItems:"center", gap:7,
   };
 }
 
 function YieldTooltip({ regime, explanation }) {
-  const col = yieldColors[regime] || "#6b7280";
+  const col = yieldColors[regime] || "var(--t2)";
   return (
     <InfoTooltip text={explanation} color={col}>
       <span style={{fontSize:9,padding:"2px 7px",borderRadius:3,border:`1px solid ${col}44`,background:`${col}11`,color:col,letterSpacing:"0.08em",fontWeight:600}}>{regime}</span>
@@ -584,13 +584,13 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   const c = biasColors[bias] || biasColors.Neutraal;
   const acc = accent || DEFAULT_ACCENT;
   const trendColor = (t) => {
-    if (!t) return "#6b7280"; const l = t.toLowerCase();
+    if (!t) return "var(--t2)"; const l = t.toLowerCase();
     if (l.includes("strong up")) return "#22c55e";
     if (l.includes("choppy up")) return "#84cc16";
     if (l.includes("strong down")) return "#ef4444";
     if (l.includes("choppy down")) return acc;
     if (l.includes("compres")) return "#a855f7";
-    return "#6b7280";
+    return "var(--t2)";
   };
   const pijlerTooltips = {
     "Macro Alignment":"Hoe goed sluiten macro-factoren (yields, DXY, risk sentiment) aan bij de trade richting. 25% gewicht in hold score.",
@@ -613,20 +613,20 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             <span style={{flexShrink:0}}><AssetLogo id={asset.id} size={36}/></span>
             <div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:3,flexWrap:"wrap"}}>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:24,fontWeight:700,color:"#e5e7eb"}}>{asset.label}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:24,fontWeight:700,color:"#e5e7eb"}}>{asset.label}</span>
                 <div style={{background:c.bg,border:`1px solid ${c.border}55`,borderRadius:5,padding:"5px 14px"}}>
                   <span style={{fontSize:14,fontWeight:700,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
                 </div>
                 {priceChange&&(
                   <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.04)",borderRadius:5,padding:"4px 10px"}}>
-                    <span style={{fontSize:11,fontWeight:700,color:priceDir==="up"?"#22c55e":"#ef4444",fontFamily:"'JetBrains Mono',monospace"}}>{priceDir==="up"?"↑":"↓"} {priceChange} vandaag</span>
+                    <span style={{fontSize:11,fontWeight:700,color:priceDir==="up"?"#22c55e":"#ef4444",fontFamily:"var(--mono)"}}>{priceDir==="up"?"↑":"↓"} {priceChange} vandaag</span>
                   </div>
                 )}
-                {data?.price_today&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,fontWeight:700,color:"#e5e7eb"}}>{data.price_today}</span>}
-                {data?.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
+                {data?.price_today&&<span style={{fontFamily:"var(--mono)",fontSize:16,fontWeight:700,color:"#e5e7eb"}}>{data.price_today}</span>}
+                {data?.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"var(--t2)"}/>}
               </div>
-              <div style={{fontSize:12,color:"#4b5563"}}>{asset.full}</div>
-              {data?.analysed_at&&<div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>📊 Geanalyseerd: {fmtDT(data.analysed_at)}</div>}
+              <div style={{fontSize:12,color:"var(--t3)"}}>{asset.full}</div>
+              {data?.analysed_at&&<div style={{fontSize:9,color:"var(--t3)",fontFamily:"var(--mono)",marginTop:2}}>📊 Geanalyseerd: {fmtDT(data.analysed_at)}</div>}
             </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -634,7 +634,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               <span style={{display:"inline-block",animation:refreshing?"spin 0.8s linear infinite":"none"}}>↺</span>
               {refreshing?"UPDATING...":"UPDATE ASSET"}
             </button>
-            <button onClick={onClose} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,color:"#9ca3af",padding:"7px 16px",cursor:"pointer",fontSize:12,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+            <button onClick={onClose} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,color:"var(--t2)",padding:"7px 16px",cursor:"pointer",fontSize:12,fontFamily:"var(--mono)",fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
               ← TERUG
             </button>
           </div>
@@ -648,25 +648,25 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* Confidence cards */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>BIAS CONFIDENCE</div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:30,fontWeight:700,color:acc,marginBottom:8}}>{data?.confidence}%</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:8}}>BIAS CONFIDENCE</div>
+                <div style={{fontFamily:"var(--mono)",fontSize:30,fontWeight:700,color:acc,marginBottom:8}}>{data?.confidence}%</div>
                 <Bar value={data?.confidence||0} color={acc}/>
                 {(()=>{
                   const c = data?.confidence||0;
                   const [label,pos,col] = c>=80?["Zeer sterke bias","Volle positie","#22c55e"]:c>=70?["Sterke bias","75% positie","#84cc16"]:c>=60?["Redelijke bias","50% positie","#f59e0b"]:c>=50?["Lichte bias","25% positie","#f97316"]:["Niet traden","0% positie","#ef4444"];
                   return <div style={{marginTop:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <span style={{fontSize:10,color:col,fontWeight:600}}>{label}</span>
-                    <span style={{fontSize:9,color:"#4b5563"}}>{pos}</span>
+                    <span style={{fontSize:9,color:"var(--t3)"}}>{pos}</span>
                   </div>;
                 })()}
-                {data?.confidence_label&&<div style={{fontSize:10,color:"#6b7280",marginTop:6,lineHeight:1.5,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:6}}>{data.confidence_label}</div>}
+                {data?.confidence_label&&<div style={{fontSize:10,color:"var(--t2)",marginTop:6,lineHeight:1.5,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:6}}>{data.confidence_label}</div>}
               </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>MACRO HOLD CONTEXT</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:10}}>MACRO HOLD CONTEXT</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:8}}>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:34,fontWeight:700,color:"#6366f1"}}>{data?.macro_hold||0}</span>
-                  <span style={{fontSize:12,color:"#374151"}}>/100</span>
+                  <span style={{fontFamily:"var(--mono)",fontSize:34,fontWeight:700,color:"#6366f1"}}>{data?.macro_hold||0}</span>
+                  <span style={{fontSize:12,color:"var(--t3)"}}>/100</span>
                 </div>
                 <Bar value={data?.macro_hold||0} color="#6366f1"/>
                 {(()=>{
@@ -684,9 +684,9 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                           <span style={{fontSize:13}}>{emoji}</span>
                           <span style={{fontSize:12,fontWeight:700,color:col}}>{label}</span>
                         </div>
-                        <span style={{fontSize:9,color:"#374151"}}>{range}</span>
+                        <span style={{fontSize:9,color:"var(--t3)"}}>{range}</span>
                       </div>
-                      {data?.macro_hold_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.7,borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:8,marginTop:4}}>{data.macro_hold_uitleg}</div>}
+                      {data?.macro_hold_uitleg&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.7,borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:8,marginTop:4}}>{data.macro_hold_uitleg}</div>}
                     </div>
                   );
                 })()}
@@ -695,10 +695,10 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* PULSE */}
             {data?.pulse&&(()=>{
-              const pulseColors={QUIET:"#4b5563",WAIT:"#f59e0b",TRADABLE:"#22c55e",WILD:"#ef4444"};
+              const pulseColors={QUIET:"var(--t3)",WAIT:"#f59e0b",TRADABLE:"#22c55e",WILD:"#ef4444"};
               const pulseEmoji={QUIET:"🔇",WAIT:"⏳",TRADABLE:"✅",WILD:"⚡"};
               const labels=["QUIET","WAIT","TRADABLE","WILD"];
-              const pc=pulseColors[data.pulse]||"#6b7280";
+              const pc=pulseColors[data.pulse]||"var(--t2)";
               const idx=labels.indexOf(data.pulse);
               return(
                 <div style={{background:`${pc}09`,border:`1px solid ${pc}30`,borderRadius:8,padding:"14px 16px"}}>
@@ -713,19 +713,19 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                     {labels.map((l,i)=>(
                       <div key={l} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
                         <div style={{width:"100%",height:4,borderRadius:2,background:i===idx?pulseColors[l]:"rgba(255,255,255,0.06)"}}/>
-                        <span style={{fontSize:8,color:i===idx?pulseColors[l]:"#374151",letterSpacing:"0.06em"}}>{l}</span>
+                        <span style={{fontSize:8,color:i===idx?pulseColors[l]:"var(--t3)",letterSpacing:"0.06em"}}>{l}</span>
                       </div>
                     ))}
                   </div>
-                  {data.pulse_reden&&<div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{data.pulse_reden}</div>}
+                  {data.pulse_reden&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.6}}>{data.pulse_reden}</div>}
                 </div>
               );
             })()}
 
             {/* Macro Hold Pijlers */}
             {(data?.macro_alignment!=null)&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:12}}>MACRO HOLD — SCORE OPBOUW</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:12}}>MACRO HOLD — SCORE OPBOUW</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {[
                     {l:"Pillar Alignment", v:data?.macro_alignment, max:40},
@@ -734,11 +734,11 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                     {l:"Yield/DXY Regime",v:data?.pillar_yield,     max:15},
                   ].map(({l,v,max})=>v!=null&&(
                     <div key={l} style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:10,color:"#4b5563",width:120,flexShrink:0}}>{l}</span>
+                      <span style={{fontSize:10,color:"var(--t3)",width:120,flexShrink:0}}>{l}</span>
                       <div style={{flex:1,height:4,borderRadius:2,background:"rgba(255,255,255,0.04)",overflow:"hidden"}}>
                         <div style={{height:"100%",width:`${(v/max)*100}%`,background:v===max?"#22c55e":v>=max*0.6?"#6366f1":"#f59e0b",borderRadius:2,transition:"width 0.4s"}}/>
                       </div>
-                      <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#9ca3af",width:40,textAlign:"right"}}>{v}/{max}</span>
+                      <span style={{fontSize:10,fontFamily:"var(--mono)",color:"var(--t2)",width:40,textAlign:"right"}}>{v}/{max}</span>
                     </div>
                   ))}
                 </div>
@@ -747,44 +747,44 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* Technical + Structure + Regime + Trend Driver */}
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TECHNISCHE TREND</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:6}}>TECHNISCHE TREND</div>
                 <div style={{fontSize:13,fontWeight:700,color:trendColor(data?.technical_trend),marginBottom:4}}>{data?.technical_trend||"—"}</div>
-                {data?.trend_driver&&<div style={{fontSize:10,color:"#6b7280",marginBottom:6}}>{data.trend_driver}</div>}
-                {data?.technical_trend_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.technical_trend_uitleg}</div>}
+                {data?.trend_driver&&<div style={{fontSize:10,color:"var(--t2)",marginBottom:6}}>{data.trend_driver}</div>}
+                {data?.technical_trend_uitleg&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.technical_trend_uitleg}</div>}
               </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>INTRADAY STRUCTUUR</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#9ca3af",marginBottom:4}}>{data?.intraday_structuur||"—"}</div>
-                {data?.structuur_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.structuur_uitleg}</div>}
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:6}}>INTRADAY STRUCTUUR</div>
+                <div style={{fontSize:13,fontWeight:700,color:"var(--t2)",marginBottom:4}}>{data?.intraday_structuur||"—"}</div>
+                {data?.structuur_uitleg&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.structuur_uitleg}</div>}
               </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>MARKET REGIME</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:6}}>MARKET REGIME</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#6366f1",marginBottom:4}}>{data?.market_regime?.toUpperCase()||"—"}</div>
-                {data?.market_regime_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.market_regime_uitleg}</div>}
+                {data?.market_regime_uitleg&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.market_regime_uitleg}</div>}
               </div>
             </div>
 
             {/* Yield regime */}
             {data?.yield_regime&&data.yield_regime!=="n.v.t."&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>YIELD REGIME</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:8}}>YIELD REGIME</div>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.yield_regime]||"#6b7280",boxShadow:`0 0 8px ${yieldColors[data.yield_regime]||"#6b7280"}`}}/>
-                  <span style={{fontSize:15,fontWeight:700,color:yieldColors[data.yield_regime]||"#9ca3af"}}>{data.yield_regime}</span>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.yield_regime]||"var(--t2)",boxShadow:`0 0 8px ${yieldColors[data.yield_regime]||"var(--t2)"}`}}/>
+                  <span style={{fontSize:15,fontWeight:700,color:yieldColors[data.yield_regime]||"var(--t2)"}}>{data.yield_regime}</span>
                 </div>
-                {(data.yield_regime_uitleg||data.yield_regime_explanation)&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.yield_regime_uitleg||data.yield_regime_explanation}</div>}
+                {(data.yield_regime_uitleg||data.yield_regime_explanation)&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.yield_regime_uitleg||data.yield_regime_explanation}</div>}
               </div>
             )}
             {/* Correlatie uitleg */}
             {data?.correlatie_status&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>CORRELATIE STATUS</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:8}}>CORRELATIE STATUS</div>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:corrColors[data.correlatie_status]||"#6b7280"}}/>
-                  <span style={{fontSize:13,fontWeight:700,color:corrColors[data.correlatie_status]||"#9ca3af"}}>{data.correlatie_status}</span>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:corrColors[data.correlatie_status]||"var(--t2)"}}/>
+                  <span style={{fontSize:13,fontWeight:700,color:corrColors[data.correlatie_status]||"var(--t2)"}}>{data.correlatie_status}</span>
                 </div>
-                {data?.correlatie_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.correlatie_uitleg}</div>}
+                {data?.correlatie_uitleg&&<div style={{fontSize:11,color:"var(--t2)",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:8}}>{data.correlatie_uitleg}</div>}
               </div>
             )}
 
@@ -793,7 +793,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
               <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:8,padding:"14px 16px"}}>
                 <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:6}}>FAIL CONDITION</div>
-                <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{data?.fail_condition||"—"}</div>
+                <div style={{fontSize:12,color:"var(--t2)",lineHeight:1.6}}>{data?.fail_condition||"—"}</div>
               </div>
             </div>
           </div>
@@ -813,7 +813,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 <div style={{fontSize:9,color:"#6366f1",letterSpacing:"0.1em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
                   <span>🧠</span> AI OPINIE
                 </div>
-                <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.75,fontStyle:"italic"}}>{data.ai_opinie}</div>
+                <div style={{fontSize:12,color:"var(--t2)",lineHeight:1.75,fontStyle:"italic"}}>{data.ai_opinie}</div>
               </div>
             )}
 
@@ -830,21 +830,21 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                     return (
                       <div key={i} style={{borderLeft:"2px solid rgba(239,68,68,0.3)",paddingLeft:10}}>
                         <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,flexWrap:"wrap"}}>
-                          <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(s.time)}</span>
+                          <span style={{fontSize:9,color:"var(--t3)",fontFamily:"var(--mono)"}}>{fmtDT(s.time)}</span>
                           <span style={{fontSize:10,fontWeight:700,color:vanC.text,background:vanC.bg,border:`1px solid ${vanC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.van}</span>
-                          <span style={{fontSize:10,color:"#4b5563"}}>→</span>
+                          <span style={{fontSize:10,color:"var(--t3)"}}>→</span>
                           <span style={{fontSize:10,fontWeight:700,color:naarC.text,background:naarC.bg,border:`1px solid ${naarC.border}44`,borderRadius:4,padding:"1px 7px"}}>{s.naar}</span>
-                          <span style={{fontSize:9,color:"#374151"}}>{s.confidence}%</span>
+                          <span style={{fontSize:9,color:"var(--t3)"}}>{s.confidence}%</span>
                         </div>
                         {s.nieuws?.length>0&&(
                           <div style={{display:"flex",flexDirection:"column",gap:4}}>
-                            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:2}}>NIEUWS OP DAT MOMENT:</div>
+                            <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.08em",marginBottom:2}}>NIEUWS OP DAT MOMENT:</div>
                             {s.nieuws.map((n,j)=>(
                               <div key={j} style={{display:"flex",gap:5,alignItems:"flex-start"}}>
-                                <span style={{fontSize:9,color:"#4b5563",flexShrink:0,marginTop:1}}>[{n.source}]</span>
+                                <span style={{fontSize:9,color:"var(--t3)",flexShrink:0,marginTop:1}}>[{n.source}]</span>
                                 {n.url
-                                  ? <a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#6b7280",lineHeight:1.4,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color="#9ca3af"} onMouseLeave={e=>e.target.style.color="#6b7280"}>{n.headline}</a>
-                                  : <span style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{n.headline}</span>
+                                  ? <a href={n.url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"var(--t2)",lineHeight:1.4,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color="var(--t2)"} onMouseLeave={e=>e.target.style.color="var(--t2)"}>{n.headline}</a>
+                                  : <span style={{fontSize:10,color:"var(--t2)",lineHeight:1.4}}>{n.headline}</span>
                                 }
                               </div>
                             ))}
@@ -859,25 +859,25 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* Mechanisme + Driver */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>DOMINANT MECHANISME</div>
-                <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.55}}>{data?.dominant_mechanisme||"—"}</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:6}}>DOMINANT MECHANISME</div>
+                <div style={{fontSize:11,color:"var(--t2)",lineHeight:1.55}}>{data?.dominant_mechanisme||"—"}</div>
               </div>
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6}}>TREND DRIVER</div>
-                <div style={{fontSize:14,fontWeight:700,color:"#9ca3af"}}>{data?.trend_driver?.toUpperCase()||"—"}</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:6}}>TREND DRIVER</div>
+                <div style={{fontSize:14,fontWeight:700,color:"var(--t2)"}}>{data?.trend_driver?.toUpperCase()||"—"}</div>
               </div>
             </div>
 
             {/* Key confluences */}
             {data?.key_confluences?.length>0&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>KEY CONFLUENCES</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:10}}>KEY CONFLUENCES</div>
                 <div style={{display:"flex",flexDirection:"column",gap:7}}>
                   {data.key_confluences.map((cf,i)=>(
                     <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                       <div style={{width:5,height:5,borderRadius:"50%",background:acc,marginTop:5,flexShrink:0}}/>
-                      <span style={{fontSize:11,color:"#9ca3af",lineHeight:1.5}}>{cf}</span>
+                      <span style={{fontSize:11,color:"var(--t2)",lineHeight:1.5}}>{cf}</span>
                     </div>
                   ))}
                 </div>
@@ -886,20 +886,20 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* News items — clickable */}
             {data?.news_items?.length>0&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>RELEVANTE NIEUWS</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"14px 16px"}}>
+                <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:10}}>RELEVANTE NIEUWS</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {data.news_items.map((n,i)=>(
-                    <div key={i} style={{borderLeft:`2px solid ${dirColor[n.direction]||"#374151"}`,paddingLeft:10,cursor:n.url?"pointer":"default"}}
+                    <div key={i} style={{borderLeft:`2px solid ${dirColor[n.direction]||"var(--t3)"}`,paddingLeft:10,cursor:n.url?"pointer":"default"}}
                       onClick={()=>n.url&&window.open(n.url,"_blank")}>
                       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
-                        {n.time&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time}</span>}
-                        {n.date&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#374151"}}>{n.date}</span>}
-                        {n.source&&<Badge label={n.source} color="#6b7280"/>}
-                        <span style={{fontSize:11,color:dirColor[n.direction]||"#9ca3af",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
-                        {n.url&&<span style={{fontSize:9,color:"#374151",marginLeft:"auto"}}>↗ openen</span>}
+                        {n.time&&<span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--t3)"}}>{n.time}</span>}
+                        {n.date&&<span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--t3)"}}>{n.date}</span>}
+                        {n.source&&<Badge label={n.source} color="var(--t2)"/>}
+                        <span style={{fontSize:11,color:dirColor[n.direction]||"var(--t2)",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
+                        {n.url&&<span style={{fontSize:9,color:"var(--t3)",marginLeft:"auto"}}>↗ openen</span>}
                       </div>
-                      <div style={{fontSize:11,color:n.url?"#d1d5db":"#9ca3af",lineHeight:1.5,textDecoration:n.url?"underline":"none",textDecorationColor:"rgba(255,255,255,0.1)"}}>{n.headline}</div>
+                      <div style={{fontSize:11,color:n.url?"#d1d5db":"var(--t2)",lineHeight:1.5,textDecoration:n.url?"underline":"none",textDecorationColor:"rgba(255,255,255,0.1)"}}>{n.headline}</div>
                     </div>
                   ))}
                 </div>
@@ -914,8 +914,8 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
 function ConfidenceBar({ value, color, animated=true }) {
   return (
-    <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.05)",overflow:"hidden",position:"relative"}}>
-      <div className={animated?"confidence-bar":""} style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:2,boxShadow:`0 0 8px ${color}44`}}/>
+    <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}>
+      <div className={animated?"confidence-bar":""} style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:2,transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
     </div>
   );
 }
@@ -927,160 +927,130 @@ function PulseBadge({ pulse }) {
     TRADABLE: {color:"#22c55e",bg:"rgba(34,197,94,0.12)",  dot:"#22c55e",  label:"TRADABLE"},
     WILD:     {color:"#ef4444",bg:"rgba(239,68,68,0.12)",  dot:"#ef4444",  label:"WILD"},
   };
-  const c = cfg[pulse] || cfg.WAIT;
+  const cf = cfg[pulse] || cfg.WAIT;
   return (
-    <div style={{display:"flex",alignItems:"center",gap:5,background:c.bg,border:`1px solid ${c.color}30`,borderRadius:4,padding:"2px 8px"}}>
-      <div style={{width:5,height:5,borderRadius:"50%",background:c.dot,animation:"pulseDot 2s ease-in-out infinite"}}/>
-      <span style={{fontSize:9,fontWeight:700,color:c.color,letterSpacing:"0.1em"}}>{c.label}</span>
+    <div style={{display:"flex",alignItems:"center",gap:5,background:cf.bg,border:`1px solid ${cf.color}30`,borderRadius:4,padding:"2px 8px"}}>
+      <div style={{width:5,height:5,borderRadius:"50%",background:cf.dot,animation:"pulseDot 2s ease-in-out infinite"}}/>
+      <span style={{fontSize:9,fontWeight:700,color:cf.color,letterSpacing:"0.1em"}}>{cf.label}</span>
     </div>
   );
 }
 
-function AssetCard({ asset, data, index, loading, updating: updatingProp, onClick, onUpdate, accent, livePrice, breakingNews }) {
+function AssetCard({ asset, data, index, loading, updating: updatingProp, onClick, onUpdate, accent, livePrice }) {
   const [vis, setVis] = useState(false);
-  const [updatingLocal, setUpdatingLocal] = useState(false);
-  const updating = updatingProp || updatingLocal;
+  const [updLocal, setUpdLocal] = useState(false);
+  const updating = updatingProp || updLocal;
   const acc = accent || DEFAULT_ACCENT;
-  const meta = ASSET_META[asset.id] || {};
 
-  useEffect(()=>{const t=setTimeout(()=>setVis(true),index*90);return()=>clearTimeout(t);},[data,loading]);
+  useEffect(()=>{const t=setTimeout(()=>setVis(true),index*80);return()=>clearTimeout(t);},[data,loading]);
 
-  const bias = resolveBias(data?.bias, data?.confidence);
-  const c = biasColors[bias] || biasColors.Neutraal;
-  const rawPrice  = livePrice?.price  || data?.price_today        || null;
-  const rawChange = livePrice?.change || data?.price_change_today || null;
-  const displayPrice  = rawPrice  && parseFloat(rawPrice)  > 0 ? rawPrice  : null;
-  const displayChange = rawChange && rawChange !== "+0.00%" && rawChange !== "-0.00%" ? rawChange : null;
-  const priceUp = livePrice ? livePrice.direction === "up" : data?.price_direction === "up";
+  const bias   = resolveBias(data?.bias, data?.confidence);
+  const bc     = biasColors[bias] || biasColors.Neutraal;
+  const assetColor = ASSET_META[asset.id]?.color || acc;
+  const rawP   = livePrice?.price  || null;
+  const rawChg = livePrice?.change || null;
+  const price  = rawP && parseFloat(rawP) > 0 ? rawP : null;
+  const chg    = rawChg && rawChg !== "+0.00%" && rawChg !== "-0.00%" ? rawChg : null;
+  const up     = livePrice?.direction === "up";
+  const conf   = data?.confidence || 0;
+  const hold   = data?.macro_hold || 0;
 
-  const handleUpdate = async (e) => {
+  const handleRefresh = async (e) => {
     e.stopPropagation();
     if(updating || !onUpdate) return;
-    setUpdatingLocal(true);
-    try { await onUpdate(asset); } catch(_) {}
-    setUpdatingLocal(false);
+    setUpdLocal(true);
+    try{ await onUpdate(asset); }catch(_){}
+    setUpdLocal(false);
   };
-
-  const conf = data?.confidence || 0;
-  const hold = data?.macro_hold || 0;
 
   return (
     <div
       onClick={data ? onClick : undefined}
-      className="card-hover"
+      className="card-hover card-in"
       style={{
-        background:"linear-gradient(160deg,#12131a,#0d0e14)",
-        border:`1px solid ${data?.bias ? c.border+"55" : "rgba(255,255,255,0.06)"}`,
-        borderRadius:8,
-        padding:0,
-        opacity:vis?1:0,
-        transform:vis?"translateY(0)":"translateY(16px)",
-        transition:"opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)",
+        background:`linear-gradient(160deg,#0f1014,#0c0d11)`,
+        border:`1px solid ${data?.bias ? bc.border+"44" : "rgba(255,255,255,0.06)"}`,
+        borderRadius:10,
+        opacity: vis ? 1 : 0,
+        transform: vis ? "none" : "translateY(12px)",
+        transition:"opacity 0.5s ease, transform 0.5s ease, border-color 0.3s ease",
+        cursor: data ? "pointer" : "default",
         position:"relative",
         overflow:"hidden",
-        cursor:data?"pointer":"default",
       }}
     >
-      {/* Top gradient accent line */}
-      <div style={{height:2,background:data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : updating ? `linear-gradient(90deg,transparent,#6366f1,transparent)` : "transparent", animation:updating?"shimmer 1.5s ease-in-out infinite":"none", backgroundSize:"200% 100%"}}/>
+      {/* Asset color glow */}
+      <div style={{position:"absolute",top:-40,right:-40,width:120,height:120,borderRadius:"50%",background:assetColor,opacity:0.04,filter:"blur(30px)",pointerEvents:"none"}}/>
+      {/* Loading bar */}
+      {updating && <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${acc},transparent)`,animation:"pulse 1s infinite"}}/>}
 
-      {/* Asset background glow */}
-      <div style={{position:"absolute",top:-40,right:-20,width:140,height:140,borderRadius:"50%",background:meta.color?`radial-gradient(circle,${meta.color}08,transparent 70%)`:"transparent",pointerEvents:"none"}}/>
-
-      <div style={{padding:"18px 20px"}}>
-        {/* Header row */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <AssetLogo id={asset.id} size={38}/>
-            <div>
-              <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2}}>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:15,fontWeight:700,color:"#f1f2f4",letterSpacing:"0.04em"}}>{asset.label}</span>
-                {displayChange&&(
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:priceUp?"#22c55e":"#ef4444",background:priceUp?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.1)",borderRadius:4,padding:"1px 6px"}}>
-                    {priceUp?"↑":"↓"}{displayChange}
-                  </span>
-                )}
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:6}}>
-                {displayPrice&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:600,color:"#9ca3af"}}>{displayPrice}</span>}
-                <span style={{fontSize:10,color:"#374151"}}>{asset.full}</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-            {data?.bias ? (
-              <div style={{background:c.bg,border:`1px solid ${c.border}55`,borderRadius:8,padding:"5px 12px"}}>
-                <span style={{fontSize:12,fontWeight:800,color:c.text,letterSpacing:"0.08em"}}>{bias?.toUpperCase()}</span>
-              </div>
-            ) : loading ? <div style={{width:80,height:28,borderRadius:8,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
-            <button onClick={handleUpdate} title="Refresh"
-              style={{background:updating?"rgba(99,102,241,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${updating?"#6366f155":"rgba(255,255,255,0.08)"}`,borderRadius:6,padding:"4px 8px",cursor:updating?"wait":"pointer",display:"flex",alignItems:"center",gap:4,color:updating?"#818cf8":"#4b5563",fontSize:10}}>
-              <span style={{display:"inline-block",animation:updating?"spin 0.8s linear infinite":"none",fontSize:12}}>⟳</span>
-            </button>
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"14px 16px 10px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <AssetLogo id={asset.id} size={38}/>
+          <div>
+            <div style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:700,color:"var(--t1)",letterSpacing:"0.04em"}}>{asset.label}</div>
+            <div style={{fontSize:10,color:"var(--t3)",marginTop:1}}>{asset.full}</div>
           </div>
         </div>
-
-        {data ? (
-          <>
-            {/* Confidence + Hold bars */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-              <div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>CONFIDENCE</span>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:acc}}>{conf}%</span>
-                </div>
-                <ConfidenceBar value={conf} color={acc}/>
-              </div>
-              <div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>HOLD</span>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:"#6366f1"}}>{hold}<span style={{fontSize:9,color:"#374151"}}>/100</span></span>
-                </div>
-                <ConfidenceBar value={hold} color="#6366f1"/>
-              </div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+          {price && (
+            <div style={{display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:600,color:"var(--t1)"}}>{price}</span>
+              {chg && <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:600,color:up?"var(--grn)":"var(--red)",background:up?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.1)",borderRadius:4,padding:"2px 6px"}}>{up?"▲":"▼"} {chg}</span>}
             </div>
-
-            {/* Divider */}
-            <div style={{height:1,background:"rgba(255,255,255,0.04)",marginBottom:12}}/>
-
-            {/* Tags row */}
-            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12,alignItems:"center"}}>
-              {data.pulse&&<PulseBadge pulse={data.pulse}/>}
-              {data.market_mood&&<span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>{data.market_mood.toUpperCase()}</span>}
-              {data.correlatie_status&&<Badge label={data.correlatie_status.toUpperCase()} color={corrColors[data.correlatie_status]||"#6b7280"}/>}
-              {data.market_regime&&<Badge label={data.market_regime.slice(0,18).toUpperCase()} color="#6366f1"/>}
-            </div>
-
-            {/* AI Summary block */}
-            <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.14)",borderRadius:10,padding:"11px 13px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
-                <div style={{width:16,height:16,borderRadius:5,background:"rgba(99,102,241,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontSize:9}}>✦</span>
-                </div>
-                <span style={{fontSize:9,color:"#6366f1",fontWeight:700,letterSpacing:"0.12em"}}>AI ANALYSE</span>
-                {data.confidence_label&&<span style={{fontSize:8,color:"rgba(99,102,241,0.5)",marginLeft:"auto"}}>{data.confidence_label}</span>}
-              </div>
-              <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.65}}>{data.mini_summary||"—"}</div>
-            </div>
-
-            {/* Deep Dive CTA */}
-            <div style={{marginTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:10,color:"#374151"}}>Geanalyseerd {data.analysed_at?fmtTime(data.analysed_at):"—"}</span>
-              <div style={{display:"flex",alignItems:"center",gap:4,color:acc,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>
-                <span>DEEP DIVE</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </div>
-            </div>
-          </>
-        ) : loading ? (
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {[85,65,100,55,75].map((w,i)=><Skeleton key={i} w={`${w}%`}/>)}
-          </div>
-        ) : (
-          <div style={{textAlign:"center",padding:"28px 0",color:"#2d3139",fontSize:11,letterSpacing:"0.08em"}}>KLIK ANALYSE UITVOEREN</div>
-        )}
+          )}
+          <button onClick={handleRefresh} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:5,padding:"3px 8px",color:updating?acc:"var(--t3)",fontSize:11,display:"flex",alignItems:"center",gap:4}}>
+            <span style={{display:"inline-block",animation:updating?"spin 0.8s linear infinite":"none"}}>⟳</span>
+          </button>
+        </div>
       </div>
+
+      {data ? (
+        <>
+          {/* Confidence + Hold bars */}
+          <div style={{padding:"6px 16px 10px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em"}}>CONFIDENCE</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:acc}}>{conf}%</span>
+              </div>
+              <ConfidenceBar value={conf} color={acc}/>
+            </div>
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em"}}>HOLD</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:"#6366F1"}}>{hold}</span>
+              </div>
+              <ConfidenceBar value={hold} color="#6366F1"/>
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div style={{padding:"0 16px 10px",display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
+            {data.pulse && <PulseBadge pulse={data.pulse}/>}
+            {data.bias && <Badge label={bias?.toUpperCase()} color={bc.border}/>}
+            {data.correlatie_status && <Badge label={data.correlatie_status} color={corrColors[data.correlatie_status]||"var(--t3)"}/>}
+            {data.market_regime && <Badge label={data.market_regime.slice(0,18)} color="#6366F1"/>}
+          </div>
+
+          {/* Mini summary */}
+          <div style={{margin:"0 16px 10px",padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,border:"1px solid rgba(255,255,255,0.04)"}}>
+            <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:5}}>AI ANALYSE</div>
+            <div style={{fontSize:11,color:"var(--t2)",lineHeight:1.6}}>{data.mini_summary || "—"}</div>
+          </div>
+
+          {/* Footer */}
+          <div style={{padding:"8px 16px",borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(0,0,0,0.2)"}}>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{data.analysed_at ? fmtTime(data.analysed_at) : "—"}</span>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:700,color:acc,letterSpacing:"0.1em"}}>DEEP DIVE →</span>
+          </div>
+        </>
+      ) : loading ? (
+        <div style={{padding:"0 16px 16px"}}>{[90,70,50,100,80].map((w,i)=><Skeleton key={i} w={`${w}%`}/>)}</div>
+      ) : (
+        <div style={{padding:"20px 16px",textAlign:"center",fontFamily:"var(--mono)",fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>GEEN ANALYSE</div>
+      )}
     </div>
   );
 }
@@ -1090,13 +1060,13 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:420,gap:14}}>
       <div style={{fontSize:40,opacity:0.4}}>📡</div>
-      <div style={{color:"#374151",fontSize:12,letterSpacing:"0.05em"}}>Klik INTEL LADEN om live marktdata op te halen</div>
+      <div style={{color:"var(--t3)",fontSize:12,letterSpacing:"0.05em"}}>Klik INTEL LADEN om live marktdata op te halen</div>
       <button onClick={onRefresh} style={btnStyle(false)}><span>▶</span> INTEL LADEN</button>
     </div>
   );
   if (loading) return (
     <div style={{display:"flex",flexDirection:"column",gap:16,paddingTop:20}}>
-      {[1,2,3].map(i=><div key={i} style={{background:"#111214",borderRadius:8,padding:18}}>{[100,80,60,90,70].map((w,j)=><Skeleton key={j} w={`${w}%`} h={j===0?12:8}/>)}</div>)}
+      {[1,2,3].map(i=><div key={i} style={{background:"var(--bg1)",borderRadius:8,padding:18}}>{[100,80,60,90,70].map((w,j)=><Skeleton key={j} w={`${w}%`} h={j===0?12:8}/>)}</div>)}
     </div>
   );
 
@@ -1109,8 +1079,8 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
       {/* Session + refresh row */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10}}>
         <div>
-          <div style={{fontSize:12,color:"#9ca3af",marginBottom:3}}>{data.session_context}</div>
-          {data.timestamp&&<div style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>📡 {fmtDT(data.timestamp)}</div>}
+          <div style={{fontSize:12,color:"var(--t2)",marginBottom:3}}>{data.session_context}</div>
+          {data.timestamp&&<div style={{fontSize:10,color:"var(--t3)",fontFamily:"var(--mono)"}}>📡 {fmtDT(data.timestamp)}</div>}
         </div>
         <button onClick={onRefresh} disabled={status==="loading-intel"} style={btnStyle(status==="loading-intel")}>
           <span>↺</span>{status==="loading-intel"?`LADEN${".".repeat(dots)}`:"VERNIEUWEN"}
@@ -1118,28 +1088,28 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
       </div>
 
       {/* Regime banner */}
-      <div style={{background:"#0f1011",border:`1px solid ${(yieldColors[data.macro_regime]||"#374151")}33`,borderRadius:8,padding:"12px 18px",display:"flex",gap:16,flexWrap:"wrap",alignItems:"center"}}>
+      <div style={{background:"var(--bg1)",border:`1px solid ${(yieldColors[data.macro_regime]||"var(--t3)")}33`,padding:"12px 18px",display:"flex",gap:16,flexWrap:"wrap",alignItems:"center"}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.macro_regime]||"#6b7280",boxShadow:`0 0 8px ${yieldColors[data.macro_regime]||"#6b7280"}`}}/>
-          <span style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em"}}>MACRO REGIME</span>
-          <span style={{fontSize:12,fontWeight:700,color:yieldColors[data.macro_regime]||"#9ca3af"}}>{data.macro_regime}</span>
+          <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.macro_regime]||"var(--t2)",boxShadow:`0 0 8px ${yieldColors[data.macro_regime]||"var(--t2)"}`}}/>
+          <span style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>MACRO REGIME</span>
+          <span style={{fontSize:12,fontWeight:700,color:yieldColors[data.macro_regime]||"var(--t2)"}}>{data.macro_regime}</span>
         </div>
-        <div style={{fontSize:11,color:"#9ca3af",flex:1}}>{data.dominant_driver}</div>
+        <div style={{fontSize:11,color:"var(--t2)",flex:1}}>{data.dominant_driver}</div>
       </div>
 
       {/* Yield analysis */}
       {data.yield_analysis&&(
-        <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
-          <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>YIELD ANALYSE</div>
+        <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:0,padding:"14px 18px"}}>
+          <div style={{fontSize:10,color:"var(--t3)",letterSpacing:"0.12em",marginBottom:10}}>YIELD ANALYSE</div>
           <div style={{display:"flex",gap:20,flexWrap:"wrap",marginBottom:8}}>
             {[{l:"US10Y",v:data.yield_analysis.us10y_level},{l:"US2Y",v:data.yield_analysis.us2y_level},{l:"SPREAD",v:data.yield_analysis.spread},{l:"REGIME",v:data.yield_analysis.regime}].map(({l,v})=>(
               <div key={l} style={{display:"flex",gap:6,alignItems:"center"}}>
-                <span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>{l}</span>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:acc}}>{v}</span>
+                <span style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>{l}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:12,fontWeight:700,color:acc}}>{v}</span>
               </div>
             ))}
           </div>
-          <div style={{fontSize:11,color:"#6b7280"}}>{data.yield_analysis.implication}</div>
+          <div style={{fontSize:11,color:"var(--t2)"}}>{data.yield_analysis.implication}</div>
         </div>
       )}
 
@@ -1147,29 +1117,29 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
       <div style={{display:"grid",gridTemplateColumns:"minmax(0,1.1fr) minmax(0,0.9fr)",gap:14}}>
 
         {/* News */}
-        <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
-          <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:12}}>NIEUWS FEED</div>
+        <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:0,padding:"14px 18px"}}>
+          <div style={{fontSize:10,color:"var(--t3)",letterSpacing:"0.12em",marginBottom:12}}>NIEUWS FEED</div>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {[...(data.news_items||[])].sort((a,b)=>{
               const t = s => { const m=String(s||"").match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
               return t(b.time)-t(a.time);
             }).map((n,i)=>(
               <div key={i} onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-                style={{borderLeft:`2px solid ${impactColor[n.impact]||"#374151"}`,paddingLeft:10,cursor:"pointer",borderRadius:"0 4px 4px 0",transition:"background 0.15s"}}
+                style={{borderLeft:`2px solid ${impactColor[n.impact]||"var(--t3)"}`,paddingLeft:10,cursor:"pointer",borderRadius:"0 4px 4px 0",transition:"background 0.15s"}}
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(99,102,241,0.06)"}
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap"}}>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time||"—"}</span>
-                  <span style={{fontSize:9,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{new Date().toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",day:"2-digit",month:"2-digit"})}</span>
-                  <Badge label={n.source} color="#6b7280"/>
+                  <span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--t3)"}}>{n.time||"—"}</span>
+                  <span style={{fontSize:9,color:"#2d3748",fontFamily:"var(--mono)"}}>{new Date().toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",day:"2-digit",month:"2-digit"})}</span>
+                  <Badge label={n.source} color="var(--t2)"/>
                   <Badge label={n.category} color="#6366f1"/>
                   {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
-                  <span style={{fontSize:11,color:dirColor[n.direction]||"#9ca3af",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
-                  <span style={{fontSize:9,color:"#4b5563",marginLeft:"auto"}}>⚡ impact</span>
+                  <span style={{fontSize:11,color:dirColor[n.direction]||"var(--t2)",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
+                  <span style={{fontSize:9,color:"var(--t3)",marginLeft:"auto"}}>⚡ impact</span>
                 </div>
                 <div style={{fontSize:11,color:"#d1d5db",lineHeight:1.5,marginBottom:4}}>{n.headline}</div>
                 {n.assets_affected&&n.assets_affected.length>0&&(
-                  <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{n.assets_affected.map(a=><Badge key={a} label={a} color="#374151"/>)}</div>
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{n.assets_affected.map(a=><Badge key={a} label={a} color="var(--t3)"/>)}</div>
                 )}
               </div>
             ))}
@@ -1181,13 +1151,13 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
 
           {/* Cross-asset signals */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
-            <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
-              <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>CROSS-ASSET SIGNALEN</div>
+            <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:0,padding:"14px 18px"}}>
+              <div style={{fontSize:10,color:"var(--t3)",letterSpacing:"0.12em",marginBottom:10}}>CROSS-ASSET SIGNALEN</div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {data.cross_asset_signals.map((s,i)=>(
                   <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                     <Badge label={s.signal} color={s.type==="anomalie"?"#ef4444":"#6366f1"}/>
-                    <span style={{fontSize:11,color:"#6b7280",flex:1,lineHeight:1.4}}>{s.implication}</span>
+                    <span style={{fontSize:11,color:"var(--t2)",flex:1,lineHeight:1.4}}>{s.implication}</span>
                   </div>
                 ))}
               </div>
@@ -1197,24 +1167,24 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
           {/* Risk radar only */}
           <div style={{display:"grid",gridTemplateColumns:"1fr",gap:10}}>
             {data.risk_radar&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
-                <InfoTooltip text="Samengestelde risicoscore van 0-100 op basis van macro-omgeving, volatiliteit en cross-asset signalen. Groen (0-40) = laag risico, Oranje (40-70) = verhoogd, Rood (70-100) = hoog risico." color="#6b7280">
-                  <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:8}}>RISK RADAR</div>
+              <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
+                <InfoTooltip text="Samengestelde risicoscore van 0-100 op basis van macro-omgeving, volatiliteit en cross-asset signalen. Groen (0-40) = laag risico, Oranje (40-70) = verhoogd, Rood (70-100) = hoog risico." color="var(--t2)">
+                  <div style={{fontSize:10,color:"var(--t3)",letterSpacing:"0.12em",marginBottom:8}}>RISK RADAR</div>
                 </InfoTooltip>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
                   <div style={{position:"relative",width:48,height:48,flexShrink:0}}>
                     <svg width="48" height="48" viewBox="0 0 48 48">
-                      <circle cx="24" cy="24" r="18" fill="none" stroke="#1f2023" strokeWidth="3.5"/>
+                      <circle cx="24" cy="24" r="18" fill="none" stroke="var(--line)" strokeWidth="3.5"/>
                       <circle cx="24" cy="24" r="18" fill="none" stroke={data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"} strokeWidth="3.5" strokeDasharray={`${(data.risk_radar.score/100)*113} 113`} strokeLinecap="round" transform="rotate(-90 24 24)"/>
                     </svg>
-                    <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:"#e5e7eb"}}>{data.risk_radar.score}</div>
+                    <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--mono)",fontSize:11,fontWeight:700,color:"#e5e7eb"}}>{data.risk_radar.score}</div>
                   </div>
                   <div>
                     <div style={{fontSize:11,fontWeight:700,color:data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e",marginBottom:4}}>{data.risk_radar.label}</div>
                     {(data.risk_radar.factors_text||"").split(",").concat(data.risk_radar.factors||[]).filter(Boolean).map((f,i)=>(
                       <div key={i} style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
-                        <div style={{width:3,height:3,borderRadius:"50%",background:"#374151"}}/>
-                        <span style={{fontSize:9,color:"#6b7280"}}>{f}</span>
+                        <div style={{width:3,height:3,borderRadius:"50%",background:"var(--t3)"}}/>
+                        <span style={{fontSize:9,color:"var(--t2)"}}>{f}</span>
                       </div>
                     ))}
                   </div>
@@ -1245,181 +1215,90 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
   const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long"});
 
-  // Overall market sentiment from results
   const allBiases = aResult ? assets.map(a=>aResult.assets?.[a.id]?.bias).filter(Boolean) : [];
-  const bullCount = allBiases.filter(b=>b.toLowerCase().includes("bull")).length;
-  const bearCount = allBiases.filter(b=>b.toLowerCase().includes("bear")).length;
-  const overallSentiment = bullCount > bearCount ? "Bullish" : bearCount > bullCount ? "Bearish" : "Gemengd";
-  const sentimentColor = overallSentiment==="Bullish"?"#22c55e":overallSentiment==="Bearish"?"#ef4444":"#f59e0b";
-  const avgConf = aResult ? Math.round(assets.reduce((s,a)=>s+(aResult.assets?.[a.id]?.confidence||0),0)/assets.length) : null;
+  const bullCount = allBiases.filter(b=>b?.toLowerCase().includes("bull")).length;
+  const bearCount = allBiases.filter(b=>b?.toLowerCase().includes("bear")).length;
+  const overallSent = bullCount > bearCount ? "BULLISH" : bearCount > bullCount ? "BEARISH" : "GEMENGD";
+  const sentCol = overallSent==="BULLISH"?"var(--grn)":overallSent==="BEARISH"?"var(--red)":"#f59e0b";
+  const avgConf = aResult ? Math.round(assets.reduce((s,a)=>s+(aResult.assets?.[a.id]?.confidence||0),0)/assets.length) : 0;
+
+  const newsToShow = (rssItems.length > 0 ? rssItems : breakingNews).slice(0,6);
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-      {/* Hero header */}
-      <div style={{background:"linear-gradient(135deg,#0d0f14,#111318)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"32px 36px",position:"relative",overflow:"hidden"}}>
-        {/* Background glow */}
-        <div style={{position:"absolute",top:-60,right:-60,width:300,height:300,borderRadius:"50%",background:`radial-gradient(circle,${acc}12,transparent 70%)`,pointerEvents:"none"}}/>
-        <div style={{position:"absolute",bottom:-40,left:100,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,0.08),transparent 70%)",pointerEvents:"none"}}/>
-
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:20,position:"relative"}}>
-          <div>
-            <div style={{fontSize:11,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
-              {dateStr.toUpperCase()} · {timeStr} AMS
+      {/* Hero card */}
+      <div style={{background:"linear-gradient(160deg,#0f1014 60%,rgba(8,153,129,0.08))",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"24px 28px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:20}}>
+        <div>
+          <div style={{fontFamily:"var(--mono)",fontSize:9,color:"var(--t3)",letterSpacing:"0.16em",marginBottom:10}}>
+            {dateStr.toUpperCase()} · {timeStr} AMS
+          </div>
+          <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1.1,color:"var(--t1)",marginBottom:8}}>
+            AI Market<br/><span style={{color:acc}}>Intelligence</span>
+          </h1>
+          {presession ? (
+            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
+              <div style={{width:6,height:6,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"var(--grn)":presession.mood?.toLowerCase().includes("bear")?"var(--red)":"#f59e0b",animation:"pulseDot 2s infinite"}}/>
+              <span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--t2)"}}>{presession.session} · <span style={{color:presession.mood?.toLowerCase().includes("bull")?"var(--grn)":presession.mood?.toLowerCase().includes("bear")?"var(--red)":"#f59e0b"}}>{presession.mood}</span></span>
             </div>
-            <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.03em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
-              AI Market<br/><span style={{color:acc}}>Intelligence</span>
-            </h1>
-            <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
-              Institutioneel macro-analyse systeem. Bias geeft richting — CVD &amp; aggressor geven entry.
-            </p>
-            {presession&&(
-              <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"5px 12px"}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:11,color:"#9ca3af",fontWeight:500}}>{presession.session}</span>
-                  <span style={{fontSize:11,fontWeight:700,color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b"}}>{presession.mood}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Run button */}
-          <div style={{display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end"}}>
-            <button onClick={onRunHybrid} disabled={isRunning}
-              className="btn-primary"
-              style={{background:isRunning?`${acc}22`:`linear-gradient(135deg,${acc},${acc}bb)`,border:"none",borderRadius:8,padding:"14px 28px",color:isRunning?acc:"#000",fontWeight:800,fontSize:13,letterSpacing:"0.06em",display:"flex",alignItems:"center",gap:9,cursor:isRunning?"not-allowed":"pointer",boxShadow:isRunning?"none":`0 4px 20px ${acc}44`}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>
-                {isRunning
-                  ? <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                  : <path d="M5 3l14 9-14 9V3z" fill="currentColor"/>}
-              </svg>
-              {isRunning?"ANALYSE BEZIG...":"HYBRID ANALYSE STARTEN"}
-            </button>
-            {lastRefresh&&(
-              <span style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>
-                Laatste update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}
-              </span>
-            )}
-          </div>
+          ) : (
+            <div style={{fontSize:11,color:"var(--t3)",lineHeight:1.5}}>Institutioneel macro-analyse systeem. Bias geeft richting — CVD &amp; aggressor geven entry.</div>
+          )}
         </div>
+        <button onClick={onRunHybrid} disabled={isRunning}
+          style={{background:isRunning?`${acc}22`:`linear-gradient(135deg,${acc},${acc}cc)`,border:"none",borderRadius:10,padding:"12px 24px",color:isRunning?acc:"#000",fontWeight:700,fontSize:12,letterSpacing:"0.08em",fontFamily:"var(--mono)",display:"flex",alignItems:"center",gap:8,opacity:isRunning?0.8:1,cursor:isRunning?"not-allowed":"pointer"}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>{isRunning?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M8 5l11 7-11 7V5z" fill="currentColor"/>}</svg>
+          {isRunning?"BEZIG...":"HYBRID ANALYSE STARTEN"}
+        </button>
       </div>
 
-      {/* Stats row */}
+      {/* Stats row — only when data exists */}
       {aResult&&(
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
           {[
-            {label:"Markt Sentiment",value:overallSentiment,color:sentimentColor,sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
-            {label:"Gem. Confidence",value:avgConf+"%",color:acc,sub:"Over alle assets"},
-            {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
-            {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
-          ].map(({label,value,color,sub})=>(
-            <div key={label} style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"16px 18px"}}>
-              <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{label.toUpperCase()}</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:22,fontWeight:700,color,marginBottom:4}}>{value}</div>
-              <div style={{fontSize:10,color:"#374151"}}>{sub}</div>
+            {l:"SENTIMENT",  v:overallSent, col:sentCol},
+            {l:"AVG CONF",   v:avgConf+"%", col:acc},
+            {l:"BULL",       v:bullCount,   col:"var(--grn)"},
+            {l:"BEAR",       v:bearCount,   col:"var(--red)"},
+          ].map(({l,v,col})=>(
+            <div key={l} style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"14px 16px",textAlign:"center"}}>
+              <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.12em",marginBottom:6}}>{l}</div>
+              <div style={{fontFamily:"var(--mono)",fontSize:22,fontWeight:800,color:col}}>{v}</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Asset cards mini grid */}
-      <div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em"}}>ASSET OVERZICHT</div>
-          <button onClick={()=>onNavigate("analyse")}
-            className="btn-primary"
-            style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 14px",color:"#9ca3af",fontSize:10,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,letterSpacing:"0.06em"}}>
-            VOLLEDIGE ANALYSE
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
-          {assets.map(a=>{
-            const d = aResult?.assets?.[a.id];
-            const p = livePrices[a.id];
-            const bias = d ? resolveBias(d.bias,d.confidence) : null;
-            const bc = bias ? (biasColors[bias]||biasColors.Neutraal) : null;
-            const meta = ASSET_META[a.id]||{};
-            const priceUp = p?.direction==="up";
-            return (
-              <div key={a.id} onClick={()=>onNavigate("analyse")}
-                className="card-hover"
-                style={{background:"linear-gradient(160deg,#10111a,#0c0d13)",border:`1px solid ${bc?bc.border+"44":"rgba(255,255,255,0.06)"}`,borderRadius:8,padding:"14px 16px",cursor:"pointer",position:"relative",overflow:"hidden"}}>
-                {bc&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${bc.border},transparent)`}}/>}
-                <div style={{marginBottom:10}}>
-                  <AssetLogo id={a.id} size={32}/>
-                </div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:"#f1f2f4",marginBottom:3}}>{a.label}</div>
-                {p&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:600,color:priceUp?"#22c55e":"#ef4444",marginBottom:6}}>{priceUp?"↑":"↓"}{p.change}</div>}
-                {!p&&<div style={{fontSize:10,color:"#374151",marginBottom:6}}>—</div>}
-                {bias&&bc?(
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span style={{fontSize:9,fontWeight:700,color:bc.text,letterSpacing:"0.08em"}}>{bias.toUpperCase()}</span>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:acc}}>{d.confidence}%</span>
-                  </div>
-                ):(
-                  <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.06em"}}>GEEN ANALYSE</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Quick nav cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-        {[
-          {id:"analyse",icon:"▦",title:"Asset Analyse",desc:"Volledige bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.",color:acc},
-          {id:"intel",  icon:"◉",title:"Market Intel",desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen via Anthropic web search.",color:"#6366f1"},
-          {id:"calendar",icon:"≡",title:"Tools & Kalender",desc:"ForexFactory, TradingView, Investing.com en andere handige trading resources.",color:"#f59e0b"},
-        ].map(({id,icon,title,desc,color})=>(
-          <button key={id} onClick={()=>onNavigate(id)}
-            className="card-hover"
-            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:`1px solid ${color}22`,borderRadius:8,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,border:`1px solid rgba(255,255,255,0.06)`}}>
-            <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>
-              {icon}
-            </div>
-            <div>
-              <div style={{fontSize:13,fontWeight:700,color:"#e2e4e9",marginBottom:5}}>{title}</div>
-              <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto"}}>
-              OPEN <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Recent news strip — RSS feed (clean, works well) */}
-      {(rssItems.length>0||breakingNews.length>0)&&(
-        <div style={{background:"#0d0e12",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"14px 18px"}}>
+      {/* News feed */}
+      {newsToShow.length>0&&(
+        <div style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"14px 18px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
             <div style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-              <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>NEWS FEED</span>
+              <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:700,color:"var(--t2)",letterSpacing:"0.14em"}}>NEWS FEED</span>
             </div>
-            <button onClick={()=>onNavigate("analyse")} style={{background:"none",border:"none",color:"#374151",fontSize:9,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEER ›</button>
+            <button onClick={()=>onNavigate("intel")} style={{background:"none",border:"none",color:"var(--t3)",fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:"0.08em"}}>MEER ›</button>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:3}}>
-            {(rssItems.length>0?rssItems:breakingNews).slice(0,5).map((n,i)=>{
+          <div style={{display:"flex",flexDirection:"column",gap:2}}>
+            {newsToShow.map((n,i)=>{
               const headline = n.headline;
-              const source = n.source;
-              const time = n.time ? fmtDT(n.time) : n.timeStr||"";
-              const url = n.link||n.url||"";
+              const source   = n.source;
+              const url      = n.link||n.url||"";
+              const time     = n.time ? fmtDT(n.time instanceof Date ? n.time : new Date(n.time)) : n.timeStr||"";
+              const isBull   = n.direction==="bullish";
+              const isBear   = n.direction==="bearish";
               return (
                 <div key={i} onClick={()=>url&&window.open(url,"_blank")}
-                  className="news-item-hover"
-                  style={{display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:4,border:"1px solid transparent",cursor:url?"pointer":"default"}}>
-                  <div style={{width:2,height:30,flexShrink:0,background:"rgba(245,158,11,0.35)",borderRadius:1}}/>
+                  className="row-hover"
+                  style={{display:"flex",alignItems:"stretch",gap:8,padding:"7px 8px",borderRadius:5,cursor:url?"pointer":"default"}}>
+                  <div style={{width:2,flexShrink:0,borderRadius:1,background:isBull?"var(--grn)":isBear?"var(--red)":"rgba(255,255,255,0.1)"}}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
-                      <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{source}</span>
-                      <span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:600,color:"#f59e0b"}}>{source}</span>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{time}</span>
                     </div>
-                    <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.45,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{headline}</div>
+                    <div style={{fontSize:11,color:"var(--t1)",lineHeight:1.45,overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{headline}</div>
                   </div>
-                  {url&&<span style={{fontSize:10,color:"#2d3748",flexShrink:0}}>›</span>}
                 </div>
               );
             })}
@@ -1429,6 +1308,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
     </div>
   );
 }
+
 
 export default function HybridDashboard() {
   const [page,          setPage]          = useState("home");
@@ -2352,7 +2232,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const filteredCal  = calendarItems.filter(e=>(calFilter==="all"||e.impact===calFilter)&&(calDayFilter==="all"||e.date===calDayFilter));
   const filteredNews = calFilter==="all" ? newsItems : newsItems.filter(n=>n.impact===calFilter);
 
-  const moodColor = (m) => { if(!m) return "#6b7280"; const l=m.toLowerCase(); if(l.includes("bull")) return "#22c55e"; if(l.includes("bear")) return "#ef4444"; if(l.includes("chop")||l.includes("vol")) return accent; return "#6b7280"; };
+  const moodColor = (m) => { if(!m) return "var(--t2)"; const l=m.toLowerCase(); if(l.includes("bull")) return "#22c55e"; if(l.includes("bear")) return "#ef4444"; if(l.includes("chop")||l.includes("vol")) return accent; return "var(--t2)"; };
 
   // Time since last refresh
   const timeSinceRefresh = lastRefresh ? (() => {
@@ -2365,175 +2245,132 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
 
   return (
-    <div style={{minHeight:"100vh",background:"#060608",fontFamily:"'Syne',system-ui,sans-serif",color:"#e2e4e9",display:"flex"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg)",fontFamily:"var(--sans)",color:"var(--t1)",display:"flex"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
-          --bg: #060608;
-          --bg2: #0d0d10;
-          --bg3: #111116;
-          --border: rgba(255,255,255,0.06);
-          --border2: rgba(255,255,255,0.10);
-          --text: #e2e4e9;
-          --text2: #6b7280;
-          --text3: #374151;
-          --acc: ${accent};
-          --sidebar-w: 260px;
+          --bg:   #060608;
+          --bg1:  #0d0d10;
+          --bg2:  #111116;
+          --bg3:  #16161c;
+          --line: rgba(255,255,255,0.06);
+          --line2:rgba(255,255,255,0.10);
+          --t1:   #e2e4e9;
+          --t2:   #9ca3af;
+          --t3:   #374151;
+          --acc:  ${accent};
+          --red:  #ef4444;
+          --grn:  #22c55e;
+          --mono: 'JetBrains Mono', monospace;
+          --sans: 'Syne', system-ui, sans-serif;
         }
-        .nav-item{transition:all 0.15s ease;border-radius:8px;}
-        .nav-item:hover{background:rgba(255,255,255,0.04)!important;color:#9ca3af!important;}
-        .nav-item.active{background:${accent}15!important;color:${accent}!important;}
         *{box-sizing:border-box;margin:0;padding:0}
-        body{background:var(--bg)}
+        html,body{background:var(--bg);color:var(--t1);font-family:var(--sans)}
         ::-webkit-scrollbar{width:3px;background:transparent}
         ::-webkit-scrollbar-thumb{background:#1f2023;border-radius:4px}
-        button{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important;cursor:pointer}
-        button:hover:not(:disabled){filter:brightness(1.2);transform:translateY(-1px)}
-        .card-enter{animation:cardIn 0.4s cubic-bezier(0.4,0,0.2,1) both}
-        @keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-        @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+        button{cursor:pointer;font-family:var(--sans)}
+        button{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important}
+        button:hover:not(:disabled){filter:brightness(1.2)}
         @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
         @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-        @keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes scanline{0%{top:-10%}100%{top:110%}}
-        @keyframes glow{0%,100%{box-shadow:0 0 8px var(--acc)}50%{box-shadow:0 0 20px var(--acc),0 0 40px var(--acc)44}}
-        @keyframes loadStep{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-        .num-anim{animation:countUp 0.5s cubic-bezier(0.4,0,0.2,1) both}
-        .fade-in{animation:fadeIn 0.6s ease both}
-        .step-anim{animation:loadStep 0.3s ease both}
-        .page-enter{animation:pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both}
-        @keyframes pageIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
-        .page-exit{animation:pageOut 0.2s cubic-bezier(0.4,0,0.2,1) both}
-        @keyframes pageOut{to{opacity:0;transform:translateX(-12px)}}
-        .deep-enter{animation:deepIn 0.38s cubic-bezier(0.16,1,0.3,1) both}
-        @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
-        .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1),box-shadow 0.2s ease,border-color 0.2s ease}
-        .card-hover:hover{transform:translateY(-3px)!important;box-shadow:0 12px 40px rgba(0,0,0,0.5)!important}
-        .news-item-hover{transition:background 0.15s,border-color 0.15s}
-        .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
-        .btn-primary{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important}
-        .btn-primary:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.12);box-shadow:0 6px 20px rgba(8,153,129,0.35)}
-        .pulse-dot{animation:pulseDot 2s ease-in-out infinite}
         @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.7}}
-        .confidence-bar{transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
-        .ticker-scroll{animation:tickerMove 30s linear infinite}
-        @keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        @keyframes pageIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+        @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
+        @keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+        @keyframes dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+        .page-in{animation:pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both}
+        .card-in{animation:cardIn 0.4s cubic-bezier(0.4,0,0.2,1) both}
+        .deep-in{animation:deepIn 0.38s cubic-bezier(0.16,1,0.3,1) both}
+        .row-hover{transition:background 0.15s}
+        .row-hover:hover{background:rgba(255,255,255,0.03)!important}
+        .nav-btn{transition:color 0.12s,background 0.12s;border-radius:8px}
+        .nav-btn:hover{background:rgba(255,255,255,0.04)!important;color:var(--t1)!important}
+        .action-btn{transition:all 0.15s ease}
+        .action-btn:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px)}
+        .card-hover{transition:transform 0.2s ease,box-shadow 0.2s ease,border-color 0.2s ease}
+        .card-hover:hover{transform:translateY(-3px)!important;box-shadow:0 12px 40px rgba(0,0,0,0.5)!important}
+        .live-dot{animation:dot 2.2s ease-in-out infinite}
       `}</style>
 
       {/* ── SIDEBAR ── */}
-      <div style={{width:260,minHeight:"100vh",background:"#08080b",borderRight:"1px solid rgba(255,255,255,0.05)",display:"flex",flexDirection:"column",position:"fixed",left:0,top:0,zIndex:100,flexShrink:0}}>
-        {/* Wordmark — no logo needed */}
-        <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${accent},${accent}88)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 4px 16px ${accent}44`}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-8 4 5 3-4 5 7" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </div>
-            <div>
-              <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1}}>Hybrid<span style={{color:accent}}>Trader</span></div>
-              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1}}>DASHBOARD</div>
-            </div>
+      <div style={{width:240,minHeight:"100vh",background:"#0a0a0d",borderRight:"1px solid rgba(255,255,255,0.06)",display:"flex",flexDirection:"column",position:"fixed",left:0,top:0,zIndex:100}}>
+
+        {/* Wordmark */}
+        <div style={{padding:"18px 16px 14px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+          <div style={{fontFamily:"var(--sans)",fontSize:15,fontWeight:800,color:"var(--t1)",letterSpacing:"-0.02em",lineHeight:1}}>
+            Hybrid<span style={{color:accent}}>Trader</span>
           </div>
+          <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.14em",marginTop:4}}>DASHBOARD</div>
         </div>
 
-        {/* Live price strip */}
-        <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",flexWrap:"wrap",gap:6}}>
-          {assets.slice(0,5).map(a => {
-            const p = livePrices[a.id];
-            return (
-              <div key={a.id} style={{display:"flex",alignItems:"center",gap:4}}>
-                <AssetLogo id={a.id} size={14}/>
-                <span style={{fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:p ? (p.direction==="up"?"#22c55e":"#ef4444") : "#374151",fontWeight:600}}>
-                  {p ? p.price : "—"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Navigation */}
-        <div style={{padding:"16px 12px",flex:1}}>
-          <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",padding:"0 8px",marginBottom:8}}>NAVIGATIE</div>
+        {/* Nav */}
+        <div style={{padding:"10px 8px",flex:1,display:"flex",flexDirection:"column",gap:2}}>
+          <div style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)",letterSpacing:"0.16em",padding:"4px 8px 6px"}}>NAVIGATIE</div>
           {[
-            {id:"home",    label:"Home",    sub:"Dashboard Overview",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>},
+            {id:"home",    label:"Home",    sub:"Dashboard",
+              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5"/></svg>},
             {id:"analyse", label:"Analyse", sub:"Bias & Confidence",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>},
+              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/></svg>},
             {id:"intel",   label:"Intel",   sub:"Nieuws & Macro",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-            {id:"calendar",label:"Kalender",sub:"Links & Tools",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            {id:"calendar",label:"Tools",   sub:"Links & Kalender",
+              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
           ].map(({id,label,sub,icon})=>(
-            <button key={id} onClick={()=>switchPage(id)}
-              className={`nav-item${page===id?" active":""}`}
-              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left"}}>
-              <div style={{width:30,height:30,borderRadius:8,background:page===id?`${accent}20`:"rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                {icon}
-              </div>
+            <button key={id} onClick={()=>switchPage(id)} className="nav-btn"
+              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"var(--t3)",display:"flex",alignItems:"center",gap:9,padding:"8px 10px",cursor:"pointer",textAlign:"left",borderLeft:page===id?`2px solid ${accent}`:"2px solid transparent",transition:"all 0.15s"}}>
+              <div style={{flexShrink:0,opacity:page===id?1:0.5,color:page===id?accent:"var(--t2)"}}>{icon}</div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,letterSpacing:"0.01em"}}>{label}</div>
-                <div style={{fontSize:10,color:page===id?`${accent}88`:"#2d3748",marginTop:1}}>{sub}</div>
+                <div style={{fontSize:12,fontWeight:page===id?700:400,color:page===id?"var(--t1)":"var(--t2)",lineHeight:1.2}}>{label}</div>
+                <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",marginTop:2}}>{sub}</div>
               </div>
-              {page===id&&<div style={{marginLeft:"auto",width:3,height:20,background:accent,borderRadius:2,flexShrink:0}}/>}
             </button>
           ))}
-
-          {/* Divider */}
-          <div style={{height:1,background:"rgba(255,255,255,0.04)",margin:"12px 8px"}}/>
-
-          {/* Session status card */}
-          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 12px",margin:"0 0 8px"}}>
-            <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>SESSIE STATUS</div>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:loading?accent:aResult?"#22c55e":"#1f2937",animation:loading?"blink 1s infinite":"none",boxShadow:loading?`0 0 6px ${accent}`:aResult?"0 0 5px #22c55e":"none",flexShrink:0}}/>
-              <span style={{fontSize:11,fontWeight:600,color:loading?accent:aResult?"#22c55e":"#374151"}}>
-                {loading?"RUNNING...":aResult?"LIVE":"STANDBY"}
-              </span>
-            </div>
-            {lastRefresh&&<div style={{fontSize:10,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>Update: {timeSinceRefresh}</div>}
-            {presession&&<div style={{fontSize:10,color:"#6b7280",marginTop:3}}>{presession.session} · Mood: <span style={{color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#9ca3af"}}>{presession.mood}</span></div>}
-          </div>
-
-          {/* Asset quick-view */}
-          {aResult&&<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 12px"}}>
-            <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>BIAS OVERZICHT</div>
-            {assets.map(a => {
-              const d = aResult.assets?.[a.id];
-              if(!d) return null;
-              const bColor = d.bias?.toLowerCase().includes("bull")?"#22c55e":d.bias?.toLowerCase().includes("bear")?"#ef4444":accent;
-              return (
-                <div key={a.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                  <AssetLogo id={a.id} size={14}/>
-                  <span style={{fontSize:10,color:"#6b7280",flex:1,fontFamily:"'JetBrains Mono',monospace"}}>{a.label}</span>
-                  <span style={{fontSize:9,fontWeight:700,color:bColor,letterSpacing:"0.06em"}}>{d.bias?.toUpperCase().slice(0,4)||"—"}</span>
-                  <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{d.confidence||0}%</span>
-                </div>
-              );
-            })}
-          </div>}
         </div>
 
-        {/* Bottom */}
-        <div style={{padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,0.04)"}}>
-          <div style={{fontSize:9,color:"#1f2023",letterSpacing:"0.1em",textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>GEEN FINANCIEEL ADVIES</div>
+        {/* Status + bias overview */}
+        <div style={{padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:loading?accent:aResult?"var(--grn)":"var(--t3)",animation:loading?"blink 1s infinite":"none",flexShrink:0}}/>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,color:loading?accent:aResult?"var(--grn)":"var(--t3)",letterSpacing:"0.1em"}}>{loading?"RUNNING":aResult?"LIVE":"STANDBY"}</span>
+            {lastRefresh&&<span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",marginLeft:"auto"}}>{timeSinceRefresh}</span>}
+          </div>
+          {aResult&&(
+            <div style={{display:"flex",flexDirection:"column",gap:3}}>
+              <div style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:2}}>BIAS OVERZICHT</div>
+              {assets.map(a=>{
+                const d = aResult.assets?.[a.id];
+                if(!d) return null;
+                const bias = resolveBias(d.bias,d.confidence);
+                const bc = biasColors[bias]||biasColors.Neutraal;
+                return (
+                  <div key={a.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                    <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{a.label}</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:700,color:bc.text}}>{bias?.toUpperCase().slice(0,4)||"—"}</span>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,color:accent}}>{d.confidence}%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+      <div style={{marginLeft:240,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",background:"var(--bg)"}}>
 
       {/* ── HEADER ── */}
-      <div style={{borderBottom:"1px solid rgba(255,255,255,0.05)",padding:"0 28px",height:56,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"rgba(6,6,8,0.95)",backdropFilter:"blur(12px)",zIndex:50}}>
+      <div style={{borderBottom:"1px solid var(--line)",padding:"0 28px",height:56,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"rgba(6,6,8,0.95)",backdropFilter:"blur(12px)",zIndex:50}}>
         {/* Left: title + status */}
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div>
               <div style={{fontSize:16,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1,color:"#e2e4e9"}}>
                 Hybrid<span style={{color:accent}}>Trader</span>
-                {page!=="home"&&<span style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginLeft:10,verticalAlign:"middle"}}>{page==="analyse"?"ANALYSE":page==="intel"?"INTEL":"TOOLS"}</span>}
+                {page!=="home"&&<span style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.14em",fontFamily:"var(--mono)",marginLeft:10,verticalAlign:"middle"}}>{page==="analyse"?"ANALYSE":page==="intel"?"INTEL":"TOOLS"}</span>}
               </div>
-              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>
+              <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.12em",marginTop:2,fontFamily:"var(--mono)"}}>
                 {loading ? <span style={{color:accent,animation:"blink 1s infinite"}}>● RUNNING...</span>
                   : aResult ? <span style={{color:"#22c55e"}}>● LIVE {lastRefresh?"· "+timeSinceRefresh:""}</span>
                   : <span>● STANDBY</span>}
@@ -2547,13 +2384,12 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           {(page==="analyse"||page==="home") ? (
             <div style={{display:"flex",gap:6}}>
               <button onClick={runHybrid} disabled={isRunning}
-                style={{background:isRunning?`${accent}22`:`linear-gradient(135deg,${accent},${accent}cc)`,border:"none",borderRadius:8,padding:"8px 18px",color:isRunning?accent:"#000",fontWeight:700,fontSize:11,letterSpacing:"0.06em",display:"flex",alignItems:"center",gap:7,opacity:isRunning?0.8:1}}>
+                style={{background:isRunning?`${accent}22`:`linear-gradient(135deg,${accent},${accent}cc)`,border:"none",borderRadius:8,padding:"8px 18px",color:isRunning?accent:"#000",fontWeight:700,fontSize:11,letterSpacing:"0.06em",fontFamily:"var(--mono)",display:"flex",alignItems:"center",gap:7,opacity:isRunning?0.8:1}}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>{isRunning?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M8 5l11 7-11 7V5z" fill="currentColor"/>}</svg>
                 {hybridStatus==="intel"?"1/4 NIEUWS":hybridStatus==="marktvisie"?"2/4 VISIE":hybridStatus==="analyse"?"3/4 ANALYSE":hybridStatus==="sessie"?"4/4 SESSIE":hybridStatus==="done"?"KLAAR":"HYBRID ANALYSE"}
               </button>
-              <button onClick={runAnalysis} disabled={aStatus==="loading"} title="Alleen analyse (geen Intel)"
-                style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 12px",color:"#6b7280",fontSize:11,fontWeight:600,display:"flex",alignItems:"center",gap:5}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3"/><path d="M12 8v4l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <button onClick={runAnalysis} disabled={aStatus==="loading"} title="Alleen analyse"
+                style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 12px",color:"var(--t3)",fontSize:11,fontWeight:600,fontFamily:"var(--mono)",display:"flex",alignItems:"center",gap:5}}>
                 SESSIE
               </button>
             </div>
@@ -2572,7 +2408,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
-        <div style={{position:"fixed",inset:0,marginLeft:260,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"fixed",inset:0,marginLeft:240,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"#0d0d10",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"32px 40px",minWidth:340,maxWidth:420}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -2580,7 +2416,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
               <div>
                 <div style={{fontSize:14,fontWeight:700,color:"#e2e4e9"}}>Hybrid Analyse Uitvoeren</div>
-                <div style={{fontSize:11,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>v6.3 Institutional Flow Edition</div>
+                <div style={{fontSize:11,color:"var(--t3)",fontFamily:"var(--mono)",marginTop:2}}>v6.3 Institutional Flow Edition</div>
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -2602,11 +2438,11 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         : active
                         ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{animation:"spin 0.8s linear infinite"}}><path d="M12 2a10 10 0 0 1 10 10" stroke="#000" strokeWidth="2.5" strokeLinecap="round"/></svg>
-                        : <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{step}</span>
+                        : <span style={{fontSize:9,color:"var(--t3)",fontFamily:"var(--mono)"}}>{step}</span>
                       }
                     </div>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:11,fontWeight:active?600:400,color:done?"#22c55e":active?accent:"#4b5563"}}>{label}</div>
+                      <div style={{fontSize:11,fontWeight:active?600:400,color:done?"#22c55e":active?accent:"var(--t3)"}}>{label}</div>
                     </div>
                   </div>
                 );
@@ -2617,7 +2453,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       )}
 
       {/* ── CONTENT ── */}
-      <div key={pageKey} className="page-enter" style={{padding:"24px 28px",maxWidth:1440,margin:"0 auto",width:"100%"}}>
+      <div key={pageKey} className="page-in" style={{padding:"24px 28px",maxWidth:1440,margin:"0 auto",width:"100%"}}>
 
         {/* HOME PAGE */}
         {page==="home"&&(
@@ -2643,21 +2479,21 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* Macro bar */}
             {aResult&&(
-              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14,padding:"10px 16px",background:"#0f1011",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,alignItems:"center"}}>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14,padding:"10px 16px",background:"var(--bg2)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,alignItems:"center"}}>
                 <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
                 {(livePrices.DXY||aResult.dxy_change)&&(
-                  <InfoTooltip text="Dollar Index — meet de sterkte van de USD tegen een mandje van 6 valuta. Stijgt de DXY? Dan dalen EUR/USD en GBP/USD meestal, en staat Goud onder druk." color="#6b7280">
-                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span></div>
+                  <InfoTooltip text="Dollar Index — meet de sterkte van de USD tegen een mandje van 6 valuta. Stijgt de DXY? Dan dalen EUR/USD en GBP/USD meestal, en staat Goud onder druk." color="var(--t2)">
+                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span></div>
                   </InfoTooltip>
                 )}
                 {(livePrices.VIX||aResult.vix_level)&&(
-                  <InfoTooltip text="Volatility Index — de angstmeter van de markt. Onder 15 = rustig, 15-25 = normaal, boven 25 = verhoogde onzekerheid, boven 30 = angst/crisis. Hoge VIX = risk-off, laag VIX = risk-on." color="#6b7280">
-                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{livePrices.VIX?.price||aResult.vix_level}</span></div>
+                  <InfoTooltip text="Volatility Index — de angstmeter van de markt. Onder 15 = rustig, 15-25 = normaal, boven 25 = verhoogde onzekerheid, boven 30 = angst/crisis. Hoge VIX = risk-off, laag VIX = risk-on." color="var(--t2)">
+                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"var(--t2)"}}>{livePrices.VIX?.price||aResult.vix_level}</span></div>
                   </InfoTooltip>
                 )}
                 {(livePrices.US10Y||aResult.us10y)&&(
-                  <InfoTooltip text="Amerikaanse 10-jaars rente. Stijgende yields = USD sterker, druk op Goud en groei-aandelen. Dalende yields = risk-on, gunstig voor Goud en tech. Boven 4.5% = restrictief beleid." color="#6b7280">
-                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span></div>
+                  <InfoTooltip text="Amerikaanse 10-jaars rente. Stijgende yields = USD sterker, druk op Goud en groei-aandelen. Dalende yields = risk-on, gunstig voor Goud en tech. Boven 4.5% = restrictief beleid." color="var(--t2)">
+                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span></div>
                   </InfoTooltip>
                 )}
                 {aResult.session&&(
@@ -2665,8 +2501,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     <Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>
                   </InfoTooltip>
                 )}
-                {aResult.market_context&&<div style={{flex:1,minWidth:140,fontSize:11,color:"#6b7280"}}>{aResult.market_context}</div>}
-                {aResult.timestamp&&<div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>📊 {fmtDT(aResult.timestamp)}</div>}
+                {aResult.market_context&&<div style={{flex:1,minWidth:140,fontSize:11,color:"var(--t2)"}}>{aResult.market_context}</div>}
+                {aResult.timestamp&&<div style={{fontSize:9,color:"var(--t3)",fontFamily:"var(--mono)",marginLeft:"auto"}}>📊 {fmtDT(aResult.timestamp)}</div>}
               </div>
             )}
 
@@ -2681,11 +2517,11 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     <span style={{fontSize:13}}>🧠</span>
                     <div>
                       <div style={{fontSize:10,color:accent,letterSpacing:"0.12em",fontWeight:700}}>AI MARKTBRIEFING</div>
-                      <div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(marktvisie.marktvisie_tijd||Date.now())}</div>
+                      <div style={{fontSize:9,color:"var(--t3)",fontFamily:"var(--mono)"}}>{fmtDT(marktvisie.marktvisie_tijd||Date.now())}</div>
                     </div>
                   </div>
                   <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8,marginBottom:12}}>{marktvisie.macro_samenvatting}</div>
-                  <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
                     <span>📰 NIEUWS CONTEXT PER ASSET</span>
                     <span style={{color:"#2d3748"}}>— gebaseerd op Intel nieuws van {fmtDT(marktvisie.marktvisie_tijd||Date.now())}</span>
                   </div>
@@ -2695,10 +2531,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       {Object.entries(marktvisie.assets).map(([id,v])=>{
                         return (
                           <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px",borderLeft:"2px solid #1f2937"}}>
-                            <span style={{fontSize:10,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.04)",borderRadius:4,padding:"1px 8px",flexShrink:0,minWidth:64,textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>{id}</span>
-                            <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.6,flex:1}}>{v.visie}</span>
+                            <span style={{fontSize:10,fontWeight:700,color:"var(--t2)",background:"rgba(255,255,255,0.04)",borderRadius:4,padding:"1px 8px",flexShrink:0,minWidth:64,textAlign:"center",fontFamily:"var(--mono)"}}>{id}</span>
+                            <span style={{fontSize:10,color:"var(--t2)",lineHeight:1.6,flex:1}}>{v.visie}</span>
                             <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0,marginTop:1}}>
-                              <span style={{fontSize:8,color:"#374151",background:"rgba(255,255,255,0.03)",borderRadius:3,padding:"1px 5px",letterSpacing:"0.06em",border:"1px solid #1f2937"}}>🤖 AI</span>
+                              <span style={{fontSize:8,color:"var(--t3)",background:"rgba(255,255,255,0.03)",borderRadius:3,padding:"1px 5px",letterSpacing:"0.06em",border:"1px solid #1f2937"}}>🤖 AI</span>
                               {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316",background:"rgba(249,115,22,0.1)",borderRadius:3,padding:"1px 5px"}}>ingeprijsd?</span>}
                             </div>
                           </div>
@@ -2734,18 +2570,18 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     else if(!dxyUp && xauUp && yieldsUp)  yieldRegime = "Inflatie domineert";
                     else yieldRegime = "Normaal macro regime";
                     return (
-                      <div style={{background:"#111214",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
-                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
+                      <div style={{background:"var(--bg1)",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
+                        <div style={{fontSize:9,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
                         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                           <span style={{fontSize:11,fontWeight:700,color:corrColor}}>{corrLabel}</span>
                         </div>
-                        <div style={{fontSize:10,color:"#6b7280",marginBottom:8}}>{corrText}</div>
+                        <div style={{fontSize:10,color:"var(--t2)",marginBottom:8}}>{corrText}</div>
                         {/* DXY / XAU / US10Y / VIX live */}
                         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
                           {[["DXY",dxy],["XAU/USD",xau],["US10Y",us10y],["VIX",vix]].filter(([,v])=>v).map(([label,v])=>(
                             <div key={label} style={{background:"rgba(255,255,255,0.02)",borderRadius:5,padding:"5px 8px"}}>
-                              <div style={{fontSize:8,color:"#374151",letterSpacing:"0.08em"}}>{label}</div>
-                              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:v.raw>0?"#22c55e":"#ef4444"}}>{v.change}</div>
+                              <div style={{fontSize:8,color:"var(--t3)",letterSpacing:"0.08em"}}>{label}</div>
+                              <div style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:700,color:v.raw>0?"#22c55e":"#ef4444"}}>{v.change}</div>
                             </div>
                           ))}
                         </div>
@@ -2756,15 +2592,15 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
                   {/* High impact events vandaag */}
                   {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).length>0&&(
-                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+                    <div style={{background:"var(--bg1)",border:"1px solid var(--line)",borderRadius:8,padding:"12px 14px"}}>
                       <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:8}}>🔴 HIGH IMPACT VANDAAG</div>
                       <div style={{display:"flex",flexDirection:"column",gap:5}}>
                         {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).map((e,i)=>(
                           <div key={i} style={{display:"flex",gap:8,alignItems:"center"}}>
-                            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:e.actual?accent:"#e5e7eb",fontWeight:700,flexShrink:0}}>{e.time}</span>
-                            <span style={{fontSize:10,color:e.actual?"#4b5563":"#e5e7eb",flex:1}}>{e.event}</span>
-                            {e.actual&&<span style={{fontSize:9,fontWeight:700,color:accent,fontFamily:"'JetBrains Mono',monospace"}}>{e.actual}</span>}
-                            {!e.actual&&<span style={{fontSize:8,color:"#374151"}}>→</span>}
+                            <span style={{fontFamily:"var(--mono)",fontSize:10,color:e.actual?accent:"#e5e7eb",fontWeight:700,flexShrink:0}}>{e.time}</span>
+                            <span style={{fontSize:10,color:e.actual?"var(--t3)":"#e5e7eb",flex:1}}>{e.event}</span>
+                            {e.actual&&<span style={{fontSize:9,fontWeight:700,color:accent,fontFamily:"var(--mono)"}}>{e.actual}</span>}
+                            {!e.actual&&<span style={{fontSize:8,color:"var(--t3)"}}>→</span>}
                           </div>
                         ))}
                       </div>
@@ -2778,9 +2614,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             <div style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.12em"}}>SESSIE BREAKDOWN</span>
+                  <span style={{fontSize:10,color:"var(--t3)",letterSpacing:"0.12em"}}>SESSIE BREAKDOWN</span>
                   {psStatus==="done"&&presession&&<div style={{width:8,height:8,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>}
-                  {presession?.analysed_at&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(presession.analysed_at)}</span>}
+                  {presession?.analysed_at&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"var(--mono)"}}>{fmtDT(presession.analysed_at)}</span>}
                 </div>
                 <button onClick={runPresession} disabled={psStatus==="loading"} style={{...btnStyle(psStatus==="loading",accent),padding:"5px 12px",fontSize:9}}>
                   <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
@@ -2788,32 +2624,32 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </button>
               </div>
 
-              {psStatus==="loading"&&<div style={{background:"#0f1011",border:`1px solid ${accent}22`,borderRadius:7,padding:"9px 14px",display:"flex",alignItems:"center",gap:8}}><div style={{width:13,height:13,border:`2px solid ${accent}22`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/><span style={{fontSize:10,color:accent}}>Sessie data ophalen...</span></div>}
+              {psStatus==="loading"&&<div style={{background:"var(--bg1)",border:`1px solid ${accent}22`,borderRadius:7,padding:"9px 14px",display:"flex",alignItems:"center",gap:8}}><div style={{width:13,height:13,border:`2px solid ${accent}22`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/><span style={{fontSize:10,color:accent}}>Sessie data ophalen...</span></div>}
 
               {psStatus==="done"&&presession&&(
-                <div style={{background:"#0f1011",border:`1px solid ${accent}18`,borderRadius:7,padding:"9px 14px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
+                <div style={{background:"var(--bg1)",border:`1px solid ${accent}18`,borderRadius:7,padding:"9px 14px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                     <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 5px ${moodColor(presession.mood)}`}}/>
                     <span style={{fontSize:11,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
-                    <span style={{fontSize:9,color:"#374151"}}>{presession.mood_score||""}%</span>
+                    <span style={{fontSize:9,color:"var(--t3)"}}>{presession.mood_score||""}%</span>
                   </div>
-                  {presession.session&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:9,color:"#374151"}}>SESSIE</span><span style={{fontSize:10,fontWeight:600,color:accent,fontFamily:"'JetBrains Mono',monospace"}}>{presession.session}</span>{presession.session_time&&<span style={{fontSize:9,color:"#374151"}}>{presession.session_time}</span>}</div>}
-                  {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
+                  {presession.session&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:9,color:"var(--t3)"}}>SESSIE</span><span style={{fontSize:10,fontWeight:600,color:accent,fontFamily:"var(--mono)"}}>{presession.session}</span>{presession.session_time&&<span style={{fontSize:9,color:"var(--t3)"}}>{presession.session_time}</span>}</div>}
+                  {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="var(--t2)"/>}
                   {presession.key_events_today?.slice(0,3).map((e,i)=><Badge key={i} label={e} color={accent}/>)}
-                  <span style={{fontSize:10,color:"#6b7280",flex:1,minWidth:160,lineHeight:1.4}}>{presession.market_narrative}</span>
+                  <span style={{fontSize:10,color:"var(--t2)",flex:1,minWidth:160,lineHeight:1.4}}>{presession.market_narrative}</span>
 
                 </div>
               )}
 
               {!presession&&psStatus!=="loading"&&(
-                <div style={{background:"#0f1011",border:"1px solid #1a1b1e",borderRadius:7,padding:"9px 14px",textAlign:"center",color:"#2d3748",fontSize:10}}>
+                <div style={{background:"var(--bg2)",border:"1px solid #1a1b1e",borderRadius:7,padding:"9px 14px",textAlign:"center",color:"#2d3748",fontSize:10}}>
                   Klik BREAKDOWN LADEN voor sessie context
                 </div>
               )}
             </div>
 
             {/* ASSET GRID */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:10}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>
               {assets.map((asset,i)=>(
                 <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i}
                   loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
@@ -2826,76 +2662,69 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             </div>
 
             {/* BREAKING NEWS + RSS FEED */}
-            <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 340px",gap:10}}>
-            <div style={{background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"10px 16px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  <div style={{width:7,height:7,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 8px #ef4444",animation:"pulse 1.5s infinite"}}/>
-                  <span style={{fontSize:10,fontWeight:700,color:"#ef4444",letterSpacing:"0.12em"}}>BREAKING NEWS</span>
-                </div>
-                <span style={{fontSize:9,color:"#374151"}}>Finnhub · Reuters · Bloomberg · ForexFactory · FinancialJuice · Fed/ECB</span>
-                {bnLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span> ophalen...</span>}
-                {!bnLoading&&<button onClick={fetchBreakingNews} style={{marginLeft:"auto",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:6,color:"#6b7280",fontSize:9,padding:"4px 10px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em"}}>↺ REFRESH</button>}
+            <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 340px",gap:12}}>
+            <div style={{border:"1px solid var(--line)",overflow:"hidden"}}>
+              <div style={{padding:"7px 12px",borderBottom:"1px solid var(--line)",display:"flex",alignItems:"center",gap:8,background:"var(--bg2)"}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:"var(--red)",animation:"dot 2s infinite",flexShrink:0}}/>
+                <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.14em"}}>BREAKING NEWS</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)"}}>· Finnhub · Reuters · Bloomberg</span>
+                {bnLoading&&<span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span></span>}
+                {!bnLoading&&<button onClick={fetchBreakingNews} className="action-btn" style={{marginLeft:"auto",background:"none",border:"1px solid var(--line2)",padding:"2px 8px",fontFamily:"var(--mono)",color:"var(--t3)",fontSize:8,letterSpacing:"0.06em"}}>↺</button>}
               </div>
-              <div style={{maxHeight:380,overflowY:"auto",padding:"6px 10px 10px",display:"flex",flexDirection:"column",gap:4}}>
+              <div style={{maxHeight:380,overflowY:"auto",display:"flex",flexDirection:"column"}}>
                 {breakingNews.length===0&&!bnLoading&&(
-                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen nieuws geladen</div>
+                  <div style={{fontFamily:"var(--mono)",color:"var(--t3)",fontSize:9,textAlign:"center",padding:"28px 0",letterSpacing:"0.1em"}}>GEEN NIEUWS GELADEN</div>
                 )}
                 {[...breakingNews].sort((a,b)=>b.time-a.time).map((n,i)=>{
                   const isHigh = n.impact==="high";
                   const isBull = n.direction==="bullish";
                   const isBear = n.direction==="bearish";
-                  const dirCol = isBull?"#22c55e":isBear?"#ef4444":"#4b5563";
+                  const dirCol = isBull?"#22c55e":isBear?"#ef4444":"var(--t3)";
                   return (
-                    <div key={i}
-                      onClick={()=>setNewsImpact(n)}
-                      className="news-item-hover"
-                      style={{display:"flex",gap:0,alignItems:"stretch",borderRadius:8,border:`1px solid ${n.isNew&&i<3?"rgba(239,68,68,0.2)":isHigh?"rgba(239,68,68,0.1)":"rgba(255,255,255,0.04)"}`,background:n.isNew&&i<3?"rgba(239,68,68,0.04)":"rgba(255,255,255,0.015)",cursor:"pointer",overflow:"hidden"}}>
-                      {/* Direction stripe */}
-                      <div style={{width:3,flexShrink:0,background:isBull?"#22c55e":isBear?"#ef4444":"rgba(255,255,255,0.06)"}}/>
-                      <div style={{flex:1,padding:"9px 12px"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5,flexWrap:"wrap"}}>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#374151",letterSpacing:"0.04em"}}>{n.timeStr||fmtDT(n.time)}</span>
-                          <span style={{fontSize:9,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.05)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.06em"}}>{n.source}</span>
-                          {isHigh&&<span style={{fontSize:8,fontWeight:700,color:"#ef4444",background:"rgba(239,68,68,0.12)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.08em"}}>HIGH</span>}
-                          {n.isNew&&i<3&&<span style={{fontSize:8,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,0.12)",borderRadius:4,padding:"1px 6px",letterSpacing:"0.08em"}}>NEW</span>}
-                          {(isBull||isBear)&&<span style={{fontSize:10,color:dirCol,fontWeight:700,marginLeft:"auto"}}>{isBull?"▲":"▼"}</span>}
+                    <div key={i} onClick={()=>setNewsImpact(n)} className="row-hover"
+                      style={{display:"flex",alignItems:"stretch",borderBottom:"1px solid var(--line)",cursor:"pointer",background:n.isNew&&i<3?"rgba(224,82,82,0.04)":"transparent"}}>
+                      <div style={{width:2,flexShrink:0,background:isBull?"var(--grn)":isBear?"var(--red)":"transparent"}}/>
+                      <div style={{flex:1,padding:"9px 11px"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
+                          <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{n.timeStr||fmtDT(n.time)}</span>
+                          <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:600,color:"var(--t2)",border:"1px solid var(--line2)",padding:"0 4px"}}>{n.source}</span>
+                          {isHigh&&<span style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--red)",border:"1px solid rgba(224,82,82,0.35)",padding:"0 3px",letterSpacing:"0.06em"}}>HIGH</span>}
+                          {n.isNew&&i<3&&<span style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--grn)",border:"1px solid rgba(51,201,122,0.35)",padding:"0 3px",letterSpacing:"0.06em"}}>NEW</span>}
+                          {(isBull||isBear)&&<span style={{fontFamily:"var(--mono)",fontSize:9,color:isBull?"var(--grn)":"var(--red)",marginLeft:"auto"}}>{isBull?"▲":"▼"}</span>}
                         </div>
-                        <div style={{fontSize:11.5,color:"#c9cdd4",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
-                        {n.assets?.length>0&&<div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>{n.assets.slice(0,4).map(a=><span key={a} style={{fontSize:8,color:"#4b5563",background:"rgba(255,255,255,0.04)",borderRadius:3,padding:"1px 5px",fontFamily:"'JetBrains Mono',monospace"}}>{a}</span>)}</div>}
+                        <div style={{fontSize:11,color:"var(--t1)",lineHeight:1.5}}>{n.headline}</div>
                       </div>
-                      <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:"#2d3748",fontSize:14}}>›</div>
+                      <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"var(--t3)",fontSize:11}}>›</div>
                     </div>
                   );
                 })}
               </div>
             </div>
             {/* RSS FEED */}
-            <div style={{background:"#0d0e10",border:"1px solid #1a1b1e",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-              <div style={{padding:"10px 14px",borderBottom:"1px solid #1a1b1e",display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:10,fontWeight:700,color:"#f59e0b",letterSpacing:"0.1em"}}>📰 NEWS FEED</span>
-                <span style={{fontSize:9,color:"#374151"}}>Reuters · FF · FXStreet · Investing</span>
-                {rssLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
-                {!rssLoading&&<button onClick={fetchRssFeeds} style={{marginLeft:"auto",background:"none",border:"1px solid #1f2023",borderRadius:4,color:"#4b5563",fontSize:9,padding:"3px 8px",cursor:"pointer"}}>↺</button>}
+            <div style={{border:"1px solid var(--line)",overflow:"hidden",display:"flex",flexDirection:"column"}}>
+              <div style={{padding:"7px 12px",borderBottom:"1px solid var(--line)",display:"flex",alignItems:"center",gap:8,background:"var(--bg2)"}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:"#D97706",flexShrink:0,animation:"dot 2s infinite"}}/>
+                <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.14em"}}>NEWS FEED</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)"}}>· Reuters · FF · FXStreet</span>
+                {rssLoading&&<span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
+                {!rssLoading&&<button onClick={fetchRssFeeds} className="action-btn" style={{marginLeft:"auto",background:"none",border:"1px solid var(--line2)",padding:"2px 8px",fontFamily:"var(--mono)",color:"var(--t3)",fontSize:8}}>↺</button>}
               </div>
-              <div style={{flex:1,overflowY:"auto",maxHeight:380,padding:"6px 10px 10px",display:"flex",flexDirection:"column",gap:4}}>
+              <div style={{flex:1,overflowY:"auto",maxHeight:380,display:"flex",flexDirection:"column"}}>
                 {rssItems.length===0&&!rssLoading&&(
-                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Laden...</div>
+                  <div style={{fontFamily:"var(--mono)",color:"var(--t3)",fontSize:9,textAlign:"center",padding:"28px 0",letterSpacing:"0.1em"}}>LADEN...</div>
                 )}
                 {rssItems.map((item,i)=>(
-                  <div key={i}
-                    className="news-item-hover"
-                    onClick={()=>item.link&&window.open(item.link,"_blank")}
-                    style={{borderRadius:8,border:"1px solid rgba(245,158,11,0.08)",background:"rgba(245,158,11,0.02)",cursor:"pointer",overflow:"hidden",display:"flex",alignItems:"stretch",gap:0}}>
-                    <div style={{width:3,flexShrink:0,background:"rgba(245,158,11,0.25)"}}/>
-                    <div style={{flex:1,padding:"9px 12px"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,gap:6}}>
-                        <span style={{fontSize:9,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{item.source}</span>
-                        <span style={{fontSize:8,color:"#374151",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{fmtDT(item.time)}</span>
+                  <div key={i} onClick={()=>item.link&&window.open(item.link,"_blank")} className="row-hover"
+                    style={{display:"flex",alignItems:"stretch",borderBottom:"1px solid var(--line)",cursor:"pointer"}}>
+                    <div style={{width:2,flexShrink:0,background:"#D97706"}}/>
+                    <div style={{flex:1,padding:"8px 10px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+                        <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:600,color:"#D97706"}}>{item.source}</span>
+                        <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{fmtDT(item.time)}</span>
                       </div>
-                      <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.55}}>{item.headline}</div>
+                      <div style={{fontSize:11,color:"var(--t1)",lineHeight:1.5}}>{item.headline}</div>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"#2d3748",fontSize:14}}>›</div>
+                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"var(--t3)",fontSize:12}}>›</div>
                   </div>
                 ))}
               </div>
@@ -2918,16 +2747,16 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             <div style={{textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:10}}>📅</div>
               <div style={{fontSize:16,fontWeight:700,color:"#e5e7eb",letterSpacing:"0.08em",marginBottom:6}}>ECONOMISCHE KALENDER</div>
-              <div style={{fontSize:12,color:"#4b5563",maxWidth:400,lineHeight:1.6}}>Bekijk alle high-impact events, verwachte cijfers en historische data direct op ForexFactory.</div>
+              <div style={{fontSize:12,color:"var(--t3)",maxWidth:400,lineHeight:1.6}}>Bekijk alle high-impact events, verwachte cijfers en historische data direct op ForexFactory.</div>
             </div>
             <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer"
               style={{display:"flex",alignItems:"center",gap:14,background:"rgba(255,160,0,0.06)",border:"1px solid rgba(255,160,0,0.25)",borderRadius:8,padding:"18px 28px",cursor:"pointer",textDecoration:"none",minWidth:320}}>
               <div style={{width:44,height:44,borderRadius:10,background:"rgba(255,160,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🏭</div>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#ffa000",letterSpacing:"0.06em",marginBottom:3}}>ForexFactory Calendar</div>
-                <div style={{fontSize:11,color:"#6b7280"}}>forexfactory.com/calendar</div>
+                <div style={{fontSize:11,color:"var(--t2)"}}>forexfactory.com/calendar</div>
               </div>
-              <div style={{marginLeft:"auto",color:"#4b5563",fontSize:16}}>↗</div>
+              <div style={{marginLeft:"auto",color:"var(--t3)",fontSize:16}}>↗</div>
             </a>
             <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
               {[
@@ -2938,13 +2767,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 <a key={label} href={url} target="_blank" rel="noopener noreferrer"
                   style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.03)",border:"1px solid #1f2023",borderRadius:8,padding:"10px 16px",cursor:"pointer",textDecoration:"none"}}>
                   <span style={{fontSize:14}}>{emoji}</span>
-                  <span style={{fontSize:11,color:"#9ca3af"}}>{label}</span>
-                  <span style={{fontSize:10,color:"#374151",marginLeft:4}}>↗</span>
+                  <span style={{fontSize:11,color:"var(--t2)"}}>{label}</span>
+                  <span style={{fontSize:10,color:"var(--t3)",marginLeft:4}}>↗</span>
                 </a>
               ))}
             </div>
-            <div style={{fontSize:10,color:"#374151",textAlign:"center",maxWidth:380,lineHeight:1.7}}>
-              💡 <span style={{color:"#4b5563"}}>Tip:</span> Intel haalt automatisch high-impact events op in de hybrid analyse.
+            <div style={{fontSize:10,color:"var(--t3)",textAlign:"center",maxWidth:380,lineHeight:1.7}}>
+              💡 <span style={{color:"var(--t3)"}}>Tip:</span> Intel haalt automatisch high-impact events op in de hybrid analyse.
             </div>
           </div>
         )}
