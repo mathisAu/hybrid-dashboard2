@@ -148,6 +148,11 @@ Trading context: Scalping on 1m/3m using CVD, accumulation, aggressor and volume
 The bias is the macro filter — entries are found independently.
 Do NOT include: entry suggestions, SL/TP, price levels, or COT data.
 
+BASELINE RULE — always apply:
+Hold confidence answers ONE question only: "Are conditions strong enough to stay in the trade longer?"
+Do NOT mention RR, profit targets, or position sizing — trader decides that independently.
+Only assess: is the intraday environment clear and aligned enough to hold, or too uncertain/conflicting to hold.
+
 Use the 4 Macro Pillars — Economic Data Surprise, Central Bank Catalyst, Institutional Flow, Intraday Correlation — to strengthen and validate bias. All factors must work together.
 
 ━━━ PHASE 0 — SESSION CONTEXT (apply if provided, do not recalculate) ━━━
@@ -244,13 +249,44 @@ Output structure: 1) Label 2) Reason 3) AI Opinion 4) Trading Environment
 
 ━━━ PHASE 5 — HOLD CONFIDENCE & MARKET STRUCTURE ━━━
 
-5.1 Hold Confidence (4 pillars, 0-100%):
-macro_alignment (25%): 4 pillars aligned + price confirms → 25 | 3 aligned → 18 | 2 aligned → 12 | 1 or fewer → 5. Conflicting = 0.
-structure_integrity (30%): Clean HH/HL or LL/LH? Pullbacks corrective?
-flow_participation (25%): Follow-through present? No absorption?
-volatility_regime (20%): ATR normal/expansive? No extreme compression?
-Score NEVER higher than confidence. XAU anomaly: hold_confidence max 60%.
-80-100%=Hold full | 60-79%=Protect profit | 40-59%=Reduce | <40%=Exit
+5.1 MACRO HOLD CONTEXT (0-100%) — FIXED CALCULATION, no AI estimation:
+This answers ONE question: "Is the macro/fundamental environment still strong enough to stay in the trade?"
+Do NOT assess technical structure or volume/CVD — trader has better information on that.
+
+CALCULATION — based only on macro/fundamental factors:
+
+Pillar alignment (max 40pts):
+- All 4 macro pillars still confirm trade direction = 40
+- 3 pillars confirm = 30
+- 2 pillars confirm = 18
+- 1 or fewer = 8
+- Majority conflicting = 0
+
+News timing (max 25pts):
+- No high-impact news expected, current news supports bias, not yet priced in = 25
+- News supports but partially priced in = 15
+- Neutral news environment = 10
+- High-impact event within 30 min = 0
+
+Cross-asset confirmation (max 20pts):
+- All related assets still confirm bias direction = 20
+- Partially confirming = 12
+- Diverging = 0
+
+Yield/DXY regime still intact (max 15pts):
+- Yield regime and DXY still support bias = 15
+- Partially shifted = 8
+- Regime changed against bias = 0
+
+MACRO HOLD CONTEXT LABELS:
+80-100% = Voluit holden — macro volledig aligned, alle fundamentelen bevestigen nog steeds
+70-79%  = Goede hold — macro sterk genoeg, fundamentelen ondersteunen de trade
+60-69%  = Zeer twijfelachtig — macro zwakt af of gemengd, risicovol om te holden
+40-59%  = Niet holden — macro te onduidelijk of conflicterend
+<40%    = Definitief niet holden — macro heeft gedraaid tegen de bias
+
+Score NEVER higher than bias confidence. XAU anomaly: max 60%.
+Provide full Dutch explanation: which factors confirm, which have shifted, any news risk.
 
 5.2 Technical trend and intraday structure (separate fields, do not influence bias):
 technical_trend: Bullish/Bearish/Neutral | intraday_structuur: HH/HL or LH/LL or Ranging
@@ -268,7 +304,7 @@ Confidence decay never changes bias direction. Low confidence only affects commu
 
 7.2 Confidence Decay: 5% decrease per hour. Reconfirm or lower every refresh.
 
-7.3 Fail Condition & Hold Advice: fail_condition max 8 words. hold_advies: how long to hold intraday.
+7.3 Fail Condition: fail_condition max 8 words — when does the bias invalidate.
 
 7.4 BIAS CONFIDENCE — FIXED CALCULATION (mandatory, no AI estimation):
 Calculate confidence by adding points for each confirmed factor:
@@ -313,7 +349,7 @@ mini_summary: MAX 1 sentence for card — core message.
 confidence_label: The confidence label based on the score e.g. "Sterke bias (74%) — 75% positie" — always include % and position sizing.
 ai_opinie: AI qualitative opinion separate from confidence score. 1-2 sentences. What does the AI think about the quality of this setup? Any concerns? e.g. "Structuur ziet er clean uit maar London volume nog laag — wacht op bevestiging eerste 15 min." 
 analyse_uitgebreid: 2-3 sentences — (1) bias reason based on SPECIFIC news, (2) dominant driver + risk.
-hold_advies: Intraday hold advice combining RR target + fundamental reason. Format: "[RR target] — [fundamental reason], [session timing]". Examples: "Hold 3-5RR — Fed dovish + DXY weak confirm direction, exit NY open" / "Max 2RR — CPI within 1h, fundamental direction uncertain" / "Hold 4RR — yield regime and flow aligned, structure clean". Max 15 words. Include KEY fundamental driver that supports or limits the hold.
+
 fail_condition: when bias invalidates, max 8 words.
 technical_trend: Bullish/Bearish/Neutraal
 trend_driver: 3-5 words dominant force
@@ -329,11 +365,11 @@ structuur_uitleg: Why this intraday structure (HH/HL, LH/LL, Ranging)? What does
 market_regime_uitleg: Why this market regime (Risk-On/Off/Stagflatie etc)? Which signals confirm it?
 yield_regime_uitleg: Why this yield regime? How do DXY, yields and gold interact right now?
 correlatie_uitleg: Why this correlation status (Normaal/Anomalie)? What is driving the divergence or alignment?
-macro_alignment_uitleg: Why this macro alignment score? Which of the 4 pillars are aligned or conflicting?
-flow_uitleg: Why this flow & participation score? Is there follow-through or absorption visible?
+macro_alignment_uitleg: Why this macro alignment score? Which of the 4 pillars are aligned or conflicting? Include exact score e.g. "18/25 — 3 pillars aligned, Central Bank shifted neutral."
+macro_hold_uitleg: Full explanation of the macro hold context score in Dutch. Which pillars still confirm? Is there news risk? Are cross-asset signals still aligned? What has shifted?
 
 NO apostrophes. JSON only:
-{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+{"bias":"","confidence":0,"macro_hold":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"pillar_news":0,"pillar_crossasset":0,"pillar_yield":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","macro_hold_uitleg":""}`;
 
 
 
@@ -674,10 +710,33 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 {data?.confidence_label&&<div style={{fontSize:10,color:"#6b7280",marginTop:6,lineHeight:1.5,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:6}}>{data.confidence_label}</div>}
               </div>
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>HOLD CONFIDENCE</div>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,fontWeight:700,color:"#6366f1",marginBottom:8}}>{data?.hold_confidence}%</div>
-                <Bar value={data?.hold_confidence||0} color="#6366f1"/>
-                <div style={{fontSize:10,color:"#4b5563",marginTop:6}}>{data?.hold_confidence>=80?"🟢 Trail stop, hold":data?.hold_confidence>=60?"🟡 Bescherm winst, verkort target":data?.hold_confidence>=40?"⚠️ Niet lang houden, snelle scalp":"🔴 Geen positie vasthouden"}</div>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10}}>MACRO HOLD CONTEXT</div>
+                <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:8}}>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:34,fontWeight:700,color:"#6366f1"}}>{data?.macro_hold||0}</span>
+                  <span style={{fontSize:12,color:"#374151"}}>/100</span>
+                </div>
+                <Bar value={data?.macro_hold||0} color="#6366f1"/>
+                {(()=>{
+                  const h = data?.macro_hold||0;
+                  const [emoji,label,range,col] =
+                    h>=80?["🟢","Voluit holden","80-100 — macro volledig aligned","#22c55e"]:
+                    h>=70?["🟢","Goede hold","70-79 — macro ondersteunt de trade","#84cc16"]:
+                    h>=60?["🟡","Zeer twijfelachtig","60-69 — macro gemengd, risicovol","#f59e0b"]:
+                    h>=40?["⚠️","Niet holden","40-59 — macro te onduidelijk",acc]:
+                           ["🔴","Definitief niet holden","0-39 — macro heeft gedraaid","#ef4444"];
+                  return(
+                    <div style={{marginTop:10}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <span style={{fontSize:13}}>{emoji}</span>
+                          <span style={{fontSize:12,fontWeight:700,color:col}}>{label}</span>
+                        </div>
+                        <span style={{fontSize:9,color:"#374151"}}>{range}</span>
+                      </div>
+                      {data?.macro_hold_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.7,borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:8,marginTop:4}}>{data.macro_hold_uitleg}</div>}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -710,31 +769,26 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               );
             })()}
 
-            {/* Hold pijlers */}
+            {/* Macro Hold Pijlers */}
             {(data?.macro_alignment!=null)&&(
               <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:12}}>HOLD CONFIDENCE PIJLERS</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:12}}>MACRO HOLD — SCORE OPBOUW</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {[
-                    {l:"Macro Alignment",    v:data?.macro_alignment,    w:"25%"},
-                    {l:"Structure Integrity",v:data?.structure_integrity, w:"30%"},
-                    {l:"Flow & Participation",v:data?.flow_participation, w:"25%"},
-                    {l:"Volatility Regime",  v:data?.volatility_regime,   w:"20%"},
-                  ].map(({l,v,w})=>v!=null&&(
-                    <div key={l}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-                        <InfoTooltip text={pijlerTooltips[l]} color={v>=70?"#22c55e":v>=50?acc:"#ef4444"}>
-                          <span style={{fontSize:9,color:"#4b5563"}}>{l}</span>
-                        </InfoTooltip>
-                        <span style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:v>=70?"#22c55e":v>=50?acc:"#ef4444",fontWeight:700}}>{v}%</span>
+                    {l:"Pillar Alignment", v:data?.macro_alignment, max:40},
+                    {l:"News Timing",      v:data?.pillar_news,     max:25},
+                    {l:"Cross-Asset",      v:data?.pillar_crossasset,max:20},
+                    {l:"Yield/DXY Regime",v:data?.pillar_yield,     max:15},
+                  ].map(({l,v,max})=>v!=null&&(
+                    <div key={l} style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:10,color:"#4b5563",width:120,flexShrink:0}}>{l}</span>
+                      <div style={{flex:1,height:4,borderRadius:2,background:"rgba(255,255,255,0.04)",overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${(v/max)*100}%`,background:v===max?"#22c55e":v>=max*0.6?"#6366f1":"#f59e0b",borderRadius:2,transition:"width 0.4s"}}/>
                       </div>
-                      <Bar value={v} color={v>=70?"#22c55e":v>=50?acc:"#ef4444"}/>
-                      <div style={{fontSize:9,color:"#2d3748",marginTop:2}}>{w} weight</div>
+                      <span style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:"#9ca3af",width:40,textAlign:"right"}}>{v}/{max}</span>
                     </div>
                   ))}
                 </div>
-                {data?.macro_alignment_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:10,marginTop:4}}><span style={{color:"#4b5563",fontSize:9,letterSpacing:"0.08em"}}>MACRO ALIGNMENT — </span>{data.macro_alignment_uitleg}</div>}
-                {data?.flow_uitleg&&<div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:10,marginTop:4}}><span style={{color:"#4b5563",fontSize:9,letterSpacing:"0.08em"}}>FLOW — </span>{data.flow_uitleg}</div>}
               </div>
             )}
 
@@ -783,10 +837,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* Hold advies + Fail */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div style={{background:`${acc}11`,border:`1px solid ${acc}22`,borderRadius:8,padding:"14px 16px"}}>
-                <div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:6}}>HOLD ADVIES</div>
-                <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.6}}>{data?.hold_advies||"—"}</div>
-              </div>
+
               <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:8,padding:"14px 16px"}}>
                 <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:6}}>FAIL CONDITION</div>
                 <div style={{fontSize:12,color:"#6b7280",lineHeight:1.6}}>{data?.fail_condition||"—"}</div>
@@ -967,8 +1018,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             <Bar value={data.confidence} color={acc}/>
           </div>
           <div style={{marginBottom:10}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:10,color:"#4b5563",letterSpacing:"0.08em"}}>HOLD</span><span style={{fontSize:11,color:"#6366f1",fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{data.hold_confidence}%</span></div>
-            <Bar value={data.hold_confidence} color="#6366f1"/>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:10,color:"#4b5563",letterSpacing:"0.08em"}}>HOLD</span><span style={{fontSize:11,color:"#6366f1",fontFamily:"'IBM Plex Mono',monospace",fontWeight:700}}>{data.macro_hold}<span style={{fontSize:8,color:"#374151"}}>/100</span></span></div>
+            <Bar value={data.macro_hold} color="#6366f1"/>
           </div>
           <div style={{height:1,background:"rgba(255,255,255,0.04)",marginBottom:8}}/>
           <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
@@ -1018,7 +1069,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6,marginBottom:data.ai_opinie?6:0}}>{data.mini_summary||"—"}</div>
             {data.ai_opinie&&<div style={{fontSize:10,color:"#4b5563",lineHeight:1.55,borderTop:"1px solid rgba(99,102,241,0.08)",paddingTop:5,fontStyle:"italic"}}>{data.ai_opinie}</div>}
           </div>
-          <div style={{background:`${acc}09`,border:`1px solid ${acc}18`,borderRadius:5,padding:"7px 10px",marginBottom:6}}><div style={{fontSize:9,color:acc,letterSpacing:"0.1em",marginBottom:1}}>HOLD ADVIES</div><div style={{fontSize:11,color:"#d1d5db"}}>{data.hold_advies}</div></div>
+
           <div style={{background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:5,padding:"7px 10px"}}><div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:1}}>FAIL CONDITION</div><div style={{fontSize:11,color:"#6b7280"}}>{data.fail_condition}</div></div>
           {/* Breaking news relevant voor dit asset */}
           {(()=>{
@@ -1684,7 +1735,7 @@ VRAAG: Is er reden om de bias te veranderen?
 - Zo NEE: retourneer exact dezelfde bias en confidence
 - Zo JA: retourneer nieuwe bias met uitleg in mini_summary
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+JSON: {"bias":"","confidence":0,"macro_hold":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"pillar_news":0,"pillar_crossasset":0,"pillar_yield":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","macro_hold_uitleg":""}`;
 
       } else {
         // ── FRESH MODE: geen marktvisie — normale analyse
@@ -1697,7 +1748,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 CONTEXT:
 ${macroCtx || "Geen Intel geladen."}
 
-JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+JSON: {"bias":"","confidence":0,"macro_hold":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"pillar_news":0,"pillar_crossasset":0,"pillar_yield":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","macro_hold_uitleg":""}`;
       }
 
       const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
@@ -1872,7 +1923,7 @@ JSON: {"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie
 
       const newsLines = macroCtx || "Geen Intel geladen — baseer op cross-asset data.";
 
-      const assetTemplate = `{"bias":"","confidence":0,"hold_confidence":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","hold_advies":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"structure_integrity":0,"flow_participation":0,"volatility_regime":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","flow_uitleg":""}`;
+      const assetTemplate = `{"bias":"","confidence":0,"macro_hold":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"pillar_news":0,"pillar_crossasset":0,"pillar_yield":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","macro_hold_uitleg":""}`;
       const assetsJson = assets.map(a=>`"${a.id}":${assetTemplate}`).join(",");
 
       const usr = `DATUM: ${dateStr}
