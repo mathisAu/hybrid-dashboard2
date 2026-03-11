@@ -5,13 +5,13 @@ const fmtDT = (d) => {
   if(!d) return "—";
   const dt = d instanceof Date ? d : new Date(d);
   if(isNaN(dt)) return String(d);
-  return dt.toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  return dt.toLocaleString("nl-NL",{timeZone:"Europe/Amsterdam",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 };
 const fmtTime = (d) => {
   if(!d) return "—";
   const dt = d instanceof Date ? d : new Date(d);
   if(isNaN(dt)) return String(d);
-  return dt.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  return dt.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
 };
 
 // ── Twelve Data ───────────────────────────────────────────────────────────────
@@ -1129,7 +1129,7 @@ function MarketIntelPage({ data, loading, onRefresh, status, dots, onNewsClick, 
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap"}}>
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#4b5563"}}>{n.time||"—"}</span>
-                  <span style={{fontSize:9,color:"#2d3748",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date().toLocaleDateString("nl-NL",{day:"2-digit",month:"2-digit"})}</span>
+                  <span style={{fontSize:9,color:"#2d3748",fontFamily:"'IBM Plex Mono',monospace"}}>{new Date().toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",day:"2-digit",month:"2-digit"})}</span>
                   <Badge label={n.source} color="#6b7280"/>
                   <Badge label={n.category} color="#6366f1"/>
                   {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
@@ -1333,7 +1333,7 @@ export default function HybridDashboard() {
             source: n.source || "Finnhub",
             url: n.url || "",
             time,
-            timeStr: time.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}),
+            timeStr: time.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"}),
             direction: "neutraal",
             impact: "medium",
             assets: [],
@@ -1564,8 +1564,8 @@ export default function HybridDashboard() {
     setPsStatus("loading");
     const assetList = assets.map(a=>a.label).join(", ");
     const now = new Date();
-    const dateStr = now.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-    const timeStr = now.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+    const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
     // Nauwkeurige sessie detectie op basis van CET tijd
     const getCetH = () => parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}));
     const getCetM = () => parseInt(new Date().toLocaleString("en-US",{timeZone:"Europe/Amsterdam",minute:"numeric"}));
