@@ -467,18 +467,18 @@ function InfoTooltip({ text, color="var(--t2)", children }) {
 
 function Bar({ value, color }) {
   return (
-    <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden"}}>
-      <div style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:color,borderRadius:2,transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
+    <div style={{height:2,background:"rgba(255,255,255,0.07)",overflow:"hidden"}}>
+      <div style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:color,transition:"width 1s ease"}}/>
     </div>
   );
 }
 
 function Badge({ label, color }) {
-  return <span style={{fontSize:9,padding:"2px 6px",borderRadius:3,border:`1px solid ${color}44`,background:`${color}11`,color,letterSpacing:"0.08em",fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>;
+  return <span style={{fontSize:8,padding:"1px 5px",border:`1px solid ${color}55`,background:`${color}0D`,color,letterSpacing:"0.07em",fontWeight:600,whiteSpace:"nowrap",fontFamily:"var(--mono)"}}>{label}</span>;
 }
 
 function Skeleton({ w="100%", h=8, mb=8 }) {
-  return <div style={{height:h,width:w,background:"#1a1b1e",borderRadius:4,marginBottom:mb,animation:"pulse 1.5s infinite"}}/>;
+  return <div style={{height:h,width:w,background:"#131825",marginBottom:mb,animation:"pulse 1.5s infinite"}}/>;
 }
 
 // ── News Impact Popup ─────────────────────────────────────────────────────────
@@ -912,27 +912,24 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 }
 
-function ConfidenceBar({ value, color, animated=true }) {
+function ConfidenceBar({ value, color }) {
   return (
-    <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}>
-      <div className={animated?"confidence-bar":""} style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:2,transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
+    <div style={{height:2,background:"rgba(255,255,255,0.07)",overflow:"hidden"}}>
+      <div style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:color,transition:"width 1s ease"}}/>
     </div>
   );
 }
 
 function PulseBadge({ pulse }) {
   const cfg = {
-    QUIET:    {color:"#4b5563",bg:"rgba(75,85,99,0.15)",   dot:"#4b5563",  label:"QUIET"},
-    WAIT:     {color:"#f59e0b",bg:"rgba(245,158,11,0.12)", dot:"#f59e0b",  label:"WAIT"},
-    TRADABLE: {color:"#22c55e",bg:"rgba(34,197,94,0.12)",  dot:"#22c55e",  label:"TRADABLE"},
-    WILD:     {color:"#ef4444",bg:"rgba(239,68,68,0.12)",  dot:"#ef4444",  label:"WILD"},
+    QUIET:    {color:"#4B5563", label:"QUIET"},
+    WAIT:     {color:"#D97706", label:"WAIT"},
+    TRADABLE: {color:"#33C97A", label:"TRADABLE"},
+    WILD:     {color:"#E05252", label:"WILD"},
   };
   const cf = cfg[pulse] || cfg.WAIT;
   return (
-    <div style={{display:"flex",alignItems:"center",gap:5,background:cf.bg,border:`1px solid ${cf.color}30`,borderRadius:4,padding:"2px 8px"}}>
-      <div style={{width:5,height:5,borderRadius:"50%",background:cf.dot,animation:"pulseDot 2s ease-in-out infinite"}}/>
-      <span style={{fontSize:9,fontWeight:700,color:cf.color,letterSpacing:"0.1em"}}>{cf.label}</span>
-    </div>
+    <span style={{fontSize:8,fontFamily:"var(--mono)",fontWeight:600,color:cf.color,letterSpacing:"0.1em",border:`1px solid ${cf.color}44`,padding:"1px 5px",background:`${cf.color}0D`}}>{cf.label}</span>
   );
 }
 
@@ -942,22 +939,21 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
   const updating = updatingProp || updLocal;
   const acc = accent || DEFAULT_ACCENT;
 
-  useEffect(()=>{const t=setTimeout(()=>setVis(true),index*80);return()=>clearTimeout(t);},[data,loading]);
+  useEffect(()=>{const t=setTimeout(()=>setVis(true),index*60);return()=>clearTimeout(t);},[data,loading]);
 
   const bias   = resolveBias(data?.bias, data?.confidence);
   const bc     = biasColors[bias] || biasColors.Neutraal;
-  const assetColor = ASSET_META[asset.id]?.color || acc;
-  const rawP   = livePrice?.price  || null;
-  const rawChg = livePrice?.change || null;
+  const rawP   = livePrice?.price  || data?.price_today || null;
+  const rawChg = livePrice?.change || data?.price_change_today || null;
   const price  = rawP && parseFloat(rawP) > 0 ? rawP : null;
   const chg    = rawChg && rawChg !== "+0.00%" && rawChg !== "-0.00%" ? rawChg : null;
-  const up     = livePrice?.direction === "up";
+  const up     = livePrice ? livePrice.direction==="up" : data?.price_direction==="up";
   const conf   = data?.confidence || 0;
   const hold   = data?.macro_hold || 0;
 
   const handleRefresh = async (e) => {
     e.stopPropagation();
-    if(updating || !onUpdate) return;
+    if(updating||!onUpdate) return;
     setUpdLocal(true);
     try{ await onUpdate(asset); }catch(_){}
     setUpdLocal(false);
@@ -966,90 +962,84 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
   return (
     <div
       onClick={data ? onClick : undefined}
-      className="card-hover card-in"
+      className="card-in"
       style={{
-        background:`linear-gradient(160deg,#0f1014,#0c0d11)`,
-        border:`1px solid ${data?.bias ? bc.border+"44" : "rgba(255,255,255,0.06)"}`,
-        borderRadius:10,
+        background:"var(--bg1)",
+        border:`1px solid ${data?.bias ? bc.border+"33" : "var(--line)"}`,
+        borderTop: data?.bias ? `2px solid ${bc.border}` : "1px solid var(--line)",
         opacity: vis ? 1 : 0,
-        transform: vis ? "none" : "translateY(12px)",
-        transition:"opacity 0.5s ease, transform 0.5s ease, border-color 0.3s ease",
+        transform: vis ? "none" : "translateY(6px)",
+        transition: "opacity 0.4s ease, transform 0.4s ease",
         cursor: data ? "pointer" : "default",
-        position:"relative",
-        overflow:"hidden",
+        position: "relative",
       }}
     >
-      {/* Asset color glow */}
-      <div style={{position:"absolute",top:-40,right:-40,width:120,height:120,borderRadius:"50%",background:assetColor,opacity:0.04,filter:"blur(30px)",pointerEvents:"none"}}/>
-      {/* Loading bar */}
-      {updating && <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${acc},transparent)`,animation:"pulse 1s infinite"}}/>}
+      {updating && <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${acc},transparent)`,animation:"pulse 1s infinite"}}/>}
 
       {/* Header */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"14px 16px 10px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <AssetLogo id={asset.id} size={38}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderBottom:"1px solid var(--line)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <AssetLogo id={asset.id} size={20}/>
           <div>
-            <div style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:700,color:"var(--t1)",letterSpacing:"0.04em"}}>{asset.label}</div>
-            <div style={{fontSize:10,color:"var(--t3)",marginTop:1}}>{asset.full}</div>
+            <div style={{fontFamily:"var(--mono)",fontSize:12,fontWeight:600,color:"var(--t1)",letterSpacing:"0.04em"}}>{asset.label}</div>
+            <div style={{fontSize:10,color:"var(--t3)"}}>{asset.full}</div>
           </div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
-          {price && (
-            <div style={{display:"flex",alignItems:"center",gap:5}}>
-              <span style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:600,color:"var(--t1)"}}>{price}</span>
-              {chg && <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:600,color:up?"var(--grn)":"var(--red)",background:up?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.1)",borderRadius:4,padding:"2px 6px"}}>{up?"▲":"▼"} {chg}</span>}
-            </div>
-          )}
-          <button onClick={handleRefresh} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:5,padding:"3px 8px",color:updating?acc:"var(--t3)",fontSize:11,display:"flex",alignItems:"center",gap:4}}>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          {data?.bias && <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:bc.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>}
+          {loading && !data && <Skeleton w={52} h={14} mb={0}/>}
+          <button onClick={handleRefresh}
+            style={{background:"none",border:"1px solid var(--line2)",padding:"3px 6px",color:updating?"var(--acc)":"var(--t3)",fontSize:11,lineHeight:1,transition:"all 0.15s"}}>
             <span style={{display:"inline-block",animation:updating?"spin 0.8s linear infinite":"none"}}>⟳</span>
           </button>
         </div>
       </div>
 
+      {/* Price row */}
+      <div style={{padding:"8px 12px",borderBottom:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <span style={{fontFamily:"var(--mono)",fontSize:15,fontWeight:600,color:"var(--t1)"}}>{price || "—"}</span>
+        {chg && <span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:600,color:up?"var(--grn)":"var(--red)"}}>{up?"▲":"▼"} {chg}</span>}
+      </div>
+
       {data ? (
         <>
-          {/* Confidence + Hold bars */}
-          <div style={{padding:"6px 16px 10px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <div>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em"}}>CONFIDENCE</span>
-                <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:acc}}>{conf}%</span>
-              </div>
-              <ConfidenceBar value={conf} color={acc}/>
+          {/* Bars */}
+          <div style={{padding:"10px 12px",display:"flex",flexDirection:"column",gap:7,borderBottom:"1px solid var(--line)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.08em",width:60,flexShrink:0}}>CONFIDENCE</span>
+              <div style={{flex:1}}><ConfidenceBar value={conf} color={acc}/></div>
+              <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:600,color:acc,width:28,textAlign:"right"}}>{conf}%</span>
             </div>
-            <div>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em"}}>HOLD</span>
-                <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:"#6366F1"}}>{hold}</span>
-              </div>
-              <ConfidenceBar value={hold} color="#6366F1"/>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.08em",width:60,flexShrink:0}}>HOLD</span>
+              <div style={{flex:1}}><ConfidenceBar value={hold} color="#6366F1"/></div>
+              <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:600,color:"#6366F1",width:28,textAlign:"right"}}>{hold}</span>
             </div>
           </div>
 
           {/* Tags */}
-          <div style={{padding:"0 16px 10px",display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
+          <div style={{padding:"7px 12px",display:"flex",gap:4,flexWrap:"wrap",alignItems:"center",borderBottom:"1px solid var(--line)"}}>
             {data.pulse && <PulseBadge pulse={data.pulse}/>}
-            {data.bias && <Badge label={bias?.toUpperCase()} color={bc.border}/>}
-            {data.correlatie_status && <Badge label={data.correlatie_status} color={corrColors[data.correlatie_status]||"var(--t3)"}/>}
-            {data.market_regime && <Badge label={data.market_regime.slice(0,18)} color="#6366F1"/>}
+            {data.correlatie_status && <Badge label={data.correlatie_status} color={corrColors[data.correlatie_status]||"var(--t2)"}/>}
+            {data.market_regime && <Badge label={data.market_regime.slice(0,20)} color="#6366F1"/>}
           </div>
 
-          {/* Mini summary */}
-          <div style={{margin:"0 16px 10px",padding:"10px 12px",background:"rgba(255,255,255,0.02)",borderRadius:6,border:"1px solid rgba(255,255,255,0.04)"}}>
-            <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:5}}>AI ANALYSE</div>
+          {/* Summary */}
+          <div style={{padding:"10px 12px"}}>
+            <div style={{fontSize:9,fontFamily:"var(--mono)",color:"var(--t3)",letterSpacing:"0.08em",marginBottom:5}}>AI ANALYSE</div>
             <div style={{fontSize:11,color:"var(--t2)",lineHeight:1.6}}>{data.mini_summary || "—"}</div>
           </div>
 
           {/* Footer */}
-          <div style={{padding:"8px 16px",borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(0,0,0,0.2)"}}>
+          <div style={{padding:"6px 12px",borderTop:"1px solid var(--line)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"var(--bg2)"}}>
             <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{data.analysed_at ? fmtTime(data.analysed_at) : "—"}</span>
-            <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:700,color:acc,letterSpacing:"0.1em"}}>DEEP DIVE →</span>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,color:acc,letterSpacing:"0.08em"}}>DEEP DIVE →</span>
           </div>
         </>
       ) : loading ? (
-        <div style={{padding:"0 16px 16px"}}>{[90,70,50,100,80].map((w,i)=><Skeleton key={i} w={`${w}%`}/>)}</div>
+        <div style={{padding:"12px"}}>{[90,70,50,100,80].map((w,i)=><Skeleton key={i} w={`${w}%`}/>)}</div>
       ) : (
-        <div style={{padding:"20px 16px",textAlign:"center",fontFamily:"var(--mono)",fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>GEEN ANALYSE</div>
+        <div style={{padding:"28px 12px",textAlign:"center",fontFamily:"var(--mono)",fontSize:9,color:"var(--t3)",letterSpacing:"0.1em"}}>GEEN ANALYSE</div>
       )}
     </div>
   );
@@ -1212,171 +1202,168 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   const acc = accent || DEFAULT_ACCENT;
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
   const now = new Date();
-  const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
-  const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long"});
+  const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long",year:"numeric"});
 
   const allBiases = aResult ? assets.map(a=>aResult.assets?.[a.id]?.bias).filter(Boolean) : [];
-  const bullCount = allBiases.filter(b=>b?.toLowerCase().includes("bull")).length;
-  const bearCount = allBiases.filter(b=>b?.toLowerCase().includes("bear")).length;
-  const overallSentiment = bullCount > bearCount ? "Bullish" : bearCount > bullCount ? "Bearish" : "Gemengd";
-  const sentimentColor = overallSentiment==="Bullish"?"#22c55e":overallSentiment==="Bearish"?"#ef4444":"#f59e0b";
-  const avgConf = aResult ? Math.round(assets.reduce((s,a)=>s+(aResult.assets?.[a.id]?.confidence||0),0)/assets.length) : null;
+  const bullCount = allBiases.filter(b=>b.toLowerCase().includes("bull")).length;
+  const bearCount = allBiases.filter(b=>b.toLowerCase().includes("bear")).length;
+  const overallSent = bullCount > bearCount ? "BULLISH" : bearCount > bullCount ? "BEARISH" : "MIXED";
+  const sentCol = overallSent==="BULLISH"?"var(--grn)":overallSent==="BEARISH"?"var(--red)":"#D97706";
+  const avgConf = aResult ? Math.round(assets.reduce((s,a)=>s+(aResult.assets?.[a.id]?.confidence||0),0)/assets.length) : 0;
 
-  const newsToShow = (rssItems?.length > 0 ? rssItems : breakingNews).slice(0,5);
+  const newsToShow = (rssItems.length > 0 ? rssItems : breakingNews).slice(0,8);
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+    <div style={{display:"flex",flexDirection:"column",gap:0}}>
 
-      {/* Hero card */}
-      <div style={{background:"linear-gradient(135deg,#0d0f14,#111318)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:"32px 36px",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-60,right:-60,width:300,height:300,borderRadius:"50%",background:`radial-gradient(circle,${acc}12,transparent 70%)`,pointerEvents:"none"}}/>
-        <div style={{position:"absolute",bottom:-40,left:100,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,0.08),transparent 70%)",pointerEvents:"none"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:20,position:"relative"}}>
+      {/* ── TOP HERO BAR ── */}
+      <div style={{borderBottom:"1px solid var(--line)",padding:"20px 0 18px",marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
           <div>
-            <div style={{fontSize:11,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
-              {dateStr.toUpperCase()} · {timeStr} AMS
-            </div>
-            <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.03em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
-              HybridTrading<br/><span style={{color:acc}}>Dashboard</span>
+            <div style={{fontFamily:"var(--mono)",fontSize:9,color:"var(--t3)",letterSpacing:"0.14em",marginBottom:8}}>{dateStr.toUpperCase()}</div>
+            <h1 style={{fontSize:24,fontWeight:700,letterSpacing:"-0.02em",color:"var(--t1)",lineHeight:1}}>
+              Market Intelligence <span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
-              Institutioneel macro-analyse systeem. Bias geeft richting — CVD &amp; aggressor geven entry.
-            </p>
-            {presession&&(
-              <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"5px 12px"}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:11,color:"#9ca3af",fontWeight:500}}>{presession.session}</span>
-                  <span style={{fontSize:11,fontWeight:700,color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b"}}>{presession.mood}</span>
-                </div>
+            {presession && (
+              <div style={{marginTop:8,display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"var(--grn)":presession.mood?.toLowerCase().includes("bear")?"var(--red)":"#D97706",flexShrink:0,animation:"dot 2s infinite"}}/>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--t2)"}}>{presession.session} · <span style={{color:presession.mood?.toLowerCase().includes("bull")?"var(--grn)":presession.mood?.toLowerCase().includes("bear")?"var(--red)":"#D97706"}}>{presession.mood}</span></span>
+                {presession.mood_explanation && <span style={{fontSize:10,color:"var(--t3)"}}>— {presession.mood_explanation}</span>}
               </div>
             )}
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end"}}>
-            <button onClick={onRunHybrid} disabled={isRunning}
-              style={{background:isRunning?`${acc}22`:`linear-gradient(135deg,${acc},${acc}bb)`,border:"none",borderRadius:12,padding:"14px 28px",color:isRunning?acc:"#000",fontWeight:800,fontSize:13,letterSpacing:"0.06em",display:"flex",alignItems:"center",gap:9,cursor:isRunning?"not-allowed":"pointer",boxShadow:isRunning?"none":`0 4px 20px ${acc}44`}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>
-                {isRunning?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M5 3l14 9-14 9V3z" fill="currentColor"/>}
-              </svg>
-              {isRunning?"ANALYSE BEZIG...":"HYBRID ANALYSE STARTEN"}
-            </button>
-            {lastRefresh&&<span style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>Laatste update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}</span>}
-          </div>
+          <button onClick={onRunHybrid} disabled={isRunning}
+            className="action-btn"
+            style={{background:isRunning?"transparent":`${acc}`,border:`1px solid ${isRunning?acc+"44":acc}`,padding:"10px 22px",color:isRunning?acc:"#000",fontFamily:"var(--mono)",fontSize:11,fontWeight:700,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:8,opacity:isRunning?0.7:1}}>
+            <span style={{animation:isRunning?"spin 1s linear infinite":"none",display:"inline-block",fontSize:13}}>{isRunning?"⟳":"▶"}</span>
+            {isRunning?"BEZIG...":"HYBRID ANALYSE"}
+          </button>
         </div>
       </div>
 
-      {/* Stats row */}
-      {aResult&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+      {/* ── STAT ROW ── */}
+      {aResult && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:0,borderTop:"1px solid var(--line)",borderLeft:"1px solid var(--line)",marginBottom:20}}>
           {[
-            {label:"Markt Sentiment", value:overallSentiment, color:sentimentColor, sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
-            {label:"Gem. Confidence",  value:avgConf+"%",      color:acc,           sub:"Over alle assets"},
-            {label:"Assets",           value:assets.length,    color:"#6366f1",     sub:"Geanalyseerd"},
-            {label:"Breaking News",    value:breakingNews.length, color:"#f59e0b",  sub:"Vandaag gefilterd"},
-          ].map(({label,value,color,sub})=>(
-            <div key={label} style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"16px 18px"}}>
-              <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{label.toUpperCase()}</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:22,fontWeight:700,color,marginBottom:4}}>{value}</div>
-              <div style={{fontSize:10,color:"#374151"}}>{sub}</div>
+            {l:"SENTIMENT",  v:overallSent, col:sentCol, sub:`${bullCount}B · ${bearCount}Be · ${allBiases.length-bullCount-bearCount}N`},
+            {l:"AVG CONF",   v:avgConf+"%", col:acc,      sub:"Over alle assets"},
+            {l:"ASSETS",     v:assets.length, col:"var(--t2)", sub:"Geanalyseerd"},
+            {l:"NIEUWS",     v:newsToShow.length, col:"#D97706", sub:"Items vandaag"},
+          ].map(({l,v,col,sub})=>(
+            <div key={l} style={{padding:"14px 16px",borderRight:"1px solid var(--line)",borderBottom:"1px solid var(--line)"}}>
+              <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.12em",marginBottom:6}}>{l}</div>
+              <div style={{fontFamily:"var(--mono)",fontSize:20,fontWeight:700,color:col,marginBottom:3}}>{v}</div>
+              <div style={{fontSize:10,color:"var(--t3)"}}>{sub}</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Asset overzicht mini grid */}
-      <div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <div style={{fontSize:11,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em"}}>ASSET OVERZICHT</div>
-          <button onClick={()=>onNavigate("analyse")}
-            style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 14px",color:"#9ca3af",fontSize:10,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,letterSpacing:"0.06em"}}>
-            VOLLEDIGE ANALYSE
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
-          {assets.map(a=>{
+      {/* ── MAIN GRID: assets left, news right ── */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 340px",gap:16}}>
+
+        {/* Asset table */}
+        <div style={{border:"1px solid var(--line)"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",borderBottom:"1px solid var(--line)",background:"var(--bg2)"}}>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.14em"}}>ASSET OVERZICHT</span>
+            <button onClick={()=>onNavigate("analyse")} className="action-btn"
+              style={{background:"none",border:"1px solid var(--line2)",padding:"3px 10px",fontFamily:"var(--mono)",fontSize:8,color:"var(--t2)",letterSpacing:"0.08em"}}>
+              ANALYSE →
+            </button>
+          </div>
+          {/* Table header */}
+          <div style={{display:"grid",gridTemplateColumns:"120px 90px 70px 70px 60px 60px 1fr",padding:"6px 12px",borderBottom:"1px solid var(--line)",background:"var(--bg2)"}}>
+            {["ASSET","PRIJS","CHANGE","BIAS","CONF","HOLD","PULSE"].map(h=>(
+              <span key={h} style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.1em"}}>{h}</span>
+            ))}
+          </div>
+          {assets.map((a,i)=>{
             const d = aResult?.assets?.[a.id];
             const p = livePrices[a.id];
             const bias = d ? resolveBias(d.bias,d.confidence) : null;
             const bc = bias ? (biasColors[bias]||biasColors.Neutraal) : null;
-            const priceUp = p?.direction==="up";
+            const up = p?.direction==="up";
             return (
               <div key={a.id} onClick={()=>onNavigate("analyse")}
-                className="card-hover"
-                style={{background:"linear-gradient(160deg,#10111a,#0c0d13)",border:`1px solid ${bc?bc.border+"44":"rgba(255,255,255,0.06)"}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",position:"relative",overflow:"hidden"}}>
-                {bc&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${bc.border},transparent)`}}/>}
-                <div style={{marginBottom:10}}><AssetLogo id={a.id} size={32}/></div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:"#f1f2f4",marginBottom:3}}>{a.label}</div>
-                {p&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:600,color:priceUp?"#22c55e":"#ef4444",marginBottom:6}}>{priceUp?"↑":"↓"}{p.change}</div>}
-                {!p&&<div style={{fontSize:10,color:"#374151",marginBottom:6}}>—</div>}
-                {bias&&bc?(
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span style={{fontSize:9,fontWeight:700,color:bc.text,letterSpacing:"0.08em"}}>{bias.toUpperCase()}</span>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:acc}}>{d.confidence}%</span>
-                  </div>
-                ):(
-                  <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.06em"}}>GEEN ANALYSE</div>
-                )}
+                className="row-hover"
+                style={{display:"grid",gridTemplateColumns:"120px 90px 70px 70px 60px 60px 1fr",padding:"9px 12px",borderBottom:"1px solid var(--line)",cursor:"pointer",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:7}}>
+                  <AssetLogo id={a.id} size={18}/>
+                  <span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:600,color:"var(--t1)"}}>{a.label}</span>
+                </div>
+                <span style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--t2)"}}>{p?.price||"—"}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:600,color:p?(up?"var(--grn)":"var(--red)"):"var(--t3)"}}>{p?(up?"▲":"▼")+" "+p.change:"—"}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:bc?bc.text:"var(--t3)"}}>{bias?.toUpperCase()||"—"}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,color:d?accent:"var(--t3)"}}>{d?d.confidence+"%":"—"}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:10,color:d?"#6366F1":"var(--t3)"}}>{d?d.macro_hold:"—"}</span>
+                {d?.pulse ? <PulseBadge pulse={d.pulse}/> : <span/>}
               </div>
             );
           })}
         </div>
-      </div>
 
-      {/* Quick nav cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-        {[
-          {id:"analyse", icon:"▦", title:"Asset Analyse",   desc:"Volledige bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.", color:acc},
-          {id:"intel",   icon:"◉", title:"Market Intel",    desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen via Anthropic web search.", color:"#6366f1"},
-          {id:"calendar",icon:"≡", title:"Tools & Kalender",desc:"ForexFactory, TradingView, Investing.com en andere handige trading resources.", color:"#f59e0b"},
-        ].map(({id,icon,title,desc,color})=>(
-          <button key={id} onClick={()=>onNavigate(id)}
-            className="card-hover"
-            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10}}>
-            <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>{icon}</div>
-            <div>
-              <div style={{fontSize:13,fontWeight:700,color:"#e2e4e9",marginBottom:5}}>{title}</div>
-              <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
+        {/* News column */}
+        <div style={{border:"1px solid var(--line)",display:"flex",flexDirection:"column"}}>
+          <div style={{padding:"8px 12px",borderBottom:"1px solid var(--line)",background:"var(--bg2)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:5,height:5,borderRadius:"50%",background:"#D97706",animation:"dot 2s infinite"}}/>
+              <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.14em"}}>NEWS FEED</span>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto"}}>
-              OPEN <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* News feed */}
-      {newsToShow.length>0&&(
-        <div style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"16px 20px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-              <span style={{fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:"0.12em"}}>NEWS FEED</span>
-            </div>
-            <button onClick={()=>onNavigate("intel")} style={{background:"none",border:"none",color:"#374151",fontSize:10,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>MEER ›</button>
+            <button onClick={()=>onNavigate("analyse")} className="action-btn"
+              style={{background:"none",border:"none",fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",padding:0}}>
+              MEER ›
+            </button>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:5}}>
+          <div style={{flex:1,overflowY:"auto"}}>
+            {newsToShow.length===0 && (
+              <div style={{padding:"24px 12px",textAlign:"center",fontFamily:"var(--mono)",fontSize:9,color:"var(--t3)"}}>Geen nieuws</div>
+            )}
             {newsToShow.map((n,i)=>{
-              const url = n.link||n.url||"";
-              const time = n.time ? fmtDT(n.time instanceof Date ? n.time : new Date(n.time)) : n.timeStr||"";
+              const headline = n.headline;
+              const source   = n.source;
+              const url      = n.link||n.url||"";
+              const time     = n.time ? (n.time instanceof Date ? fmtDT(n.time) : fmtDT(new Date(n.time))) : n.timeStr||"";
+              const isBull   = n.direction==="bullish";
+              const isBear   = n.direction==="bearish";
               return (
                 <div key={i} onClick={()=>url&&window.open(url,"_blank")}
-                  className="news-item-hover"
-                  style={{display:"flex",alignItems:"flex-start",gap:10,padding:"8px 10px",borderRadius:6,border:"1px solid rgba(255,255,255,0.04)",cursor:url?"pointer":"default"}}>
-                  <div style={{width:3,flexShrink:0,alignSelf:"stretch",borderRadius:2,background:n.direction==="bullish"?"#22c55e":n.direction==="bearish"?"#ef4444":"rgba(255,255,255,0.1)"}}/>
+                  className="row-hover"
+                  style={{padding:"9px 12px",borderBottom:"1px solid var(--line)",cursor:url?"pointer":"default",display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <div style={{width:2,alignSelf:"stretch",flexShrink:0,background:isBull?"var(--grn)":isBear?"var(--red)":"var(--line2)"}}/>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
-                      <span style={{fontSize:9,fontWeight:700,color:"#f59e0b"}}>{n.source}</span>
-                      <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
+                    <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:600,color:"#D97706"}}>{source}</span>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{time}</span>
+                      {n.impact==="high"&&<span style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--red)",border:"1px solid var(--red)44",padding:"0 3px",letterSpacing:"0.06em"}}>HIGH</span>}
                     </div>
-                    <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.5,overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{n.headline}</div>
+                    <div style={{fontSize:11,color:"var(--t1)",lineHeight:1.5,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{headline}</div>
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* ── Quick nav ── */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:0,borderTop:"1px solid var(--line)",borderLeft:"1px solid var(--line)",marginTop:16}}>
+        {[
+          {id:"analyse", label:"ANALYSE",  icon:"▦", desc:"Bias · Confidence · Hold Score · Deep Dive"},
+          {id:"intel",   label:"INTEL",    icon:"◉", desc:"Nieuws · Macro Regime · Cross-Asset"},
+          {id:"calendar",label:"TOOLS",    icon:"≡", desc:"ForexFactory · TradingView · Investing.com"},
+        ].map(({id,label,icon,desc})=>(
+          <button key={id} onClick={()=>onNavigate(id)} className="action-btn"
+            style={{background:"none",border:"none",borderRight:"1px solid var(--line)",borderBottom:"1px solid var(--line)",padding:"16px",textAlign:"left",display:"flex",flexDirection:"column",gap:6}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontFamily:"var(--mono)",fontSize:13,color:acc}}>{icon}</span>
+              <span style={{fontFamily:"var(--mono)",fontSize:10,fontWeight:700,color:"var(--t2)",letterSpacing:"0.1em"}}>{label}</span>
+            </div>
+            <div style={{fontSize:10,color:"var(--t3)",lineHeight:1.4}}>{desc}</div>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,color:acc,letterSpacing:"0.1em",marginTop:2}}>OPEN →</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -2319,139 +2306,140 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   return (
     <div style={{minHeight:"100vh",background:"var(--bg)",fontFamily:"var(--sans)",color:"var(--t1)",display:"flex"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
         :root {
-          --bg:   #060608;
-          --bg1:  #0d0d10;
-          --bg2:  #111116;
-          --bg3:  #16161c;
+          --bg:   #080A0D;
+          --bg1:  #0C0F14;
+          --bg2:  #111520;
+          --bg3:  #161B27;
           --line: rgba(255,255,255,0.06);
           --line2:rgba(255,255,255,0.10);
-          --t1:   #e2e4e9;
-          --t2:   #9ca3af;
-          --t3:   #374151;
+          --t1:   #E8EAF0;
+          --t2:   #8892A4;
+          --t3:   #3D4559;
           --acc:  ${accent};
-          --red:  #ef4444;
-          --grn:  #22c55e;
-          --mono: 'JetBrains Mono', monospace;
-          --sans: 'Syne', system-ui, sans-serif;
+          --red:  #E05252;
+          --grn:  #33C97A;
+          --mono: 'IBM Plex Mono', monospace;
+          --sans: 'IBM Plex Sans', system-ui, sans-serif;
         }
         *{box-sizing:border-box;margin:0;padding:0}
         html,body{background:var(--bg);color:var(--t1);font-family:var(--sans)}
-        ::-webkit-scrollbar{width:3px;background:transparent}
-        ::-webkit-scrollbar-thumb{background:#1f2023;border-radius:4px}
+        ::-webkit-scrollbar{width:2px;height:2px;background:transparent}
+        ::-webkit-scrollbar-thumb{background:#1E2535}
         button{cursor:pointer;font-family:var(--sans)}
-        button{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important}
-        button:hover:not(:disabled){filter:brightness(1.2)}
         @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-        @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.7}}
-        @keyframes pageIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
-        @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
-        @keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+        @keyframes pulse{0%,100%{opacity:0.3}50%{opacity:0.7}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+        @keyframes slideRight{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+        @keyframes deepSlide{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+        @keyframes barFill{from{width:0}to{width:var(--w)}}
         @keyframes dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
-        .page-in{animation:pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both}
-        .card-in{animation:cardIn 0.4s cubic-bezier(0.4,0,0.2,1) both}
-        .deep-in{animation:deepIn 0.38s cubic-bezier(0.16,1,0.3,1) both}
-        .row-hover{transition:background 0.15s}
+        .page-in{animation:slideRight 0.28s cubic-bezier(0.4,0,0.2,1) both}
+        .card-in{animation:fadeUp 0.3s ease both}
+        .deep-in{animation:deepSlide 0.32s cubic-bezier(0.16,1,0.3,1) both}
+        .row-hover{transition:background 0.12s}
         .row-hover:hover{background:rgba(255,255,255,0.03)!important}
-        .nav-btn{transition:color 0.12s,background 0.12s;border-radius:8px}
+        .nav-btn{transition:color 0.12s,background 0.12s}
         .nav-btn:hover{background:rgba(255,255,255,0.04)!important;color:var(--t1)!important}
         .action-btn{transition:all 0.15s ease}
-        .action-btn:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px)}
-        .card-hover{transition:transform 0.2s ease,box-shadow 0.2s ease,border-color 0.2s ease}
-        .card-hover:hover{transform:translateY(-3px)!important;box-shadow:0 12px 40px rgba(0,0,0,0.5)!important}
+        .action-btn:hover:not(:disabled){filter:brightness(1.15)}
         .live-dot{animation:dot 2.2s ease-in-out infinite}
       `}</style>
 
       {/* ── SIDEBAR ── */}
-      <div style={{width:260,minHeight:"100vh",background:"#0a0a0d",borderRight:"1px solid rgba(255,255,255,0.06)",display:"flex",flexDirection:"column",position:"fixed",left:0,top:0,zIndex:100}}>
+      <div style={{width:240,minHeight:"100vh",background:"var(--bg1)",borderRight:"1px solid var(--line)",display:"flex",flexDirection:"column",position:"fixed",left:0,top:0,zIndex:100,flexShrink:0}}>
 
         {/* Wordmark */}
-        <div style={{padding:"18px 20px 14px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:32,height:32,borderRadius:8,background:`${accent}20`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" stroke={accent} strokeWidth="1.5"/></svg>
-            </div>
-            <div>
-              <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:"#e2e4e9",letterSpacing:"-0.02em",lineHeight:1}}>
-                Hybrid<span style={{color:accent}}>Trader</span>
-              </div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:"#374151",letterSpacing:"0.14em",marginTop:2}}>DASHBOARD</div>
-            </div>
+        <div style={{padding:"16px 16px 14px",borderBottom:"1px solid var(--line)"}}>
+          <div style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:700,color:"var(--t1)",letterSpacing:"-0.01em",marginBottom:2}}>
+            HYBRID<span style={{color:accent}}>TRADER</span>
+          </div>
+          <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",letterSpacing:"0.14em"}}>INSTITUTIONAL FLOW v6.3</div>
+        </div>
+
+        {/* Live prices */}
+        <div style={{padding:"10px 16px",borderBottom:"1px solid var(--line)"}}>
+          <div style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)",letterSpacing:"0.16em",marginBottom:6}}>LIVE PRICES</div>
+          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+            {assets.slice(0,5).map(a=>{
+              const p = livePrices[a.id];
+              const up = p?.direction==="up";
+              return (
+                <div key={a.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5}}>
+                    <AssetLogo id={a.id} size={14}/>
+                    <span style={{fontFamily:"var(--mono)",fontSize:9,color:"var(--t2)"}}>{a.label}</span>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:5}}>
+                    <span style={{fontFamily:"var(--mono)",fontSize:9,color:"var(--t1)"}}>{p?.price||"—"}</span>
+                    {p&&<span style={{fontFamily:"var(--mono)",fontSize:8,color:up?"var(--grn)":"var(--red)"}}>{up?"▲":"▼"}{p.change}</span>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Asset icon strip */}
-        <div style={{padding:"10px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:6,alignItems:"center"}}>
-          {assets.slice(0,5).map(a=>(
-            <div key={a.id} title={a.label}>
-              <AssetLogo id={a.id} size={22}/>
-            </div>
-          ))}
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#374151",marginLeft:4}}>—</span>
-        </div>
-
         {/* Nav */}
-        <div style={{padding:"10px 10px",flex:1,display:"flex",flexDirection:"column",gap:2}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"#374151",letterSpacing:"0.16em",padding:"4px 10px 6px"}}>NAVIGATIE</div>
+        <div style={{padding:"8px 8px",flex:1}}>
+          <div style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)",letterSpacing:"0.16em",padding:"6px 8px 4px"}}>NAVIGATIE</div>
           {[
-            {id:"home",    label:"Home",    sub:"Dashboard Overview",
-              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5"/></svg>},
-            {id:"analyse", label:"Analyse", sub:"Bias & Confidence",
-              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/></svg>},
-            {id:"intel",   label:"Intel",   sub:"Nieuws & Macro",
-              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-            {id:"calendar",label:"Kalender",sub:"Links & Tools",
-              icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            {id:"home",    label:"Home",     sub:"Dashboard",
+              icon:<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5"/></svg>},
+            {id:"analyse", label:"Analyse",  sub:"Bias & Confidence",
+              icon:<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5"/></svg>},
+            {id:"intel",   label:"Intel",    sub:"Nieuws & Macro",
+              icon:<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            {id:"calendar",label:"Tools",    sub:"Links & Kalender",
+              icon:<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
           ].map(({id,label,sub,icon})=>(
-            <button key={id} onClick={()=>switchPage(id)} className="nav-item"
-              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 10px",cursor:"pointer",textAlign:"left",borderLeft:page===id?`2px solid ${accent}`:"2px solid transparent",transition:"all 0.15s"}}>
-              <div style={{flexShrink:0,opacity:page===id?1:0.5,color:page===id?accent:"#6b7280"}}>{icon}</div>
+            <button key={id} onClick={()=>switchPage(id)} className="nav-btn"
+              style={{width:"100%",border:"none",background:page===id?`${accent}12`:"transparent",color:page===id?accent:"var(--t3)",display:"flex",alignItems:"center",gap:8,padding:"7px 8px",cursor:"pointer",textAlign:"left",borderLeft:page===id?`2px solid ${accent}`:"2px solid transparent"}}>
+              <div style={{flexShrink:0,opacity:page===id?1:0.5}}>{icon}</div>
               <div>
-                <div style={{fontSize:12,fontWeight:page===id?700:400,color:page===id?"#e2e4e9":"#9ca3af",lineHeight:1.2}}>{label}</div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:"#374151",marginTop:1}}>{sub}</div>
+                <div style={{fontSize:11,fontWeight:page===id?600:400,color:page===id?"var(--t1)":"var(--t2)"}}>{label}</div>
+                <div style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",marginTop:1}}>{sub}</div>
               </div>
             </button>
           ))}
         </div>
 
-        {/* Session status */}
-        <div style={{padding:"12px 20px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:"#374151",letterSpacing:"0.14em",marginBottom:8}}>SESSIE STATUS</div>
+        {/* Status block */}
+        <div style={{padding:"10px 16px",borderTop:"1px solid var(--line)"}}>
           <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:loading?accent:aResult?"#22c55e":"#374151",animation:loading?"blink 1s infinite":"none",flexShrink:0}}/>
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:loading?accent:aResult?"#22c55e":"#4b5563",letterSpacing:"0.08em"}}>{loading?"RUNNING":aResult?"LIVE":"STANDBY"}</span>
-            {lastRefresh&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:"#374151",marginLeft:"auto"}}>{timeSinceRefresh}</span>}
+            <div style={{width:5,height:5,borderRadius:"50%",background:loading?accent:aResult?"var(--grn)":"var(--t3)",animation:loading?"blink 1s infinite":"none",flexShrink:0}}/>
+            <span style={{fontFamily:"var(--mono)",fontSize:8,color:loading?accent:aResult?"var(--grn)":"var(--t3)",letterSpacing:"0.1em"}}>{loading?"RUNNING":aResult?"LIVE":"STANDBY"}</span>
+            {lastRefresh&&<span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)",marginLeft:"auto"}}>{timeSinceRefresh}</span>}
           </div>
           {aResult&&(
-            <div style={{display:"flex",flexDirection:"column",gap:3}}>
+            <div style={{display:"flex",flexDirection:"column",gap:2}}>
+              <div style={{fontFamily:"var(--mono)",fontSize:7,color:"var(--t3)",letterSpacing:"0.1em",marginBottom:3}}>BIAS OVERZICHT</div>
               {assets.map(a=>{
                 const d = aResult.assets?.[a.id];
                 if(!d) return null;
                 const bias = resolveBias(d.bias,d.confidence);
                 const bc = biasColors[bias]||biasColors.Neutraal;
                 return (
-                  <div key={a.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:"#374151"}}>{a.label}</span>
-                    <div style={{display:"flex",alignItems:"center",gap:5}}>
-                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,fontWeight:700,color:bc.text}}>{bias?.toUpperCase().slice(0,4)||"—"}</span>
-                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:accent}}>{d.confidence}%</span>
+                  <div key={a.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"2px 0"}}>
+                    <span style={{fontFamily:"var(--mono)",fontSize:8,color:"var(--t3)"}}>{a.label}</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,fontWeight:700,color:bc.text}}>{bias?.toUpperCase().slice(0,4)||"—"}</span>
+                      <span style={{fontFamily:"var(--mono)",fontSize:8,color:accent}}>{d.confidence}%</span>
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-          <div style={{marginTop:10,fontSize:8,color:"#1f2937",lineHeight:1.4}}>GEEN FINANCIEEL ADVIES</div>
         </div>
       </div>
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",background:"var(--bg)"}}>
+      <div style={{marginLeft:240,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",background:"var(--bg)"}}>
 
       {/* ── HEADER ── */}
-      <div style={{borderBottom:"1px solid var(--line)",padding:"0 28px",height:56,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"rgba(6,6,8,0.95)",backdropFilter:"blur(12px)",zIndex:50}}>
+      <div style={{borderBottom:"1px solid var(--line)",padding:"0 20px",height:44,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"var(--bg1)",zIndex:50}}>
         {/* Left: title + status */}
         <div style={{display:"flex",alignItems:"center",gap:16}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -2473,13 +2461,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           {(page==="analyse"||page==="home") ? (
             <div style={{display:"flex",gap:6}}>
-              <button onClick={runHybrid} disabled={isRunning}
-                style={{background:isRunning?`${accent}22`:`linear-gradient(135deg,${accent},${accent}cc)`,border:"none",borderRadius:8,padding:"8px 18px",color:isRunning?accent:"#000",fontWeight:700,fontSize:11,letterSpacing:"0.06em",fontFamily:"var(--mono)",display:"flex",alignItems:"center",gap:7,opacity:isRunning?0.8:1}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>{isRunning?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M8 5l11 7-11 7V5z" fill="currentColor"/>}</svg>
+              <button onClick={runHybrid} disabled={isRunning} className="action-btn"
+                style={{background:isRunning?"transparent":accent,border:`1px solid ${isRunning?accent+"55":accent}`,padding:"6px 16px",color:isRunning?accent:"#000",fontFamily:"var(--mono)",fontWeight:700,fontSize:10,letterSpacing:"0.08em",display:"flex",alignItems:"center",gap:6}}>
+                <span style={{animation:isRunning?"spin 1s linear infinite":"none",display:"inline-block"}}>{isRunning?"⟳":"▶"}</span>
                 {hybridStatus==="intel"?"1/4 NIEUWS":hybridStatus==="marktvisie"?"2/4 VISIE":hybridStatus==="analyse"?"3/4 ANALYSE":hybridStatus==="sessie"?"4/4 SESSIE":hybridStatus==="done"?"KLAAR":"HYBRID ANALYSE"}
               </button>
-              <button onClick={runAnalysis} disabled={aStatus==="loading"} title="Alleen analyse"
-                style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 12px",color:"var(--t3)",fontSize:11,fontWeight:600,fontFamily:"var(--mono)",display:"flex",alignItems:"center",gap:5}}>
+              <button onClick={runAnalysis} disabled={aStatus==="loading"} className="action-btn" title="Alleen analyse"
+                style={{background:"none",border:"1px solid var(--line2)",padding:"6px 12px",color:"var(--t3)",fontFamily:"var(--mono)",fontSize:10,letterSpacing:"0.08em",display:"flex",alignItems:"center",gap:5}}>
                 SESSIE
               </button>
             </div>
@@ -2498,7 +2486,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
-        <div style={{position:"fixed",inset:0,marginLeft:260,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"fixed",inset:0,marginLeft:240,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"#0d0d10",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"32px 40px",minWidth:340,maxWidth:420}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -2543,7 +2531,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       )}
 
       {/* ── CONTENT ── */}
-      <div key={pageKey} className="page-in" style={{padding:"24px 28px",maxWidth:1440,margin:"0 auto",width:"100%"}}>
+      <div key={pageKey} className="page-in" style={{padding:"24px 20px",maxWidth:1440,margin:"0 auto",width:"100%"}}>
 
         {/* HOME PAGE */}
         {page==="home"&&(
