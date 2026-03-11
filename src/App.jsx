@@ -1494,11 +1494,13 @@ export default function HybridDashboard() {
         } catch(_) {}
       }
       if(true) {
-        // Individuele calls voor Finnhub (geen batch API)
-        allIds.forEach(id => {
-          fetchFinnhubPrice(id)
-            .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
-            .catch(()=>{});
+        // Individuele calls voor Finnhub — gestaggerd om 429 te vermijden
+        allIds.forEach((id, idx) => {
+          setTimeout(() => {
+            fetchFinnhubPrice(id)
+              .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
+              .catch(()=>{});
+          }, idx * 600); // 600ms tussen elke call = ~6s totaal voor 10 symbolen
         });
         return;
       }
@@ -1509,16 +1511,18 @@ export default function HybridDashboard() {
           if(Object.keys(batch).length > 0) setLivePrices(prev=>({...prev,...batch}));
         } catch(_) {}
       } else if(true) {
-        allIds.forEach(id => {
-          fetchFinnhubPrice(id)
-            .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
-            .catch(()=>{});
+        allIds.forEach((id, idx) => {
+          setTimeout(() => {
+            fetchFinnhubPrice(id)
+              .then(p=>{ if(p) setLivePrices(prev=>({...prev,[id]:p})); })
+              .catch(()=>{});
+          }, idx * 600);
         });
       }
     }
 
     fetchAll();
-    const t = setInterval(fetchAll, 30000);
+    const t = setInterval(fetchAll, 60000); // 60s interval ipv 30s
     return()=>clearInterval(t);
   },[assets]);
 
