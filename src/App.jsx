@@ -770,12 +770,13 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
           </div>
           <div style={{display:"flex",gap:8}}>
             <button onClick={onRefreshAsset} disabled={refreshing}
-              className="btn-primary" style={{padding:"8px 18px",fontSize:10,color:"#fff",opacity:refreshing?0.6:1,"--btn-glow":`${acc}40`,fontFamily:"'JetBrains Mono',monospace"}}>
+              className="btn-primary btn-always-spin"
+              style={{padding:"8px 14px",fontSize:13,color:"#fff",opacity:refreshing?0.6:1,"--btn-glow":`${acc}40`,fontFamily:"'JetBrains Mono',monospace"}}>
               <span style={{display:"inline-block",animation:refreshing?"spin 0.8s linear infinite":"none"}}>↺</span>
-              {refreshing?"BEZIG...":"UPDATE"}
             </button>
             <button onClick={onClose}
-              style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:7,color:"#6b7280",padding:"8px 18px",fontSize:10,fontWeight:700,cursor:"pointer",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>
+              className="btn-primary btn-always-spin"
+              style={{padding:"8px 18px",fontSize:10,color:"#fff","--btn-glow":`${acc}40`,fontFamily:"'JetBrains Mono',monospace"}}>
               ← TERUG
             </button>
           </div>
