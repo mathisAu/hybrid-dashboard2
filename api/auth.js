@@ -7,8 +7,8 @@ import { Redis } from "@upstash/redis";
 import bcrypt    from "bcryptjs";
 
 const redis = new Redis({
-  url:   process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
+  url:   process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL,
+  token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_TOKEN,
 });
 
 const ADMIN_KEY   = process.env.ADMIN_PASSWORD || "admin123";
@@ -26,7 +26,7 @@ async function sendEmail({ to, subject, html }) {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({
-        from: "HybridTrader <onboarding@resend.dev>",
+        from: "HybridTrader <noreply@hybriddashboard.com>",
         to,
         subject,
         html,
