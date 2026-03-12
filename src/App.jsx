@@ -4050,18 +4050,21 @@ function AuthTabs({ mode, onSwitch, accent, labels }) {
   const active = mode === "login" ? 0 : 1;
 
   return (
-    <div style={{position:"relative", display:"flex",
-      background:"rgba(0,0,0,0.35)", borderRadius:8, padding:4, marginBottom:24}}>
+    <div style={{position:"relative", display:"flex", gap:4,
+      background:"rgba(0,0,0,0.35)", borderRadius:8, padding:4, marginBottom:24,
+      boxShadow: hov ? "none" : `0 0 14px ${ac}22`,
+      transition:"box-shadow 0.2s ease"}}>
 
-      {/* Sliding pill — sits behind everything */}
+      {/* Sliding pill */}
       <div style={{position:"absolute",
         top:4, bottom:4,
-        left: active === 0 ? 4 : "calc(50% + 2px)",
-        width:"calc(50% - 6px)",
+        left: active === 0 ? 4 : "50%",
+        width:"calc(50% - 4px)",
         background:"rgba(255,255,255,0.06)",
         borderRadius:6,
-        border:`1px solid ${ac}33`,
-        transition:"left 0.25s cubic-bezier(.4,0,.2,1)",
+        border:`1px solid ${hov ? ac+"22" : ac+"55"}`,
+        boxShadow: hov ? "none" : `0 0 10px ${ac}44`,
+        transition:"left 0.25s cubic-bezier(.4,0,.2,1), box-shadow 0.25s ease, border-color 0.25s ease",
         pointerEvents:"none", zIndex:0}}/>
 
       {[{id:"login",label:labels[0]},{id:"register",label:labels[1]}].map((tab) => (
