@@ -492,10 +492,10 @@ function resolveBias(bias, confidence) {
 }
 
 const biasColors = {
-  Bullish:  { bg:"#14532d", border:"#22c55e", text:"#4ade80" },
-  Bearish:  { bg:"#7f1d1d", border:"#ef4444", text:"#fca5a5" },
-  Neutraal: { bg:"#1f2937", border:"#4b5563", text:"#9ca3af" },
-  Fragiel:  { bg:"#064e3b", border:"#089981", text:"#0dd9b6" },
+  Bullish:  { bg:"rgba(34,197,94,0.08)",  border:"rgba(34,197,94,0.35)",  text:"#4ade80" },
+  Bearish:  { bg:"rgba(239,68,68,0.08)",  border:"rgba(239,68,68,0.35)",  text:"#f87171" },
+  Neutraal: { bg:"rgba(75,85,99,0.12)",   border:"rgba(75,85,99,0.35)",   text:"#9ca3af" },
+  Fragiel:  { bg:"rgba(8,153,129,0.08)",  border:"rgba(8,153,129,0.35)",  text:"#0dd9b6" },
 };
 const corrColors  = { Normaal:"#22c55e", Anomalie:"#ef4444", Hersteld:"#089981" };
 const yieldColors = { "Risk-On":"#22c55e","Risk-Off":"#ef4444","Stagflatie":"#089981","Neutraal":"#6b7280" };
@@ -1052,9 +1052,6 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       <div style={{overflow:"hidden",borderRadius:8}}>
       {/* Top gradient accent line */}
       <div style={{height:2,background:meta.color ? `linear-gradient(90deg,transparent,${meta.color}55,transparent)` : data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : "transparent"}}/>
-
-      {/* Asset background glow */}
-      <div style={{position:"absolute",top:-40,right:-20,width:140,height:140,borderRadius:"50%",background:meta.color?`radial-gradient(circle,${meta.color}08,transparent 70%)`:"transparent",pointerEvents:"none"}}/>
 
       <div style={{padding:"16px"}}>
         {/* Header row */}
@@ -2482,7 +2479,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
         .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1),border-color 0.2s ease;position:relative}
         .card-hover:hover{transform:translateY(-3px)!important}
-        .asset-card-rect{fill:none;stroke:${accent};stroke-width:1.5;stroke-dasharray:500;stroke-dashoffset:500;transition:stroke-dashoffset 0s}
+        .asset-card-rect{fill:none;stroke:${accent};stroke-width:1;stroke-dasharray:500;stroke-dashoffset:500;transition:stroke-dashoffset 0s;opacity:0.6;filter:drop-shadow(0 0 4px ${accent}55)}
         .card-hover:hover .asset-card-rect{stroke-dashoffset:0;transition:stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)}
         .news-item-hover{transition:background 0.15s,border-color 0.15s}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
