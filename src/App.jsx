@@ -154,7 +154,44 @@ const BASE_ASSETS = [
   { id:"EURUSD", label:"EUR/USD",full:"Euro / US Dollar",         group:"fx",     searchTerms:"EUR/USD euro dollar forex" },
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
+function Dashboard() {
+  return (
+    <div>
+      <h2>Macro / Crypto</h2>
+      {/* Hier blijven de gewone asset logo’s */}
+      <AssetLogo id="XAUUSD" />
+      <AssetLogo id="BTCUSD" />
 
+      <h2>Indices</h2>
+      {/* Hier komt het TradingView-widget voor indices */}
+      <div className="tradingview-widget-container">
+        <script
+          type="text/javascript"
+          src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js"
+          async
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              title: "Indices",
+              showSymbolLogo: true,
+              width: 350,
+              height: 120,
+              symbolsGroups: [
+                {
+                  name: "US & Canada",
+                  symbols: [
+                    { name: "FX:US30", displayName: "US30" },
+                    { name: "CAPITALCOM:US100", displayName: "US100" },
+                  ],
+                },
+              ],
+              locale: "en",
+            }),
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 const ANALYSIS_SYSTEM = `You are a Hybrid Market Intelligence Trader (HYBRID PROMPT v6.3 — Institutional Flow Edition).
 No web search — all context is provided. Bias = ONLY fundamental macro analysis, NEVER based on price/%.
 All output must be in Dutch.
