@@ -698,35 +698,30 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   // Card — radial corner glow + conic hover border
   const Card = ({children, style={}, color=acc, onClick}) => {
     const hex = color;
-    // derive glow rgba from hex color
-    const glowRgba = `${hex}40`;
     return (
       <div
         onClick={onClick}
         className="rc-card card-hover"
         style={{
-          "--rc-color": hex,
-          "--rc-color-glow": glowRgba,
           "--conic-color": hex,
           cursor:onClick?"pointer":"default",
           ...style
         }}
       >
-        <div className="rc-glow"/>
         <div className="conic-border"/>
-        <div style={{position:"relative",zIndex:1,padding:"16px 18px"}}>{children}</div>
+        <div style={{padding:"16px 18px"}}>{children}</div>
       </div>
     );
   };
 
   const ThinBar = ({value, max=100, color}) => (
-    <div style={{height:3,borderRadius:2,background:"rgba(255,255,255,0.06)",overflow:"hidden",marginTop:6}}>
+    <div style={{height:3,borderRadius:2,background:"#141414",overflow:"hidden",marginTop:6}}>
       <div style={{height:"100%",width:`${Math.min(100,(value/max)*100)}%`,background:color,borderRadius:2,transition:"width 0.6s ease"}}/>
     </div>
   );
 
   const StatRow = ({label, value, color="#9ca3af"}) => (
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #262626"}}>
       <span style={{fontSize:10,color:"#6b7280"}}>{label}</span>
       <span style={{fontSize:11,fontWeight:700,color,fontFamily:"'JetBrains Mono',monospace"}}>{value||"—"}</span>
     </div>
@@ -735,7 +730,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   return (
     <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#09090d",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
+      <div style={{background:"#0a0a0a",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
 
         {/* Deep dive page glow */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -862,15 +857,15 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* Uitgebreide analyse */}
             <Card color={acc} style={{background:`linear-gradient(135deg,${acc}07,rgba(99,102,241,0.04))`,border:`1px solid ${acc}18`}}>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:acc,fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>✦ UITGEBREIDE ANALYSE</div>
-              <div style={{fontSize:13,color:"#d1d5db",lineHeight:1.9,fontWeight:400}}>{data?.analyse_uitgebreid||data?.mini_summary||"—"}</div>
+              <div style={{fontSize:11,fontWeight:600,color:"#34d399",marginBottom:10}}>✦ Uitgebreide Analyse</div>
+              <div style={{fontSize:12,color:"#a8b0bf",lineHeight:1.8,fontWeight:400}}>{data?.analyse_uitgebreid||data?.mini_summary||"—"}</div>
             </Card>
 
             {/* AI Opinie */}
             {data?.ai_opinie&&(
               <Card color="#6366f1" style={{background:"rgba(99,102,241,0.04)",border:"1px solid rgba(99,102,241,0.12)"}}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#6366f1",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>✦ AI OPINIE</div>
-                <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.8,fontStyle:"italic",borderLeft:"2px solid rgba(99,102,241,0.3)",paddingLeft:12}}>{data.ai_opinie}</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#34d399",marginBottom:8}}>✦ AI Opinie</div>
+                <div style={{fontSize:12,color:"#a8b0bf",lineHeight:1.8,fontStyle:"italic",borderLeft:"2px solid #34d39940",paddingLeft:12}}>{data.ai_opinie}</div>
               </Card>
             )}
 
@@ -1061,8 +1056,6 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       onClick={data ? onClick : undefined}
       className="rc-card card-hover"
       style={{
-        "--rc-color": c.border||accent,
-        "--rc-color-glow": (c.border||accent)+"25",
         "--conic-color": c.border||accent,
         opacity:vis?1:0,
         transform:vis?"translateY(0)":"translateY(16px)",
@@ -1070,70 +1063,63 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
         cursor:data?"pointer":"default",
       }}
     >
-      <div className="rc-glow"/>
       <div className="conic-border"/>
-      <div style={{position:"relative",zIndex:1,padding:"16px"}}>
+      <div style={{padding:"16px 18px"}}>
         {/* Header row */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <AssetLogo id={asset.id} size={26}/>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <AssetLogo id={asset.id} size={28}/>
             <div>
-              <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2}}>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:15,fontWeight:700,color:"#f1f2f4",letterSpacing:"0.04em"}}>{asset.label}</span>
-                {displayChange&&(
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:priceUp?"#22c55e":"#ef4444",background:priceUp?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.1)",borderRadius:4,padding:"1px 6px"}}>
-                    {priceUp?"↑":"↓"}{displayChange}
-                  </span>
-                )}
-              </div>
+              <div style={{fontSize:15,fontWeight:700,color:"#f0f2f8",letterSpacing:"-.01em",marginBottom:2}}>{asset.label}</div>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
-                {displayPrice&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:600,color:"#9ca3af"}}>{displayPrice}</span>}
-                <span style={{fontSize:10,color:"#4b5563"}}>{asset.full}</span>
+                {displayPrice&&<span style={{fontSize:12,fontWeight:500,color:"#6b7280"}}>{displayPrice}</span>}
+                <span style={{fontSize:10,color:"#444"}}>{asset.full}</span>
               </div>
             </div>
           </div>
 
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
             {data?.bias ? (
-              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:5,padding:"3px 8px"}}>
-                <span style={{fontSize:10,fontWeight:800,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
+              <div style={{display:"flex",alignItems:"center",gap:5,background:`${c.border}14`,border:`1px solid ${c.border}33`,borderRadius:4,padding:"3px 9px"}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:c.border}}/>
+                <span style={{fontSize:10,fontWeight:600,color:c.border,letterSpacing:"0.04em"}}>{bias}</span>
               </div>
-            ) : loading ? <div style={{width:80,height:28,borderRadius:8,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
+            ) : loading ? <div style={{width:80,height:24,borderRadius:6,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
           </div>
         </div>
 
         {data ? (
           <>
-            {/* Confidence + Hold bars */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-              <div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:9,color:"#6b7280",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>CONFIDENCE</span>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:acc}}>{conf}%</span>
-                </div>
-                <ConfidenceBar value={conf} color={acc}/>
+            {/* Confidence bar */}
+            <div style={{marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                <span style={{fontSize:11,color:"#555",fontWeight:400}}>Confidence</span>
+                <span style={{fontSize:11,fontWeight:600,color:"#9aa5bc"}}>{conf}%</span>
               </div>
-              <div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:9,color:"#6b7280",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>HOLD</span>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:"#6366f1"}}>{hold}<span style={{fontSize:9,color:"#4b5563"}}>/100</span></span>
-                </div>
-                <ConfidenceBar value={hold} color="#6366f1"/>
+              <div style={{height:4,background:"#141414",borderRadius:2,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${conf}%`,background:"#22c55e",borderRadius:2,transition:"width 0.6s ease"}}/>
               </div>
             </div>
 
-            {/* Divider */}
-            <div style={{height:1,background:"rgba(255,255,255,0.04)",marginBottom:12}}/>
-
-
-
-            {/* AI Summary block */}
-              <div style={{borderRadius:8,padding:"10px 0 0 0"}}>
-                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
-                  <span style={{fontSize:9,color:"#6366f1",fontWeight:700,letterSpacing:"0.12em"}}>✦ AI ANALYSE</span>
-                </div>
-                <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.65}}>{data.mini_summary||"—"}</div>
+            {/* Hold bar */}
+            <div style={{marginBottom:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                <span style={{fontSize:11,color:"#555",fontWeight:400}}>Hold</span>
+                <span style={{fontSize:11,fontWeight:600,color:"#9aa5bc"}}>{hold}/100</span>
               </div>
+              <div style={{height:4,background:"#141414",borderRadius:2,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${hold}%`,background:"#a78bfa",borderRadius:2,transition:"width 0.6s ease"}}/>
+              </div>
+            </div>
+
+            {/* AI Summary inner box */}
+            <div className="ai-inner-box">
+              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:7}}>
+                <span style={{fontSize:10,color:"#34d399"}}>✦</span>
+                <span style={{fontSize:11,fontWeight:600,color:"#34d399"}}>AI Analysis</span>
+              </div>
+              <div style={{fontSize:11,color:"#a8b0bf",lineHeight:1.7}}>{data.mini_summary||"—"}</div>
+            </div>
 
             {/* Deep Dive CTA */}
             <div style={{marginTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -1240,8 +1226,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* ── MACRO CONTEXT ── clean card */}
-      <div className="rc-card" style={{"--rc-color":yieldColors[data.macro_regime]||acc,"--rc-color-glow":(yieldColors[data.macro_regime]||acc)+"20","--conic-color":yieldColors[data.macro_regime]||acc}}>
-        <div className="rc-glow"/>
+      <div className="rc-card" style={{"--conic-color":yieldColors[data.macro_regime]||acc}}>
         <div style={{position:"relative",zIndex:1,padding:"20px 24px"}}>
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:16}}>MACRO CONTEXT</div>
           <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:"12px 32px",alignItems:"start"}}>
@@ -1268,7 +1253,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             {/* Right: dominant driver + desk view */}
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {data.dominant_driver&&(
-                <div style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"10px 14px",borderLeft:`2px solid ${acc}60`}}>
+                <div style={{background:"#242424",border:"1px solid #2e2e2e",borderRadius:8,padding:"10px 14px",borderLeft:`2px solid ${acc}60`}}>
                   <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em",marginBottom:4}}>DOMINANT DRIVER</div>
                   <div style={{fontSize:12,fontWeight:600,color:"#e2e4e9"}}>{data.dominant_driver}</div>
                 </div>
@@ -1285,10 +1270,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       <div style={{display:"grid",gridTemplateColumns:"1fr 360px",gap:16,alignItems:"start"}}>
 
         {/* News feed */}
-        <div className="rc-card" style={{"--rc-color":"#f59e0b","--rc-color-glow":"rgba(245,158,11,0.15)","--conic-color":"#f59e0b"}}>
-          <div className="rc-glow"/>
+        <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
           <div className="conic-border"/>
-          <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
+          <div style={{padding:"18px 20px"}}>
             <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:14}}>NIEUWS FEED</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[...(data.news_items||[])].sort((a,b)=>{
@@ -1296,7 +1280,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                 return t(b.time)-t(a.time);
               }).map((n,i)=>(
                 <div key={i} onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-                  style={{padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",transition:"background 0.15s"}}
+                  style={{padding:"10px 12px",borderRadius:8,background:"#232323",border:"1px solid #2c2c2c",cursor:"pointer",transition:"background 0.15s"}}
                   onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
                   onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}>
                   <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6,flexWrap:"wrap"}}>
@@ -1322,14 +1306,13 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Cross-asset signals */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
-            <div className="rc-card" style={{"--rc-color":"#6366f1","--rc-color-glow":"rgba(99,102,241,0.15)","--conic-color":"#6366f1"}}>
-              <div className="rc-glow"/>
+            <div className="rc-card" style={{"--conic-color":"#6366f1"}}>
               <div className="conic-border"/>
-              <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
+              <div style={{padding:"18px 20px"}}>
                 <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:14}}>CROSS-ASSET SIGNALEN</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {data.cross_asset_signals.map((s,i)=>(
-                    <div key={i} style={{padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    <div key={i} style={{padding:"10px 12px",borderRadius:8,background:"#232323",border:"1px solid #2c2c2c"}}>
                       <Badge label={s.signal} color={s.type==="anomalie"?"#ef4444":"#6366f1"}/>
                       <div style={{fontSize:11,color:"#9ca3af",marginTop:6,lineHeight:1.5}}>{s.implication}</div>
                     </div>
@@ -1341,10 +1324,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Risk radar */}
           {data.risk_radar&&(
-            <div className="rc-card" style={{"--rc-color":data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e","--rc-color-glow":(data.risk_radar.score>70?"rgba(239,68,68,0.15)":data.risk_radar.score>40?"rgba(249,115,22,0.15)":"rgba(34,197,94,0.15)"),"--conic-color":data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}>
-              <div className="rc-glow"/>
+            <div className="rc-card" style={{"--conic-color":data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}>
               <div className="conic-border"/>
-              <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
+              <div style={{padding:"18px 20px"}}>
                 <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:14}}>RISK RADAR</div>
                 <div style={{display:"flex",alignItems:"center",gap:16}}>
                   <div style={{position:"relative",width:56,height:56,flexShrink:0}}>
@@ -1370,9 +1352,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Yield analysis */}
           {data.yield_analysis?.implication&&(
-            <div className="rc-card" style={{"--rc-color":acc,"--rc-color-glow":acc+"20","--conic-color":acc}}>
-              <div className="rc-glow"/>
-              <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
+            <div className="rc-card" style={{"--conic-color":acc}}>
+              <div style={{padding:"18px 20px"}}>
                 <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:10}}>YIELD IMPLICATIE</div>
                 <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.6}}>{data.yield_analysis.implication}</div>
               </div>
@@ -1459,13 +1440,12 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
             {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
           ].map(({label,value,color,sub})=>(
-            <div key={label} className="rc-card card-hover" style={{"--rc-color":color,"--rc-color-glow":color+"30","--conic-color":color}}>
-              <div className="rc-glow"/>
+            <div key={label} className="rc-card card-hover" style={{"--conic-color":color}}>
               <div className="conic-border"/>
-              <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
-                <div style={{fontSize:9,color:"#6b7280",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{label.toUpperCase()}</div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:26,fontWeight:800,color,marginBottom:4,lineHeight:1}}>{value}</div>
-                <div style={{fontSize:10,color:"#4b5563"}}>{sub}</div>
+              <div style={{padding:"18px 20px"}}>
+                <div style={{fontSize:9,color:"#555",letterSpacing:"0.1em",marginBottom:10}}>{label.toUpperCase()}</div>
+                <div style={{fontSize:26,fontWeight:700,color,marginBottom:4,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
+                <div style={{fontSize:10,color:"#444"}}>{sub}</div>
               </div>
             </div>
           ))}
@@ -1481,8 +1461,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
             className="rc-card card-hover"
-            style={{"--rc-color":color,"--rc-color-glow":color+"30","--conic-color":color,cursor:"pointer",width:"100%",textAlign:"left",border:"none"}}>
-            <div className="rc-glow"/>
+            style={{"--conic-color":color,cursor:"pointer",width:"100%",textAlign:"left",border:"none"}}>
             <div className="conic-border"/>
             <div style={{position:"relative",zIndex:1,padding:"24px",display:"flex",flexDirection:"column",gap:12}}>
               <div style={{width:40,height:40,borderRadius:12,background:`${color}18`,border:`1px solid ${color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>
@@ -1502,10 +1481,9 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
       {/* Recent news strip */}
       {(rssItems.length>0||breakingNews.length>0)&&(
-        <div className="rc-card" style={{"--rc-color":acc,"--rc-color-glow":acc+"20","--conic-color":acc}}>
-          <div className="rc-glow"/>
+        <div className="rc-card" style={{"--conic-color":acc}}>
           <div className="conic-border"/>
-          <div style={{position:"relative",zIndex:1,padding:"16px 20px"}}>
+          <div style={{padding:"16px 20px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
@@ -2535,7 +2513,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
 
   return (
-    <div style={{minHeight:"100vh",background:"#080910",fontFamily:"'Inter',sans-serif",color:"#e2e4e9",display:"flex"}}>
+    <div style={{minHeight:"100vh",background:"#0a0a0a",fontFamily:"'Inter',sans-serif",color:"#e2e4e9",display:"flex"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         * { font-family: 'Inter', sans-serif !important; }
@@ -2598,51 +2576,34 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @property --angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
 
-        /* ── Radial corner card ── */
+        /* ── Clean dark card ── */
         .rc-card{
           position:relative;
-          background:#0f1014;
-          border-radius:8px;
-          box-shadow:0 1em 2.5em rgba(0,0,0,0.7);
+          background:#1c1c1c;
+          border:1px solid #2a2a2a;
+          border-radius:10px;
           overflow:hidden;
-          transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease;
+          transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease,border-color 0.22s ease;
         }
-        .rc-card::before{
-          content:"";
-          position:absolute;
-          inset:0;
-          border-radius:8px;
-          border:1.5px solid transparent;
-          -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
-          -webkit-mask-composite:destination-out;
-          mask-composite:exclude;
-          background:linear-gradient(45deg,#0f1014,#0f1014,#0f1014,#0f1014,var(--rc-color,#089981)) border-box;
-          pointer-events:none;
-          z-index:2;
-        }
-        .rc-card .rc-glow{
-          position:absolute;
-          top:0;right:0;
-          width:55%;height:55%;
-          border-radius:50%;
-          background:radial-gradient(ellipse at right top,var(--rc-color-glow,rgba(8,153,129,0.25)) 0%,transparent 65%);
-          pointer-events:none;
-          z-index:0;
-          transition:opacity 0.3s ease;
-        }
-        .rc-card:hover{transform:translateY(-3px);box-shadow:0 1.2em 3em rgba(0,0,0,0.8)}
-        .rc-card:hover .rc-glow{opacity:1.4}
-        /* conic border on hover */
-        .rc-card .conic-border{border-radius:8px}
-        .rc-card .conic-border::before{border-radius:8px}
+        .rc-card .rc-glow{ display:none; }
+        .rc-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.6);border-color:#333}
+        .rc-card .conic-border{border-radius:10px}
+        .rc-card .conic-border::before{border-radius:10px}
         .rc-card:hover .conic-border{opacity:1}
         .rc-card:hover .conic-border::before{animation:conicSpin 2.5s linear infinite}
         .rc-card-footer{
           position:relative;
           z-index:1;
-          border-top:1px solid rgba(255,255,255,0.06);
-          background:rgba(0,0,0,0.3);
-          backdrop-filter:blur(8px);
+          border-top:1px solid #2a2a2a;
+          background:rgba(0,0,0,0.2);
+        }
+        /* AI analysis inner box */
+        .ai-inner-box{
+          background:#242424;
+          border:1px solid #303030;
+          border-radius:8px;
+          padding:12px 14px;
+          margin-top:12px;
         }
 
         /* ── Super button ── */
@@ -2739,7 +2700,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       flexShrink:0
     }}>
       {/* Logo */}
-      <div style={{padding:"20px 0 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",justifyContent:"center"}}>
+      <div style={{padding:"20px 0 16px",borderBottom:"1px solid #262626",display:"flex",justifyContent:"center"}}>
         <div onClick={()=>switchPage("home")} className="logo-wrap" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,cursor:"pointer"}}>
           <div className="logo-ring">
             <img src="/logos/logo.jpg" alt="Logo"/>
@@ -2792,7 +2753,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         <span style={{fontSize:9,fontWeight:800,color:accent}}>{initials}</span>
                       </div>
                   }
-                  <div style={{position:"absolute",bottom:0,right:0,width:7,height:7,borderRadius:"50%",background:"#22c55e",border:"2px solid #080910"}}/>
+                  <div style={{position:"absolute",bottom:0,right:0,width:7,height:7,borderRadius:"50%",background:"#22c55e",border:"2px solid #0a0a0a"}}/>
                 </div>
                 <div style={{fontSize:9,fontWeight:600,color:"#9ca3af",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%",textAlign:"center"}}>{(injectedSession?.name||"Gebruiker").split(" ")[0]}</div>
               </button>
@@ -2944,11 +2905,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* Macro bar */}
             {aResult&&(
-              <div className="rc-card" style={{"--rc-color":accent,"--rc-color-glow":accent+"18","--conic-color":accent,marginBottom:16}}>
-                <div className="rc-glow"/>
-                <div style={{position:"relative",zIndex:1,padding:"16px 20px"}}>
+              <div className="rc-card" style={{"--conic-color":accent,marginBottom:16}}>
+                <div style={{padding:"16px 20px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                    <span style={{fontSize:9,fontWeight:700,color:"#6b7280",letterSpacing:"0.16em"}}>MACRO CONTEXT</span>
+                    <span style={{fontSize:9,fontWeight:700,color:"#555",letterSpacing:"0.12em"}}>MACRO CONTEXT</span>
                     {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
                   </div>
                   <div style={{display:"flex",gap:20,alignItems:"stretch",flexWrap:"wrap"}}>
@@ -3248,7 +3208,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* BREAKING NEWS + RSS FEED */}
             <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 340px",gap:10}}>
-            <div style={{background:"#0f1014",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
+            <div style={{background:"#1c1c1c",border:"1px solid #2a2a2a",borderRadius:10,overflow:"hidden",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
               <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
                   {breakingNews.length>0&&<div style={{width:6,height:6,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 7px #ef4444",animation:"pulse 1.5s infinite"}}/>}
@@ -3307,7 +3267,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
             </div>
             {/* RSS FEED */}
-            <div style={{background:"#0f1014",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
+            <div style={{background:"#1c1c1c",border:"1px solid #2a2a2a",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
               <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontSize:10,fontWeight:700,color:rssItems.length>0?"#9ca3af":"#374151",letterSpacing:"0.1em"}}>NEWS FEED</span>
                 <span style={{fontSize:9,color:"#2d3748"}}>Reuters · FF · FXStreet</span>
@@ -3991,7 +3951,7 @@ function LangDropdown({ lang, onSwitch, accent }) {
               style={{width:"100%",display:"flex",alignItems:"center",gap:10,
                 padding:"9px 14px",background:"transparent",border:"none",
                 cursor:"pointer",textAlign:"left",transition:"background .12s",
-                borderBottom:"1px solid rgba(255,255,255,0.04)"}}
+                borderBottom:"1px solid #262626"}}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               <span style={{fontSize:16}}>{l.flag}</span>
@@ -4109,7 +4069,7 @@ function AuthScreen({ onLogin, accent }) {
   const onKey = (fn) => (e) => { if(e.key==="Enter") fn(); };
 
   return (
-    <div style={{minHeight:"100vh",background:"#080910",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
+    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
@@ -4211,7 +4171,7 @@ function AccessDenied({ user, onLogout, accent }) {
   const ac = accent || "#089981";
   const t = T[getLang()] || T.nl;
   return (
-    <div style={{minHeight:"100vh",background:"#080910",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
+    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`@keyframes superRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
       <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
         <div style={{position:"absolute",top:"20%",left:"30%",width:"60%",height:"60%",background:"radial-gradient(ellipse at center,rgba(239,68,68,0.10),transparent 65%)",filter:"blur(80px)"}}/>
@@ -4636,7 +4596,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                   ...(session?.role==="admin"?[{label:t.roleLabel, val:t.administrator, color:"#f59e0b"}]:[]),
                   {label:t.statusLabel, val:session?.approved?t.active:t.pending, color:session?.approved?"#22c55e":"#f59e0b"},
                 ].map(({label,val,color})=>(
-                  <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                  <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #262626"}}>
                     <span style={{fontSize:11,color:"#6b7280"}}>{label}</span>
                     <span style={{fontSize:11,fontWeight:600,color:color||"#e2e4e9",fontFamily:label===t.emailInfoLabel?"'JetBrains Mono',monospace":"inherit"}}>{val}</span>
                   </div>
