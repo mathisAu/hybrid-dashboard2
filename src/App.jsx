@@ -2478,7 +2478,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .nav-item:hover{background:rgba(255,255,255,0.04)!important;color:#9ca3af!important}
         .nav-item.active{background:${accent}15!important;color:${accent}!important}
         .nav-conic{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:0}
-        .nav-conic::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1px;background:conic-gradient(from var(--nav-angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:navConicSpin 3s linear infinite}
+        .nav-conic::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--nav-angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:navConicSpin 3s linear infinite}
         .nav-item:hover .nav-conic{opacity:1}
         @keyframes conicSpin{to{--angle:360deg}}
         @keyframes navConicSpin{to{--nav-angle:360deg}}
