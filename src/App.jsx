@@ -485,10 +485,10 @@ function resolveBias(bias, confidence) {
 }
 
 const biasColors = {
-  Bullish:  { bg:"rgba(34,197,94,0.15)",   border:"#22c55e", text:"#4ade80" },
-  Bearish:  { bg:"rgba(239,68,68,0.15)",   border:"#ef4444", text:"#f87171" },
-  Neutraal: { bg:"rgba(107,114,128,0.15)", border:"#4b5563", text:"#9ca3af" },
-  Fragiel:  { bg:"rgba(8,153,129,0.15)",   border:"#089981", text:"#0dd9b6" },
+  Bullish:  { bg:"#14532d", border:"#22c55e", text:"#4ade80" },
+  Bearish:  { bg:"#7f1d1d", border:"#ef4444", text:"#fca5a5" },
+  Neutraal: { bg:"#1f2937", border:"#4b5563", text:"#9ca3af" },
+  Fragiel:  { bg:"#064e3b", border:"#089981", text:"#0dd9b6" },
 };
 const corrColors  = { Normaal:"#22c55e", Anomalie:"#ef4444", Hersteld:"#089981" };
 const yieldColors = { "Risk-On":"#22c55e","Risk-Off":"#ef4444","Stagflatie":"#089981","Neutraal":"#6b7280" };
@@ -1069,7 +1069,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
             {data?.bias ? (
-              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:5,padding:"3px 8px",boxShadow:`0 0 8px ${c.border}33`}}>
+              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:5,padding:"3px 8px"}}>
                 <span style={{fontSize:10,fontWeight:800,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
               </div>
             ) : loading ? <div style={{width:80,height:28,borderRadius:8,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
@@ -1117,8 +1117,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             <div style={{marginTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span style={{fontSize:10,color:"#374151"}}>Geanalyseerd {data.analysed_at?fmtTime(data.analysed_at):"—"}</span>
               <div style={{display:"flex",alignItems:"center",gap:4,color:acc,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>
-                <span>DEEP DIVE</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </div>
             </div>
           </>
