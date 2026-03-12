@@ -1395,7 +1395,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               HybridTrader<br/><span style={{color:acc}}>Dashboard</span>
             </h1>
             <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
-              Welkom terug — jouw institutioneel macro-analyse systeem voor de London session.
+              {(()=>{ const tl = T[getLang()]||T.nl; return <>{tl.welcomeBack} <span style={{color:"#e2e4e9",fontWeight:600}}>{injectedSession?.name||"Trader"}</span> — jouw institutioneel macro-analyse systeem voor de London session.</>; })()}
             </p>
             {presession&&(
               <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
@@ -3580,7 +3580,7 @@ const T = {
     pwNoMatch:"Wachtwoorden komen niet overeen.",
     registerSuccess:"Account aangemaakt! Wacht op goedkeuring van de beheerder.",
     waitApproval:"Na registratie wacht je op goedkeuring van de beheerder.",
-    connErr:"Verbindingsfout. Probeer opnieuw.",
+    connErr:"Verbindingsfout. Probeer opnieuw.", welcomeBack:"Welkom,",
     noAccess:"Geen Toegang", hello:"Hallo", waitMsg:"je account wacht nog op goedkeuring van de beheerder.",
     waitInfo:"Je aanvraag wordt beoordeeld. Je ontvangt toegang zodra je account is goedgekeurd.",
     logout:"UITLOGGEN", settings:"Instellingen", profileDashboard:"PROFIEL & DASHBOARD",
@@ -3625,7 +3625,7 @@ const T = {
     pwNoMatch:"Passwords do not match.",
     registerSuccess:"Account created! Waiting for admin approval.",
     waitApproval:"After registration you await admin approval.",
-    connErr:"Connection error. Please try again.",
+    connErr:"Connection error. Please try again.", welcomeBack:"Welcome,",
     noAccess:"Access Denied", hello:"Hello", waitMsg:"your account is awaiting admin approval.",
     waitInfo:"Your request is being reviewed. You'll gain access once approved.",
     logout:"LOG OUT", settings:"Settings", profileDashboard:"PROFILE & DASHBOARD",
@@ -3670,7 +3670,7 @@ const T = {
     pwNoMatch:"Passwörter stimmen nicht überein.",
     registerSuccess:"Konto erstellt! Warte auf Genehmigung des Admins.",
     waitApproval:"Nach der Registrierung wartest du auf Admin-Genehmigung.",
-    connErr:"Verbindungsfehler. Bitte erneut versuchen.",
+    connErr:"Verbindungsfehler. Bitte erneut versuchen.", welcomeBack:"Willkommen,",
     noAccess:"Kein Zugang", hello:"Hallo", waitMsg:"dein Konto wartet auf Genehmigung des Admins.",
     waitInfo:"Deine Anfrage wird geprüft. Du erhältst Zugang sobald sie genehmigt wurde.",
     logout:"ABMELDEN", settings:"Einstellungen", profileDashboard:"PROFIL & DASHBOARD",
@@ -3715,7 +3715,7 @@ const T = {
     pwNoMatch:"Les mots de passe ne correspondent pas.",
     registerSuccess:"Compte créé ! En attente d'approbation de l'administrateur.",
     waitApproval:"Après l'inscription, vous attendez l'approbation de l'admin.",
-    connErr:"Erreur de connexion. Veuillez réessayer.",
+    connErr:"Erreur de connexion. Veuillez réessayer.", welcomeBack:"Bienvenue,",
     noAccess:"Accès Refusé", hello:"Bonjour", waitMsg:"votre compte attend l'approbation de l'administrateur.",
     waitInfo:"Votre demande est en cours d'examen. Vous aurez accès une fois approuvé.",
     logout:"SE DÉCONNECTER", settings:"Paramètres", profileDashboard:"PROFIL & TABLEAU DE BORD",
@@ -3760,7 +3760,7 @@ const T = {
     pwNoMatch:"Las contraseñas no coinciden.",
     registerSuccess:"¡Cuenta creada! Esperando aprobación del administrador.",
     waitApproval:"Tras el registro esperas la aprobación del admin.",
-    connErr:"Error de conexión. Inténtalo de nuevo.",
+    connErr:"Error de conexión. Inténtalo de nuevo.", welcomeBack:"Bienvenido,",
     noAccess:"Acceso Denegado", hello:"Hola", waitMsg:"tu cuenta está esperando la aprobación del administrador.",
     waitInfo:"Tu solicitud está siendo revisada. Obtendrás acceso una vez aprobada.",
     logout:"CERRAR SESIÓN", settings:"Configuración", profileDashboard:"PERFIL & PANEL",
@@ -3805,7 +3805,7 @@ const T = {
     pwNoMatch:"As senhas não coincidem.",
     registerSuccess:"Conta criada! Aguardando aprovação do administrador.",
     waitApproval:"Após o registro você aguarda aprovação do admin.",
-    connErr:"Erro de conexão. Tente novamente.",
+    connErr:"Erro de conexão. Tente novamente.", welcomeBack:"Bem-vindo,",
     noAccess:"Acesso Negado", hello:"Olá", waitMsg:"sua conta aguarda aprovação do administrador.",
     waitInfo:"Seu pedido está sendo revisado. Você terá acesso assim que aprovado.",
     logout:"SAIR", settings:"Configurações", profileDashboard:"PERFIL & PAINEL",
@@ -4193,7 +4193,7 @@ function AuthScreen({ onLogin, accent }) {
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {mode==="register" && (
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.name}</div>
+                <div style={{fontSize:10,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.name}</div>
                 <GlowInput accent={ac} filled={!!name}>
                   <input className="auth-input" type="text" placeholder={t.name.charAt(0)+t.name.slice(1).toLowerCase()} value={name}
                     onChange={e=>setName(e.target.value)} onKeyDown={onKey(doRegister)} style={{...authInp,border:"none",background:"transparent"}}/>
@@ -4201,14 +4201,14 @@ function AuthScreen({ onLogin, accent }) {
               </div>
             )}
             <div>
-              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.email}</div>
+              <div style={{fontSize:10,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.email}</div>
               <GlowInput accent={ac} filled={!!email}>
                 <input className="auth-input" type="email" placeholder="name@email.com" value={email}
                   onChange={e=>setEmail(e.target.value)} onKeyDown={onKey(mode==="login"?doLogin:doRegister)} style={{...authInp,border:"none",background:"transparent"}}/>
               </GlowInput>
             </div>
             <div>
-              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.password}</div>
+              <div style={{fontSize:10,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.password}</div>
               <PwInput value={pw} onChange={e=>setPw(e.target.value)} filled={!!pw}
                 placeholder={mode==="register"?"Min. 6":"••••••••"} accent={ac}
                 onKeyDown={mode==="login"?onKey(doLogin):undefined}/>
@@ -4216,7 +4216,7 @@ function AuthScreen({ onLogin, accent }) {
             {/* Confirm password — only on register */}
             {mode==="register" && (
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.confirmPassword}</div>
+                <div style={{fontSize:10,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.confirmPassword}</div>
                 <PwInput value={pw2} onChange={e=>setPw2(e.target.value)} filled={!!pw2}
                   placeholder={t.passwordConfirmPlaceholder} accent={ac}
                   onKeyDown={onKey(doRegister)}/>
