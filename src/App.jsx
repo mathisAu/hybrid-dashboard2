@@ -485,10 +485,10 @@ function resolveBias(bias, confidence) {
 }
 
 const biasColors = {
-  Bullish:  { bg:"rgba(34,197,94,0.1)",   border:"#22c55e", text:"#4ade80" },
-  Bearish:  { bg:"rgba(239,68,68,0.1)",   border:"#ef4444", text:"#f87171" },
-  Neutraal: { bg:"rgba(107,114,128,0.1)", border:"#4b5563", text:"#9ca3af" },
-  Fragiel:  { bg:"rgba(8,153,129,0.1)",   border:"#089981", text:"#0dd9b6" },
+  Bullish:  { bg:"rgba(34,197,94,0.15)",   border:"#22c55e", text:"#4ade80" },
+  Bearish:  { bg:"rgba(239,68,68,0.15)",   border:"#ef4444", text:"#f87171" },
+  Neutraal: { bg:"rgba(107,114,128,0.15)", border:"#4b5563", text:"#9ca3af" },
+  Fragiel:  { bg:"rgba(8,153,129,0.15)",   border:"#089981", text:"#0dd9b6" },
 };
 const corrColors  = { Normaal:"#22c55e", Anomalie:"#ef4444", Hersteld:"#089981" };
 const yieldColors = { "Risk-On":"#22c55e","Risk-Off":"#ef4444","Stagflatie":"#089981","Neutraal":"#6b7280" };
@@ -1029,7 +1029,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       style={{
         background:"linear-gradient(160deg,#12131a,#0d0e14)",
         border:"1px solid rgba(255,255,255,0.06)",
-        boxShadow: meta.color ? `0 -2px 12px ${meta.color}30` : "none",
+        boxShadow: meta.color ? `0 -2px 12px ${meta.color}18` : "none",
         borderRadius:8,
         padding:0,
         opacity:vis?1:0,
@@ -1041,7 +1041,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       }}
     >
       {/* Top gradient accent line */}
-      <div style={{height:2,background:meta.color ? `linear-gradient(90deg,transparent,${meta.color}99,transparent)` : data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : "transparent"}}/>
+      <div style={{height:2,background:meta.color ? `linear-gradient(90deg,transparent,${meta.color}55,transparent)` : data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : "transparent"}}/>
 
       {/* Asset background glow */}
       <div style={{position:"absolute",top:-40,right:-20,width:140,height:140,borderRadius:"50%",background:meta.color?`radial-gradient(circle,${meta.color}08,transparent 70%)`:"transparent",pointerEvents:"none"}}/>
@@ -1069,7 +1069,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
             {data?.bias ? (
-              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:5,padding:"3px 8px"}}>
+              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:5,padding:"3px 8px",boxShadow:`0 0 8px ${c.border}33`}}>
                 <span style={{fontSize:10,fontWeight:800,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
               </div>
             ) : loading ? <div style={{width:80,height:28,borderRadius:8,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
