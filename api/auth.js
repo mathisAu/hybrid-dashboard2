@@ -1,37 +1,25 @@
-// api/auth.js — HybridTrader auth API (Vercel + Redis)
-// Uses @upstash/redis. In Vercel: add REDIS_URL and REDIS_TOKEN env vars.
-//
-// Actions (all POST /api/auth with JSON body):
-//   register        { email, name, password }
-//   login           { email, password }
-//   listUsers       { adminKey }           ← admin only
-//   approveUser     { id, adminKey }       ← admin only
-//   denyUser        { id, adminKey }       ← admin only
-//   deleteUser      { id, adminKey }       ← admin only
-//   updateProfile   { email, name, avatar }
-//   changePassword  { email, oldPassword, newPassword }
+// api/auth.js — HybridTrader auth API (Vercel + Redis + bcrypt)
+// Dependencies: @upstash/redis, bcryptjs
+// npm install @upstash/redis bcryptjs
 
-import { Redis } from "@upstash/redis";
+import { Redis }  from "@upstash/redis";
+import bcrypt     from "bcryptjs";
 
 const redis = new Redis({
   url:   process.env.REDIS_URL || process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.REDIS_TOKEN || process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const ADMIN_KEY  = process.env.ADMIN_PASSWORD || "admin123"; // match frontend
-const USERS_KEY  = "ht:users";   // Redis hash: userId → JSON string
+const ADMIN_KEY   = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@hybrid.com").toLowerCase();
+const USERS_KEY   = "ht:users";
+const SALT_ROUNDS = 10;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function json(res, status, body) {
-  res.status(status).json(body);
-}
-
-function err(res, msg, status = 400) {
-  json(res, status, { error: msg });
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function json(res, status, body) { res.status(status).json(body); }
+function err(res, msg, status = 400) { json(res, status, { error: msg }); }
 
 async function getAllUsers() {
-  // hgetall returns { id: jsonString, ... } or null
   const raw = await redis.hgetall(USERS_KEY);
   if (!raw) return [];
   return Object.values(raw).map(v => (typeof v === "string" ? JSON.parse(v) : v));
@@ -46,15 +34,14 @@ async function getUserByEmail(email) {
   return users.find(u => u.email === email) || null;
 }
 
-// Strip password before sending to client
+// Never send password hash to client
 function safeUser(u) {
-  const { password, ...rest } = u;
+  const { passwordHash, password, ...rest } = u;
   return rest;
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  // CORS for local dev
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -64,6 +51,7 @@ export default async function handler(req, res) {
   const { action, ...body } = req.body || {};
 
   try {
+
     // ── REGISTER ──────────────────────────────────────────────────────────────
     if (action === "register") {
       const { email, name, password } = body;
@@ -71,16 +59,16 @@ export default async function handler(req, res) {
       if (password.length < 6) return err(res, "Wachtwoord moet minimaal 6 tekens zijn.");
       const existing = await getUserByEmail(email.toLowerCase());
       if (existing) return err(res, "Dit e-mailadres is al in gebruik.");
-      const user = {
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      await saveUser({
         id:           Date.now().toString(),
         email:        email.toLowerCase(),
         name:         name.trim(),
-        password,                         // plaintext — fine for this use case
+        passwordHash,
         approved:     false,
         avatar:       null,
         registeredAt: new Date().toISOString(),
-      };
-      await saveUser(user);
+      });
       return json(res, 200, { ok: true });
     }
 
@@ -88,21 +76,35 @@ export default async function handler(req, res) {
     if (action === "login") {
       const { email, password } = body;
       if (!email || !password) return err(res, "Vul alle velden in.");
-      // Admin login — check against env var
-      if (email.toLowerCase() === (process.env.ADMIN_EMAIL || "admin@hybrid.com") && password === ADMIN_KEY) {
-        return json(res, 200, { session: { email, name: "Admin", role: "admin", approved: true, avatar: null } });
+
+      // Admin — password lives only in Vercel env, never in Redis
+      if (email.toLowerCase() === ADMIN_EMAIL) {
+        if (password !== ADMIN_KEY) return err(res, "Wachtwoord onjuist.");
+        return json(res, 200, {
+          session: { email: ADMIN_EMAIL, name: "Admin", role: "admin", approved: true, avatar: null }
+        });
       }
+
       const user = await getUserByEmail(email.toLowerCase());
       if (!user) return err(res, "Geen account gevonden met dit e-mailadres.");
-      if (user.password !== password) return err(res, "Wachtwoord onjuist.");
-      const session = {
-        email:    user.email,
-        name:     user.name,
-        role:     "user",
-        approved: user.approved,
-        avatar:   user.avatar || null,
-      };
-      return json(res, 200, { session });
+
+      // Verify — supports hashed (new) and legacy plaintext (auto-upgrades)
+      let passwordOk = false;
+      if (user.passwordHash) {
+        passwordOk = await bcrypt.compare(password, user.passwordHash);
+      } else if (user.password) {
+        passwordOk = user.password === password;
+        if (passwordOk) {
+          // Upgrade plaintext to hash on first login
+          const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+          await saveUser({ ...user, passwordHash, password: undefined });
+        }
+      }
+
+      if (!passwordOk) return err(res, "Wachtwoord onjuist.");
+      return json(res, 200, {
+        session: { email: user.email, name: user.name, role: "user", approved: user.approved, avatar: user.avatar || null }
+      });
     }
 
     // ── LIST USERS (admin only) ───────────────────────────────────────────────
@@ -112,7 +114,7 @@ export default async function handler(req, res) {
       return json(res, 200, { users: users.map(safeUser) });
     }
 
-    // ── APPROVE USER (admin only) ─────────────────────────────────────────────
+    // ── APPROVE USER ──────────────────────────────────────────────────────────
     if (action === "approveUser") {
       if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       const users = await getAllUsers();
@@ -122,7 +124,7 @@ export default async function handler(req, res) {
       return json(res, 200, { ok: true });
     }
 
-    // ── DENY USER (admin only) ────────────────────────────────────────────────
+    // ── DENY USER ─────────────────────────────────────────────────────────────
     if (action === "denyUser") {
       if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       const users = await getAllUsers();
@@ -132,7 +134,7 @@ export default async function handler(req, res) {
       return json(res, 200, { ok: true });
     }
 
-    // ── DELETE USER (admin only) ──────────────────────────────────────────────
+    // ── DELETE USER ───────────────────────────────────────────────────────────
     if (action === "deleteUser") {
       if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       await redis.hdel(USERS_KEY, body.id);
@@ -144,7 +146,7 @@ export default async function handler(req, res) {
       const { email, name, avatar } = body;
       const user = await getUserByEmail(email?.toLowerCase());
       if (!user) return err(res, "Gebruiker niet gevonden.");
-      await saveUser({ ...user, name: name?.trim() || user.name, avatar: avatar || user.avatar });
+      await saveUser({ ...user, name: name?.trim() || user.name, avatar: avatar ?? user.avatar });
       return json(res, 200, { ok: true });
     }
 
@@ -154,8 +156,15 @@ export default async function handler(req, res) {
       if (!newPassword || newPassword.length < 6) return err(res, "Nieuw wachtwoord te kort.");
       const user = await getUserByEmail(email?.toLowerCase());
       if (!user) return err(res, "Gebruiker niet gevonden.");
-      if (user.password !== oldPassword) return err(res, "Huidig wachtwoord onjuist.");
-      await saveUser({ ...user, password: newPassword });
+      let oldOk = false;
+      if (user.passwordHash) {
+        oldOk = await bcrypt.compare(oldPassword, user.passwordHash);
+      } else if (user.password) {
+        oldOk = user.password === oldPassword;
+      }
+      if (!oldOk) return err(res, "Huidig wachtwoord onjuist.");
+      const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      await saveUser({ ...user, passwordHash, password: undefined });
       return json(res, 200, { ok: true });
     }
 
