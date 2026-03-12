@@ -65,13 +65,12 @@ const AssetLogo = ({ id, size = 28 }) => {
     BTCUSD: ["btc", "us"],
   };
 
-  const assetIcons = {
-    XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
-    BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
-    // Placeholder icon voor indices
-    US30: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-    US100: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-  };
+ const assetIcons = {
+  XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
+  BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
+  US30: "https://static.cdnlogo.com/logos/d/43/dow-jones-index.svg",   // Dow Jones
+  US100: "https://upload.wikimedia.org/wikipedia/commons/a/ab/NASDAQ_Logo.svg"  // Nasdaq
+};
 
   const icon = assetIcons[id];
   const flags = pairs[id];
@@ -154,44 +153,7 @@ const BASE_ASSETS = [
   { id:"EURUSD", label:"EUR/USD",full:"Euro / US Dollar",         group:"fx",     searchTerms:"EUR/USD euro dollar forex" },
   { id:"GBPUSD", label:"GBP/USD",full:"Pound Sterling / Dollar",  group:"fx",     searchTerms:"GBP/USD pound sterling forex" },
 ];
-function Dashboard() {
-  return (
-    <div>
-      <h2>Macro / Crypto</h2>
-      {/* Hier blijven de gewone asset logo’s */}
-      <AssetLogo id="XAUUSD" />
-      <AssetLogo id="BTCUSD" />
 
-      <h2>Indices</h2>
-      {/* Hier komt het TradingView-widget voor indices */}
-      <div className="tradingview-widget-container">
-        <script
-          type="text/javascript"
-          src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js"
-          async
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              title: "Indices",
-              showSymbolLogo: true,
-              width: 350,
-              height: 120,
-              symbolsGroups: [
-                {
-                  name: "US & Canada",
-                  symbols: [
-                    { name: "FX:US30", displayName: "US30" },
-                    { name: "CAPITALCOM:US100", displayName: "US100" },
-                  ],
-                },
-              ],
-              locale: "en",
-            }),
-          }}
-        />
-      </div>
-    </div>
-  );
-}
 const ANALYSIS_SYSTEM = `You are a Hybrid Market Intelligence Trader (HYBRID PROMPT v6.3 — Institutional Flow Edition).
 No web search — all context is provided. Bias = ONLY fundamental macro analysis, NEVER based on price/%.
 All output must be in Dutch.
