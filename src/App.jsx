@@ -478,10 +478,17 @@ Gebruik ALLEEN het bovenstaande nieuws. Geen aannames.
 function resolveBias(bias, confidence) {
   if (!bias) return bias;
   const low = bias.toLowerCase();
+  // Normalize to correctly-cased key so biasColors lookup always works
+  let normalized = bias;
+  if (low.includes("bull")) normalized = "Bullish";
+  else if (low.includes("bear")) normalized = "Bearish";
+  else if (low.includes("neutr")) normalized = "Neutraal";
+  else if (low.includes("fragiel")) normalized = "Fragiel";
+  // Fragiel logic
   if (low.includes("fragiel") && low.includes("bear")) return confidence >= 70 ? "Bearish" : "Fragiel";
   if (low.includes("fragiel") && low.includes("bull")) return confidence >= 70 ? "Bullish" : "Fragiel";
-  if (bias === "Fragiel" && confidence >= 70) return "Neutraal";
-  return bias;
+  if (normalized === "Fragiel" && confidence >= 70) return "Neutraal";
+  return normalized;
 }
 
 const biasColors = {
@@ -1029,17 +1036,20 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       style={{
         background:"linear-gradient(160deg,#12131a,#0d0e14)",
         border:"1px solid rgba(255,255,255,0.06)",
-        boxShadow: meta.color ? `0 -2px 12px ${meta.color}18` : "none",
         borderRadius:8,
         padding:0,
         opacity:vis?1:0,
         transform:vis?"translateY(0)":"translateY(16px)",
         transition:"opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)",
         position:"relative",
-        overflow:"hidden",
         cursor:data?"pointer":"default",
       }}
     >
+      {/* Animated hover border via SVG */}
+      <svg className="asset-card-svg-border" style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:10,borderRadius:8}} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <rect className="asset-card-rect" x="0.5" y="0.5" width="99" height="99" rx="6" ry="6"/>
+      </svg>
+      <div style={{overflow:"hidden",borderRadius:8}}>
       {/* Top gradient accent line */}
       <div style={{height:2,background:meta.color ? `linear-gradient(90deg,transparent,${meta.color}55,transparent)` : data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : "transparent"}}/>
 
@@ -1128,6 +1138,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
         ) : (
           <div style={{textAlign:"center",padding:"28px 0",color:"#2d3139",fontSize:11,letterSpacing:"0.08em"}}>KLIK ANALYSE UITVOEREN</div>
         )}
+      </div>
       </div>
     </div>
   );
@@ -2469,8 +2480,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes pageOut{to{opacity:0;transform:translateX(-12px)}}
         .deep-enter{animation:deepIn 0.38s cubic-bezier(0.16,1,0.3,1) both}
         @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
-        .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1),box-shadow 0.2s ease,border-color 0.2s ease}
-        .card-hover:hover{transform:translateY(-3px)!important;box-shadow:0 12px 40px rgba(0,0,0,0.5)!important}
+        .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1),border-color 0.2s ease;position:relative}
+        .card-hover:hover{transform:translateY(-3px)!important}
+        .asset-card-rect{fill:none;stroke:${accent};stroke-width:1.5;stroke-dasharray:500;stroke-dashoffset:500;transition:stroke-dashoffset 0s}
+        .card-hover:hover .asset-card-rect{stroke-dashoffset:0;transition:stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1)}
         .news-item-hover{transition:background 0.15s,border-color 0.15s}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
         .btn-primary{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important}
