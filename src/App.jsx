@@ -2488,19 +2488,37 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       `}</style>
 
       {/* ── SIDEBAR ── */}
-      <div style={{width:260,minHeight:"100vh",background:"#08080b",borderRight:"1px solid rgba(255,255,255,0.05)",display:"flex",flexDirection:"column",position:"fixed",left:0,top:0,zIndex:100,flexShrink:0}}>
-        {/* Wordmark — no logo needed */}
-        <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:34,height:34,borderRadius:9,background:`linear-gradient(135deg,${accent},${accent}88)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:`0 4px 16px ${accent}44`}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-8 4 5 3-4 5 7" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      <div style={{
+      width:260,
+      minHeight:"100vh",
+      background:"#08080b",
+      borderRight:"1px solid rgba(255,255,255,0.05)",
+      display:"flex",
+      flexDirection:"column",
+      position:"fixed",
+      left:0,
+      top:0,
+      zIndex:100,
+      flexShrink:0
+    }}>
+      {/* Logo */}
+      <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <img
+            src="/logos/Image(2).jpg" // jouw logo
+            alt="Logo"
+            style={{ width:34, height:34, borderRadius:9, objectFit:"cover", boxShadow:`0 4px 16px ${accent}44`, flexShrink:0 }}
+          />
+          <div>
+            <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1}}>
+              Hybrid<span style={{color:accent}}>Trader</span>
             </div>
-            <div>
-              <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1}}>Hybrid<span style={{color:accent}}>Trader</span></div>
-              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1}}>DASHBOARD</div>
+            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1}}>
+              DASHBOARD
             </div>
           </div>
         </div>
+      </div>
 
         {/* Navigation */}
         <div style={{padding:"16px 12px",flex:1}}>
