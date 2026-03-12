@@ -56,7 +56,6 @@ const DEFAULT_ACCENT = "#089981";
 
 // ── TradingView-stijl asset logo's ──────────────────────────────────────────
 const AssetLogo = ({ id, size = 28 }) => {
-
   const pairs = {
     EURUSD: ["eu", "us"],
     GBPUSD: ["gb", "us"],
@@ -65,17 +64,19 @@ const AssetLogo = ({ id, size = 28 }) => {
     XAUUSD: ["gold", "us"],
     BTCUSD: ["btc", "us"],
   };
-const assetIcons = {
-  XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
-  BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
-  US30: "https://s3-symbol-logo.tradingview.com/futures/US30.svg",
-  US100: "https://s3-symbol-logo.tradingview.com/futures/US100.svg"
+
+  const assetIcons = {
+    XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
+    BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
+    // externe publieke logo’s voor indices
+    US30: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Dow_Jones_Industrial_Average_logo.svg/1024px-Dow_Jones_Industrial_Average_logo.svg.png",
+    US100: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nasdaq_Logo.svg/1024px-Nasdaq_Logo.svg.png"
   };
 
-  const flags = pairs[id];
   const icon = assetIcons[id];
-  
-  if(icon){
+  const flags = pairs[id];
+
+  if (icon) {
     return (
       <img
         src={icon}
@@ -89,7 +90,7 @@ const assetIcons = {
       />
     );
   }
-  
+
   if (!flags) {
     return (
       <div style={{
@@ -119,7 +120,6 @@ const assetIcons = {
           zIndex:2
         }}
       />
-
       <img
         src={`https://flagcdn.com/w40/${flags[1]}.png`}
         style={{
