@@ -66,11 +66,11 @@ const AssetLogo = ({ id, size = 28 }) => {
   };
 
  const assetIcons = {
-  XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
-  BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
-  US30: "https://static.cdnlogo.com/logos/d/43/dow-jones-index.svg",   // Dow Jones
-  US100: "https://upload.wikimedia.org/wikipedia/commons/a/ab/NASDAQ_Logo.svg"  // Nasdaq
-};
+    XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
+    BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
+    US30: "https://img.icons8.com/ios-filled/50/ffffff/stock-market.png",
+    US100: "https://img.icons8.com/ios-filled/50/ffffff/stock-market.png",
+  };
 
   const icon = assetIcons[id];
   const flags = pairs[id];
