@@ -1028,8 +1028,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       className="card-hover"
       style={{
         background:"linear-gradient(160deg,#12131a,#0d0e14)",
-        border:`1px solid ${meta.color ? meta.color+"40" : "rgba(255,255,255,0.06)"}`,
-        boxShadow: meta.color ? `0 0 20px ${meta.color}15` : "none",
+        border:"1px solid rgba(255,255,255,0.06)",
+        boxShadow: meta.color ? `0 -2px 12px ${meta.color}30` : "none",
         borderRadius:8,
         padding:0,
         opacity:vis?1:0,
@@ -1041,7 +1041,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       }}
     >
       {/* Top gradient accent line */}
-      <div style={{height:2,background:data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : updating ? `linear-gradient(90deg,transparent,#6366f1,transparent)` : "transparent", animation:updating?"shimmer 1.5s ease-in-out infinite":"none", backgroundSize:"200% 100%"}}/>
+      <div style={{height:2,background:meta.color ? `linear-gradient(90deg,transparent,${meta.color}99,transparent)` : data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : "transparent"}}/>
 
       {/* Asset background glow */}
       <div style={{position:"absolute",top:-40,right:-20,width:140,height:140,borderRadius:"50%",background:meta.color?`radial-gradient(circle,${meta.color}08,transparent 70%)`:"transparent",pointerEvents:"none"}}/>
@@ -1069,8 +1069,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
             {data?.bias ? (
-              <div style={{background:c.bg,border:`1px solid ${c.border}55`,borderRadius:8,padding:"5px 12px"}}>
-                <span style={{fontSize:12,fontWeight:800,color:c.text,letterSpacing:"0.08em"}}>{bias?.toUpperCase()}</span>
+              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:5,padding:"3px 8px"}}>
+                <span style={{fontSize:10,fontWeight:800,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
               </div>
             ) : loading ? <div style={{width:80,height:28,borderRadius:8,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
             <button onClick={handleUpdate} title="Refresh"
@@ -1106,16 +1106,12 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
 
             {/* AI Summary block */}
-              <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.08)",borderRadius:10,padding:"11px 13px"}}> 
+              <div style={{borderRadius:8,padding:"10px 0 0 0"}}>
                 <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
-                <div style={{width:16,height:16,borderRadius:5,background:"rgba(99,102,241,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontSize:9}}>✦</span>
+                  <span style={{fontSize:9,color:"#6366f1",fontWeight:700,letterSpacing:"0.12em"}}>✦ AI ANALYSE</span>
                 </div>
-                <span style={{fontSize:9,color:"#6366f1",fontWeight:700,letterSpacing:"0.12em"}}>AI ANALYSE</span>
-                {data.confidence_label&&<span style={{fontSize:8,color:"rgba(99,102,241,0.5)",marginLeft:"auto"}}>{data.confidence_label}</span>}
+                <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.65}}>{data.mini_summary||"—"}</div>
               </div>
-              <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.65}}>{data.mini_summary||"—"}</div>
-            </div>
 
             {/* Deep Dive CTA */}
             <div style={{marginTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -2654,7 +2650,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
               <div>
                 <div style={{fontSize:14,fontWeight:700,color:"#e2e4e9"}}>Hybrid Analyse Uitvoeren</div>
-                <div style={{fontSize:11,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>v6.3 Institutional Flow Edition</div>
+                <div style={{fontSize:11,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>Sluit de tab niet tijdens de analyse</div>
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -2858,7 +2854,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </div>
                 <button onClick={runPresession} disabled={psStatus==="loading"} style={{...btnStyle(psStatus==="loading",accent),padding:"5px 12px",fontSize:9}}>
                   <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
-                  {psStatus==="loading"?`LADEN...`:"↺ SESSIE"}
+                  {psStatus==="loading"?"LADEN...":"SESSIE"}
                 </button>
               </div>
 
