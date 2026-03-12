@@ -562,9 +562,7 @@ function NewsImpactPopup({ news, apiKey, onClose }) {
         headers["anthropic-dangerous-direct-browser-access"] = "true";
       }
       try {
-        const res = await fetch("/api/anthropic", {
-          method:"POST", headers,
-          body: JSON.stringify({
+        const res = await anthropicFetch({
             model:"claude-sonnet-4-20250514",
             max_tokens:300,
             system:`Je bent een FX/index trading analist. Analyseer het effect van nieuws op de gevraagde markten. Geef altijd JSON terug zonder uitleg. Geen apostrofs.`,
@@ -572,8 +570,7 @@ function NewsImpactPopup({ news, apiKey, onClose }) {
 
 Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
 {"overall":"bullish|bearish|neutraal|gemengd","pairs":{"XAUUSD":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"US30":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"US100":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"EURUSD":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"},"GBPUSD":{"impact":"bullish|bearish|neutraal","reden":"max 8 woorden"}}}`}]
-          })
-        });
+          });
         const d = await res.json();
         const text = d.content?.filter(b=>b.type==="text").map(b=>b.text).join("") || "";
         const clean = text.replace(/```json|```/g,"").trim();
@@ -1865,10 +1862,7 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onLo
           messages:[{role:"user",content:usr}]
         };
         if(cacheKey) bodyObj._cacheKey = cacheKey;
-        const res = await fetch("/api/anthropic",{
-          method:"POST", headers,
-          body:JSON.stringify(bodyObj)
-        });
+        const res = await anthropicFetch(bodyObj);
         if(res.status===429){
           if(attempt<maxRetries){
             // Lees retry-after header of gebruik exponential backoff
@@ -1950,7 +1944,7 @@ ${recentNews}
 Schrijf een UNIEKE narrative gebaseerd op het nieuws hierboven. Niet generiek. Alleen JSON.`;
     try {
       const hdrs = {"Content-Type":"application/json"};
-      const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]})});
+      const res = await anthropicFetch({model:"claude-haiku-4-5-20251001",max_tokens:300,system:sys,messages:[{role:"user",content:usr}]});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -2046,7 +2040,7 @@ ${macroCtx || "Geen Intel geladen."}
 JSON: {"bias":"","confidence":0,"macro_hold":0,"market_mood":"","correlatie_status":"Normaal","dominant_mechanisme":"","yield_regime":"","mini_summary":"","analyse_uitgebreid":"","fail_condition":"","technical_trend":"","trend_driver":"","market_regime":"","intraday_structuur":"","macro_alignment":0,"pillar_news":0,"pillar_crossasset":0,"pillar_yield":0,"pulse":"WAIT","pulse_reden":"","confidence_label":"","ai_opinie":"","technical_trend_uitleg":"","structuur_uitleg":"","market_regime_uitleg":"","yield_regime_uitleg":"","correlatie_uitleg":"","macro_alignment_uitleg":"","macro_hold_uitleg":""}`;
       }
 
-      const res = await fetch("/api/anthropic",{method:"POST",headers:hdrs2,body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]})});
+      const res = await anthropicFetch({model:"claude-haiku-4-5-20251001",max_tokens:400,system:systemPrompt,messages:[{role:"user",content:usr}]});
       if(!res.ok) throw new Error(`API fout: ${res.status}`);
       const data=await res.json();
       const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
@@ -2241,7 +2235,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       // Shared cache key — iedereen die hetzelfde uur runt krijgt dezelfde gecachede analyse
       const analyseKey = `analyse:${assets.map(a=>a.id).join("-")}:${new Date().toISOString().slice(0,13)}`;
       const body = { model:"claude-sonnet-4-20250514", max_tokens:4500, system:ANALYSIS_SYSTEM, messages:[{role:"user",content:usr}], _cacheKey:analyseKey };
-      const res = await fetch("/api/anthropic",{method:"POST",headers,body:JSON.stringify(body)});
+      const res = await anthropicFetch(body);
       if(res.status===429) {
         if(attempt < 3) {
           const waitSec = attempt * 30;
@@ -2412,22 +2406,16 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         ].join(" | ");
         // Geef breaking news ook mee aan marktvisie
         const intelMetBreaking = {...intelResult, breakingItems: breakingNews.slice(0,6)};
-        let visieRes = await fetch("/api/anthropic",{
-          method:"POST", headers,
-          body: JSON.stringify({
+        let visieRes = await anthropicFetch({
             model:"claude-sonnet-4-20250514",
             max_tokens: 900,
             system: MARKTVISIE_SYSTEM,
             messages:[{role:"user", content: MARKTVISIE_USER(intelMetBreaking, labels, crossAsset)}]
-          })
-        });
+          });
         // 429 retry voor marktvisie
         if(visieRes.status===429) {
           await new Promise(r=>setTimeout(r,20000));
-          visieRes = await fetch("/api/anthropic",{
-            method:"POST", headers,
-            body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]})
-          });
+          visieRes = await anthropicFetch({model:"claude-sonnet-4-20250514",max_tokens:900,system:MARKTVISIE_SYSTEM,messages:[{role:"user",content:MARKTVISIE_USER(intelMetBreaking,labels,crossAsset)}]});
         }
         if(visieRes.ok) {
           const visieData = await visieRes.json();
@@ -3858,6 +3846,15 @@ function getHiddenAssets() { return getPrefs().hiddenAssets || []; }
 // Session lives in localStorage
 function getSession() {
   try { return JSON.parse(localStorage.getItem("ht_session") || "null"); } catch(_) { return null; }
+}
+async function anthropicFetch(body, headers={}) {
+  const session = getSession();
+  const fullBody = { ...body, _sessionUserId: session?.id || "" };
+  return fetch("/api/anthropic", {
+    method:"POST",
+    headers:{"Content-Type":"application/json", ...headers},
+    body: JSON.stringify(fullBody),
+  });
 }
 function saveSession(s) {
   if(s) localStorage.setItem("ht_session", JSON.stringify(s));
