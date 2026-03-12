@@ -2510,7 +2510,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           --text2: #6b7280;
           --text3: #374151;
           --acc: ${accent};
-          --sidebar-w: 260px;
+          --sidebar-w: 80px;
         }
         .nav-item{transition:all 0.15s ease;border-radius:8px;color:#e2e4e9!important;}.nav-item:hover{background:rgba(255,255,255,0.05)!important;color:#fff!important;}.nav-item.active{background:rgba(255,255,255,0.06)!important;color:#fff!important;}
         *{box-sizing:border-box;margin:0;padding:0}
@@ -2656,7 +2656,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── SIDEBAR ── */}
       <div style={{
-      width:260,
+      width:80,
       minHeight:"100vh",
       background:"rgba(8,9,14,0.75)",
       backdropFilter:"blur(20px)",
@@ -2671,124 +2671,70 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       flexShrink:0
     }}>
       {/* Logo */}
-      <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-        <div onClick={()=>switchPage("home")} className="logo-wrap" style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+      <div style={{padding:"20px 0 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",justifyContent:"center"}}>
+        <div onClick={()=>switchPage("home")} className="logo-wrap" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,cursor:"pointer"}}>
           <div className="logo-ring">
             <img src="/logos/logo.jpg" alt="Logo"/>
           </div>
-          <div>
-            <div className="logo-title" style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,transition:"all 0.2s"}}>
-              Hybrid<span style={{color:accent}}>Trader</span>
-            </div>
-            <div className="logo-sub" style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:1,transition:"color 0.2s"}}>
-              DASHBOARD
-            </div>
+          <div style={{fontSize:9,fontWeight:800,letterSpacing:"0.08em",color:"#f1f2f4",lineHeight:1}}>
+            Hybrid<span style={{color:accent}}>Trader</span>
           </div>
         </div>
       </div>
 
         {/* Navigation */}
-        <div style={{padding:"16px 12px",flex:1}}>
-          <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",padding:"0 8px",marginBottom:8}}>NAVIGATIE</div>
+        <div style={{padding:"16px 8px",flex:1,display:"flex",flexDirection:"column",gap:2}}>
           {[
-            {id:"home",    label:"Home",    sub:"Dashboard Overview",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>},
-            {id:"analyse", label:"Analyse", sub:"Bias & Confidence",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>},
-            {id:"intel",   label:"Intel",   sub:"Nieuws & Macro",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-            {id:"calendar",label:"Kalender",sub:"Links & Tools",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-            ...(injectedSession?.role==="admin" ? [{id:"admin",label:"Admin",sub:"Gebruikersbeheer",
-              icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M16 11l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}] : []),
-          ].map(({id,label,sub,icon})=>(
+            {id:"home",    label:"Home",
+              icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>},
+            {id:"analyse", label:"Analyse",
+              icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>},
+            {id:"intel",   label:"Intel",
+              icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            {id:"calendar",label:"Kalender",
+              icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            ...(injectedSession?.role==="admin" ? [{id:"admin",label:"Admin",
+              icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M16 11l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}] : []),
+          ].map(({id,label,icon})=>(
             <button key={id} onClick={()=>switchPage(id)}
               className={`nav-item${page===id?" active":""}`}
-              style={{width:"100%",border:"none",background:"transparent",color:page===id?"#fff":"#9ca3af",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left","--conic-color":accent}}>
+              style={{width:"100%",border:"none",background:page===id?"rgba(255,255,255,0.07)":"transparent",color:page===id?accent:"#6b7280",display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"10px 6px",cursor:"pointer","--conic-color":accent,borderRadius:10,position:"relative"}}>
               <div className="nav-conic"/>
-              <div style={{width:30,height:30,borderRadius:8,background:"rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,position:"relative",zIndex:1}}>
+              <div style={{position:"relative",zIndex:1,color:"inherit"}}>
                 {icon}
               </div>
-              <div style={{position:"relative",zIndex:1}}>
-                <div style={{fontSize:12,fontWeight:600,letterSpacing:"0.01em"}}>{label}</div>
-                <div style={{fontSize:10,color:page===id?"rgba(255,255,255,0.5)":"#2d3748",marginTop:1}}>{sub}</div>
-              </div>
-
+              <div style={{fontSize:9,fontWeight:600,letterSpacing:"0.06em",position:"relative",zIndex:1,color:"inherit"}}>{label}</div>
             </button>
           ))}
-
-          {/* Divider */}
-          <div style={{height:1,background:"rgba(255,255,255,0.04)",margin:"12px 8px"}}/>
-
-          {/* Session status card */}
-          {(()=>{const[hov,setHov]=React.useState(false);return(
-          <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-            style={{background:hov&&!aResult&&!loading?"rgba(255,255,255,0.05)":"#08090c",border:`1px solid ${loading?`${accent}40`:aResult?"rgba(34,197,94,0.2)":"rgba(255,255,255,0.06)"}`,borderRadius:10,padding:"12px 14px",margin:"0 0 8px",position:"relative",fontFamily:"'JetBrains Mono',monospace",transition:"background 0.15s",cursor:!aResult&&!loading?"pointer":"default",boxShadow:aResult?"0 0 16px rgba(34,197,94,0.05)":"none"}}>
-            {/* Scanlines */}
-            <div style={{position:"absolute",inset:0,borderRadius:10,backgroundImage:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.08) 3px,rgba(0,0,0,0.08) 4px)",pointerEvents:"none"}}/>
-            {/* Spinning conic border — always present on standby, spins on hover */}
-            {!aResult&&!loading&&(
-              <div style={{position:"absolute",inset:-1,borderRadius:11,padding:"1.5px",background:hov?`conic-gradient(from var(--sb-angle,0deg),transparent 0%,transparent 50%,${accent} 75%,transparent 95%)`:"none",WebkitMask:"linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0)",WebkitMaskComposite:"xor",maskComposite:"exclude",animation:hov?"sbSpin 3s linear infinite":"none","--sb-angle":"0deg"}}/>
-            )}
-            <div style={{position:"relative"}}>
-              {/* Standby */}
-              {!aResult&&!loading&&(<>
-                <div style={{fontSize:8,color:"#9ca3af",letterSpacing:"0.14em",marginBottom:7}}>STATUS</div>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:hov?10:0,transition:"margin 0.2s"}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:"#1e2028"}}/>
-                  <span style={{fontSize:10,fontWeight:700,color:hov?"#555b6a":"#333640",letterSpacing:"0.12em",transition:"color 0.15s"}}>STANDBY<span style={{animation:"blink 1.2s step-end infinite",color:hov?"#666":"#444"}}>_</span></span>
-                </div>
-                {hov&&(
-                  <button onClick={runHybrid} className="btn-primary" style={{width:"100%",padding:"9px 0",fontSize:10,color:"#fff","--btn-glow":`${accent}50`}}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M8 5l11 7-11 7V5z" fill="currentColor"/></svg>
-                    HYBRID STARTEN
-                  </button>
-                )}
-              </>)}
-              {/* Running */}
-              {loading&&(<>
-                <div style={{fontSize:8,color:"#9ca3af",letterSpacing:"0.14em",marginBottom:7}}>STATUS</div>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:accent,boxShadow:`0 0 6px ${accent}`,animation:"blink 0.6s infinite"}}/>
-                  <span style={{fontSize:10,fontWeight:700,color:accent,letterSpacing:"0.1em"}}>RUNNING…</span>
-                </div>
-              </>)}
-              {/* Live */}
-              {aResult&&!loading&&(<>
-                <div style={{fontSize:8,color:"#9ca3af",letterSpacing:"0.14em",marginBottom:7}}>STATUS</div>
-                {presession&&<div style={{fontSize:9,color:"#374151",marginBottom:2}}>{'>'} mood: <span style={{color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#6b7280",fontWeight:700}}>{presession.mood?.toLowerCase()}</span></div>}
-                {lastRefresh&&<div style={{fontSize:9,color:"#2a2d36",marginBottom:6}}>{'>'} upd: <span style={{color:"#4b5563"}}>{timeSinceRefresh}</span></div>}
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:"#22c55e",boxShadow:"0 0 6px #22c55e",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:10,fontWeight:700,color:"#22c55e",letterSpacing:"0.1em"}}>LIVE</span>
-                  {lastRefresh&&<span style={{fontSize:8,color:"#2a2d36",marginLeft:"auto"}}>{timeSinceRefresh}</span>}
-                </div>
-              </>)}
-            </div>
-          </div>
-          );})()}
-
-          {/* Asset quick-view */}
-          {aResult&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.03)"}}>
-            <div style={{fontSize:9,color:"#2d3748",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>BIAS OVERZICHT</div>
-            {assets.map(a => {
-              const d = aResult.assets?.[a.id];
-              if(!d) return null;
-              const bColor = d.bias?.toLowerCase().includes("bull")?"#22c55e":d.bias?.toLowerCase().includes("bear")?"#ef4444":accent;
-              return (
-                <div key={a.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                  <AssetLogo id={a.id} size={14}/>
-                  <span style={{fontSize:10,color:"#6b7280",flex:1,fontFamily:"'JetBrains Mono',monospace"}}>{a.label}</span>
-                  <span style={{fontSize:9,fontWeight:700,color:bColor,letterSpacing:"0.06em"}}>{d.bias?.toUpperCase().slice(0,4)||"—"}</span>
-                  <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{d.confidence||0}%</span>
-                </div>
-              );
-            })}
-          </div>}
         </div>
 
-        {/* Bottom — avatar button opens ProfileModal */}
-        <div style={{padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+        {/* Status — compact */}
+        <div style={{padding:"0 8px 10px"}}>
+          <div style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${aResult?"rgba(34,197,94,0.2)":loading?`${accent}30`:"rgba(255,255,255,0.06)"}`,borderRadius:10,padding:"8px 10px",fontFamily:"'JetBrains Mono',monospace",textAlign:"center"}}>
+            {loading&&(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:accent,animation:"blink 0.6s infinite"}}/>
+                <span style={{fontSize:8,color:accent,letterSpacing:"0.1em",fontWeight:700}}>RUNNING</span>
+              </div>
+            )}
+            {!loading&&aResult&&(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:"#22c55e",boxShadow:"0 0 5px #22c55e",animation:"pulseDot 2s ease-in-out infinite"}}/>
+                <span style={{fontSize:8,color:"#22c55e",letterSpacing:"0.1em",fontWeight:700}}>LIVE</span>
+                {lastRefresh&&<span style={{fontSize:7,color:"#2a2d36",marginLeft:2}}>{timeSinceRefresh}</span>}
+              </div>
+            )}
+            {!loading&&!aResult&&(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:"#1e2028"}}/>
+                <span style={{fontSize:8,color:"#2d3748",letterSpacing:"0.1em",fontWeight:700}}>STANDBY</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom — avatar */}
+        <div style={{padding:"10px 8px 14px",borderTop:"1px solid rgba(255,255,255,0.04)"}}>
           {(()=>{
             const [showProfile, setShowProfile] = React.useState(false);
             const avatar = injectedSession?.avatar || null;
@@ -2797,25 +2743,20 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               <>
                 <button onClick={()=>setShowProfile(true)}
                   title="Profiel & instellingen"
-                  style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,cursor:"pointer",transition:"all .18s",textAlign:"left"}}
+                  style={{width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:5,padding:"8px 6px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,cursor:"pointer",transition:"all .18s"}}
                   onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.05)";e.currentTarget.style.borderColor=accent+"40";}}
                   onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.02)";e.currentTarget.style.borderColor="rgba(255,255,255,0.05)";}}>
-                  <div style={{width:32,height:32,borderRadius:"50%",flexShrink:0,overflow:"hidden",border:`2px solid ${accent}50`,position:"relative"}}>
+                  <div style={{width:28,height:28,borderRadius:"50%",flexShrink:0,overflow:"hidden",border:`2px solid ${accent}50`,position:"relative"}}>
                     {avatar
                       ? <img src={avatar} style={{width:"100%",height:"100%",objectFit:"cover"}} alt="avatar"/>
                       : <div style={{width:"100%",height:"100%",background:`linear-gradient(135deg,${accent}40,${accent}20)`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <span style={{fontSize:11,fontWeight:800,color:accent}}>{initials}</span>
+                          <span style={{fontSize:9,fontWeight:800,color:accent}}>{initials}</span>
                         </div>
                     }
-                    <div style={{position:"absolute",bottom:0,right:0,width:9,height:9,borderRadius:"50%",background:"#22c55e",border:"2px solid #08080b"}}/>
+                    <div style={{position:"absolute",bottom:0,right:0,width:7,height:7,borderRadius:"50%",background:"#22c55e",border:"2px solid #080910"}}/>
                   </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:11,fontWeight:600,color:"#e2e4e9",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{injectedSession?.name||"Gebruiker"}</div>
-                    <div style={{fontSize:8,color:"#374151",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>{injectedSession?.role==="admin"?"ADMIN · ":""}PROFIEL BEWERKEN</div>
-                  </div>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{color:"#374151",flexShrink:0}}><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <div style={{fontSize:9,fontWeight:600,color:"#9ca3af",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%",textAlign:"center"}}>{(injectedSession?.name||"Gebruiker").split(" ")[0]}</div>
                 </button>
-                <div style={{fontSize:8,color:"#1f2023",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",textAlign:"center",marginTop:8}}>GEEN FINANCIEEL ADVIES</div>
                 {showProfile && (
                   <ProfileModal
                     session={injectedSession}
@@ -2840,9 +2781,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       </div>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"#080910"}}>
+      <div style={{marginLeft:80,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"#080910"}}>
 
-        {`${accent}` && <div style={{position:"fixed",top:0,left:260,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
+        {`${accent}` && <div style={{position:"fixed",top:0,left:80,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
           <div style={{position:"absolute",top:"-10%",left:"10%",width:"80%",height:"55%",background:`radial-gradient(ellipse at center,${accent}15 0%,transparent 65%)`,filter:"blur(80px)"}}/>
           <div style={{position:"absolute",bottom:"-10%",right:"0%",width:"50%",height:"55%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.10) 0%,transparent 65%)",filter:"blur(70px)"}}/>
           <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"45%",background:`radial-gradient(ellipse at center,${accent}0a 0%,transparent 65%)`,filter:"blur(80px)"}}/>
@@ -2892,7 +2833,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
-        <div style={{position:"fixed",inset:0,marginLeft:260,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"fixed",inset:0,marginLeft:80,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,padding:"32px 40px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06)",minWidth:340,maxWidth:420}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
