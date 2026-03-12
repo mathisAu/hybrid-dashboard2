@@ -2851,13 +2851,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
             )}
 
-            {/* SESSIE BREAKDOWN — 1x, compact, enkel blok */}
+            {/* SESSIE BREAKDOWN */}
             <div style={{marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  <span style={{fontSize:10,color:"#374151",letterSpacing:"0.12em"}}>SESSIE BREAKDOWN</span>
-                  {psStatus==="done"&&presession&&<div style={{width:8,height:8,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 6px ${moodColor(presession.mood)}`}}/>}
-                  {presession?.analysed_at&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(presession.analysed_at)}</span>}
+              {/* Header */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:9,fontWeight:700,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE BREAKDOWN</span>
+                  {presession?.analysed_at&&<span style={{fontSize:8,color:"#1f2937",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(presession.analysed_at)}</span>}
                 </div>
                 <button onClick={runPresession} disabled={psStatus==="loading"} style={{...btnStyle(psStatus==="loading",accent),padding:"5px 12px",fontSize:9}}>
                   <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
@@ -2865,28 +2865,94 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </button>
               </div>
 
-              {psStatus==="loading"&&<div style={{background:"#0f1011",border:`1px solid ${accent}22`,borderRadius:7,padding:"9px 14px",display:"flex",alignItems:"center",gap:8}}><div style={{width:13,height:13,border:`2px solid ${accent}22`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/><span style={{fontSize:10,color:accent}}>Sessie data ophalen...</span></div>}
-
-              {psStatus==="done"&&presession&&(
-                <div style={{background:"#0f1011",border:`1px solid ${accent}18`,borderRadius:7,padding:"9px 14px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                    <div style={{width:7,height:7,borderRadius:"50%",background:moodColor(presession.mood),boxShadow:`0 0 5px ${moodColor(presession.mood)}`}}/>
-                    <span style={{fontSize:11,fontWeight:700,color:moodColor(presession.mood)}}>{presession.mood}</span>
-                    <span style={{fontSize:9,color:"#374151"}}>{presession.mood_score||""}%</span>
-                  </div>
-                  {presession.session&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:9,color:"#374151"}}>SESSIE</span><span style={{fontSize:10,fontWeight:600,color:accent,fontFamily:"'JetBrains Mono',monospace"}}>{presession.session}</span>{presession.session_time&&<span style={{fontSize:9,color:"#374151"}}>{presession.session_time}</span>}</div>}
-                  {presession.volatility_outlook&&<Badge label={presession.volatility_outlook.toUpperCase()} color="#6b7280"/>}
-                  {presession.key_events_today?.slice(0,3).map((e,i)=><Badge key={i} label={e} color={accent}/>)}
-                  <span style={{fontSize:10,color:"#6b7280",flex:1,minWidth:160,lineHeight:1.4}}>{presession.market_narrative}</span>
-
+              {/* Loading */}
+              {psStatus==="loading"&&(
+                <div style={{background:"#0d0e11",border:`1px solid ${accent}18`,borderRadius:10,padding:"20px 22px",display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:14,height:14,border:`2px solid ${accent}33`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}}/>
+                  <span style={{fontSize:11,color:"#4b5563"}}>Sessie context ophalen...</span>
                 </div>
               )}
 
+              {/* Empty state */}
               {!presession&&psStatus!=="loading"&&(
-                <div style={{background:"#0f1011",border:"1px solid #1a1b1e",borderRadius:7,padding:"9px 14px",textAlign:"center",color:"#2d3748",fontSize:10}}>
-                  Klik BREAKDOWN LADEN voor sessie context
+                <div style={{background:"#0d0e11",border:"1px solid #1a1b1e",borderRadius:10,padding:"22px",display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                  <div style={{fontSize:22,opacity:0.3}}>⏱</div>
+                  <div style={{fontSize:11,color:"#2d3748",letterSpacing:"0.06em"}}>Geen sessie data geladen</div>
+                  <div style={{fontSize:10,color:"#1f2937"}}>Klik SESSIE om de huidige marktcontext op te halen</div>
                 </div>
               )}
+
+              {/* Populated card */}
+              {psStatus==="done"&&presession&&(()=>{
+                const mc = moodColor(presession.mood);
+                const moodLow = (presession.mood||"").toLowerCase();
+                const moodIcon = moodLow.includes("bull")?"↑":moodLow.includes("bear")?"↓":"→";
+                return (
+                  <div style={{background:"#0d0e11",border:`1px solid ${accent}15`,borderRadius:10,overflow:"hidden"}}>
+                    {/* Top accent strip */}
+                    <div style={{height:2,background:`linear-gradient(90deg,transparent,${mc}66,${mc}44,transparent)`}}/>
+
+                    <div style={{padding:"18px 20px",display:"grid",gridTemplateColumns:"auto 1fr auto",gap:20,alignItems:"start"}}>
+
+                      {/* Left: mood block */}
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:72,paddingRight:20,borderRight:"1px solid rgba(255,255,255,0.05)"}}>
+                        <div style={{width:36,height:36,borderRadius:10,background:`${mc}15`,border:`1px solid ${mc}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color:mc}}>{moodIcon}</div>
+                        <div style={{fontSize:12,fontWeight:700,color:mc,letterSpacing:"0.02em",textAlign:"center",lineHeight:1.2}}>{presession.mood}</div>
+                        {presession.mood_score&&<div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{presession.mood_score}%</div>}
+                        {/* Mood bar */}
+                        <div style={{width:"100%",height:3,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden"}}>
+                          <div style={{height:"100%",width:`${presession.mood_score||50}%`,background:mc,borderRadius:2,transition:"width 0.8s ease"}}/>
+                        </div>
+                      </div>
+
+                      {/* Center: narrative + events */}
+                      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                        {/* Session label + time */}
+                        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                          {presession.session&&(
+                            <span style={{fontSize:9,fontWeight:700,color:accent,background:`${accent}12`,border:`1px solid ${accent}25`,borderRadius:4,padding:"2px 8px",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>
+                              {presession.session}
+                            </span>
+                          )}
+                          {presession.session_time&&<span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{presession.session_time}</span>}
+                          {presession.volatility_outlook&&(
+                            <span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>
+                              VOL: {presession.volatility_outlook.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Narrative */}
+                        {presession.market_narrative&&(
+                          <div style={{fontSize:12,color:"#c9cdd4",lineHeight:1.65,fontWeight:400}}>
+                            {presession.market_narrative}
+                          </div>
+                        )}
+
+                        {/* Mood explanation */}
+                        {presession.mood_explanation&&(
+                          <div style={{fontSize:11,color:"#4b5563",lineHeight:1.55,fontStyle:"italic",borderLeft:`2px solid ${mc}33`,paddingLeft:10}}>
+                            {presession.mood_explanation}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: key events */}
+                      {presession.key_events_today?.length>0&&(
+                        <div style={{display:"flex",flexDirection:"column",gap:5,minWidth:140,paddingLeft:20,borderLeft:"1px solid rgba(255,255,255,0.05)"}}>
+                          <div style={{fontSize:8,fontWeight:700,color:"#374151",letterSpacing:"0.14em",marginBottom:2,fontFamily:"'JetBrains Mono',monospace"}}>KEY EVENTS</div>
+                          {presession.key_events_today.slice(0,4).map((e,i)=>(
+                            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:6}}>
+                              <div style={{width:4,height:4,borderRadius:"50%",background:accent,flexShrink:0,marginTop:4,opacity:0.6}}/>
+                              <span style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{e}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* ASSET GRID */}
