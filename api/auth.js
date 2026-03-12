@@ -1,9 +1,10 @@
-// api/auth.js — HybridTrader auth API (Vercel + Redis + bcrypt)
+// api/auth.js — HybridTrader auth API (Vercel + Redis + bcrypt + Resend email)
 // Dependencies: @upstash/redis, bcryptjs
-// npm install @upstash/redis bcryptjs
+// Env vars: REDIS_URL, REDIS_TOKEN (or KV_REST_API_TOKEN), ADMIN_PASSWORD,
+//           ADMIN_EMAIL, RESEND_API_KEY, SITE_URL
 
-import { Redis }  from "@upstash/redis";
-import bcrypt     from "bcryptjs";
+import { Redis } from "@upstash/redis";
+import bcrypt    from "bcryptjs";
 
 const redis = new Redis({
   url:   process.env.REDIS_URL || process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
@@ -11,11 +12,204 @@ const redis = new Redis({
 });
 
 const ADMIN_KEY   = process.env.ADMIN_PASSWORD || "admin123";
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@hybrid.com").toLowerCase();
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL   || "admin@hybrid.com").toLowerCase();
+const SITE_URL    = process.env.SITE_URL        || "https://hybrid-dashboard2.vercel.app";
 const USERS_KEY   = "ht:users";
 const SALT_ROUNDS = 10;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Email helper (Resend) ─────────────────────────────────────────────────────
+async function sendEmail({ to, subject, html }) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) { console.warn("[email] RESEND_API_KEY not set — skipping email"); return; }
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        from: "HybridTrader <onboarding@resend.dev>",
+        to,
+        subject,
+        html,
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) console.error("[email] Resend error:", data);
+  } catch (e) {
+    console.error("[email] Failed to send:", e);
+  }
+}
+
+// ── Email templates ───────────────────────────────────────────────────────────
+function emailBase(content) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HybridTrader</title>
+</head>
+<body style="margin:0;padding:0;background:#060608;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#060608;min-height:100vh;">
+  <tr><td align="center" style="padding:40px 16px;">
+    <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+
+      <!-- Header -->
+      <tr>
+        <td style="padding-bottom:28px;text-align:center;">
+          <div style="display:inline-block;background:linear-gradient(160deg,#111420,#0d1016);border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:16px 28px;">
+            <span style="font-size:22px;font-weight:800;color:#f1f2f4;letter-spacing:-0.02em;">Hybrid<span style="color:#089981;">Trader</span></span>
+            <div style="font-size:8px;color:#374151;letter-spacing:0.18em;font-family:'Courier New',monospace;margin-top:4px;">DASHBOARD v6.3</div>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Card -->
+      <tr>
+        <td style="background:linear-gradient(160deg,#111420,#0c0d12);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:36px 40px;box-shadow:0 8px 40px rgba(0,0,0,0.6);">
+          ${content}
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="padding-top:24px;text-align:center;">
+          <p style="font-size:10px;color:#2d3748;letter-spacing:0.08em;margin:0;font-family:'Courier New',monospace;">
+            HYBRIDTRADER · INSTITUTIONAL FLOW EDITION<br/>
+            <span style="color:#1a2030;">This email was sent automatically. Do not reply.</span>
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+}
+
+function emailWelcome(name) {
+  return emailBase(`
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:40px;margin-bottom:12px;">⏳</div>
+      <h1 style="font-size:22px;font-weight:800;color:#f1f2f4;margin:0 0 8px;letter-spacing:-0.01em;">Account Created</h1>
+      <p style="font-size:14px;color:#6b7280;margin:0;">Your registration was received successfully.</p>
+    </div>
+
+    <div style="background:rgba(8,153,129,0.08);border:1px solid rgba(8,153,129,0.20);border-radius:10px;padding:20px 24px;margin-bottom:24px;">
+      <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#089981;">${name}</strong>,</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
+        Your HybridTrader account has been created and is <strong style="color:#f59e0b;">pending approval</strong>.
+        The administrator will review your request shortly.
+      </p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
+        </td>
+        <td align="right" style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">PENDING APPROVAL</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 0;">
+          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">ACCOUNT</span>
+        </td>
+        <td align="right" style="padding:12px 0;">
+          <span style="font-size:12px;color:#6b7280;font-family:'Courier New',monospace;">${name}</span>
+        </td>
+      </tr>
+    </table>
+
+    <p style="font-size:12px;color:#4b5563;text-align:center;margin:0;line-height:1.6;">
+      Once approved, you'll receive a confirmation email and can log in at<br/>
+      <a href="${SITE_URL}" style="color:#089981;text-decoration:none;">${SITE_URL}</a>
+    </p>
+  `);
+}
+
+function emailApproved(name) {
+  return emailBase(`
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:40px;margin-bottom:12px;">✅</div>
+      <h1 style="font-size:22px;font-weight:800;color:#f1f2f4;margin:0 0 8px;letter-spacing:-0.01em;">Access Granted</h1>
+      <p style="font-size:14px;color:#6b7280;margin:0;">Your account has been approved.</p>
+    </div>
+
+    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.20);border-radius:10px;padding:20px 24px;margin-bottom:24px;">
+      <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#22c55e;">${name}</strong>,</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
+        Great news — your HybridTrader account has been <strong style="color:#22c55e;">approved</strong>.
+        You now have full access to the dashboard.
+      </p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
+        </td>
+        <td align="right" style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="background:rgba(34,197,94,0.10);border:1px solid rgba(34,197,94,0.25);color:#22c55e;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">APPROVED</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 0;">
+          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">ACCESS</span>
+        </td>
+        <td align="right" style="padding:12px 0;">
+          <span style="font-size:11px;color:#22c55e;font-family:'Courier New',monospace;">FULL DASHBOARD</span>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center">
+          <a href="${SITE_URL}" style="display:inline-block;background:linear-gradient(145deg,#089981,#0bc09f);color:#fff;font-size:12px;font-weight:700;letter-spacing:0.08em;padding:14px 36px;border-radius:100px;text-decoration:none;box-shadow:0 0 24px rgba(8,153,129,0.4);">
+            OPEN DASHBOARD →
+          </a>
+        </td>
+      </tr>
+    </table>
+  `);
+}
+
+function emailDenied(name) {
+  return emailBase(`
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:40px;margin-bottom:12px;">🚫</div>
+      <h1 style="font-size:22px;font-weight:800;color:#f1f2f4;margin:0 0 8px;letter-spacing:-0.01em;">Access Declined</h1>
+      <p style="font-size:14px;color:#6b7280;margin:0;">Your account request was not approved.</p>
+    </div>
+
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.20);border-radius:10px;padding:20px 24px;margin-bottom:24px;">
+      <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#f87171;">${name}</strong>,</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
+        Unfortunately, your HybridTrader account request has been <strong style="color:#f87171;">declined</strong> by the administrator.
+        Your access has been revoked.
+      </p>
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <td style="padding:12px 0;">
+          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
+        </td>
+        <td align="right" style="padding:12px 0;">
+          <span style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.25);color:#f87171;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">ACCESS REVOKED</span>
+        </td>
+      </tr>
+    </table>
+
+    <p style="font-size:12px;color:#4b5563;text-align:center;margin:0;line-height:1.7;">
+      If you believe this is a mistake, please contact the administrator directly.
+    </p>
+  `);
+}
+
+// ── Redis helpers ─────────────────────────────────────────────────────────────
 function json(res, status, body) { res.status(status).json(body); }
 function err(res, msg, status = 400) { json(res, status, { error: msg }); }
 
@@ -24,17 +218,13 @@ async function getAllUsers() {
   if (!raw) return [];
   return Object.values(raw).map(v => (typeof v === "string" ? JSON.parse(v) : v));
 }
-
 async function saveUser(user) {
   await redis.hset(USERS_KEY, { [user.id]: JSON.stringify(user) });
 }
-
 async function getUserByEmail(email) {
   const users = await getAllUsers();
   return users.find(u => u.email === email) || null;
 }
-
-// Never send password hash to client
 function safeUser(u) {
   const { passwordHash, password, ...rest } = u;
   return rest;
@@ -61,13 +251,19 @@ export default async function handler(req, res) {
       if (existing) return err(res, "Dit e-mailadres is al in gebruik.");
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
       await saveUser({
-        id:           Date.now().toString(),
-        email:        email.toLowerCase(),
-        name:         name.trim(),
+        id: Date.now().toString(),
+        email: email.toLowerCase(),
+        name: name.trim(),
         passwordHash,
-        approved:     false,
-        avatar:       null,
+        approved: false,
+        avatar: null,
         registeredAt: new Date().toISOString(),
+      });
+      // Send welcome email (non-blocking)
+      sendEmail({
+        to: email.toLowerCase(),
+        subject: "HybridTrader — Account Created, Pending Approval",
+        html: emailWelcome(name.trim()),
       });
       return json(res, 200, { ok: true });
     }
@@ -76,38 +272,31 @@ export default async function handler(req, res) {
     if (action === "login") {
       const { email, password } = body;
       if (!email || !password) return err(res, "Vul alle velden in.");
-
-      // Admin — password lives only in Vercel env, never in Redis
       if (email.toLowerCase() === ADMIN_EMAIL) {
         if (password !== ADMIN_KEY) return err(res, "Wachtwoord onjuist.");
         return json(res, 200, {
           session: { email: ADMIN_EMAIL, name: "Admin", role: "admin", approved: true, avatar: null }
         });
       }
-
       const user = await getUserByEmail(email.toLowerCase());
       if (!user) return err(res, "Geen account gevonden met dit e-mailadres.");
-
-      // Verify — supports hashed (new) and legacy plaintext (auto-upgrades)
       let passwordOk = false;
       if (user.passwordHash) {
         passwordOk = await bcrypt.compare(password, user.passwordHash);
       } else if (user.password) {
         passwordOk = user.password === password;
         if (passwordOk) {
-          // Upgrade plaintext to hash on first login
           const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
           await saveUser({ ...user, passwordHash, password: undefined });
         }
       }
-
       if (!passwordOk) return err(res, "Wachtwoord onjuist.");
       return json(res, 200, {
         session: { email: user.email, name: user.name, role: "user", approved: user.approved, avatar: user.avatar || null }
       });
     }
 
-    // ── LIST USERS (admin only) ───────────────────────────────────────────────
+    // ── LIST USERS ────────────────────────────────────────────────────────────
     if (action === "listUsers") {
       if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       const users = await getAllUsers();
@@ -121,6 +310,12 @@ export default async function handler(req, res) {
       const user  = users.find(u => u.id === body.id);
       if (!user) return err(res, "Gebruiker niet gevonden.");
       await saveUser({ ...user, approved: true });
+      // Send approval email
+      sendEmail({
+        to: user.email,
+        subject: "HybridTrader — Access Granted ✅",
+        html: emailApproved(user.name),
+      });
       return json(res, 200, { ok: true });
     }
 
@@ -131,6 +326,12 @@ export default async function handler(req, res) {
       const user  = users.find(u => u.id === body.id);
       if (!user) return err(res, "Gebruiker niet gevonden.");
       await saveUser({ ...user, approved: false });
+      // Send denial email
+      sendEmail({
+        to: user.email,
+        subject: "HybridTrader — Access Declined",
+        html: emailDenied(user.name),
+      });
       return json(res, 200, { ok: true });
     }
 
