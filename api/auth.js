@@ -58,7 +58,7 @@ function emailBase(content) {
         <td style="padding-bottom:28px;text-align:center;">
           <div style="display:inline-block;background:linear-gradient(160deg,#111420,#0d1016);border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:16px 28px;">
             <span style="font-size:22px;font-weight:800;color:#f1f2f4;letter-spacing:-0.02em;">Hybrid<span style="color:#089981;">Trader</span></span>
-            <div style="font-size:8px;color:#374151;letter-spacing:0.18em;font-family:'Courier New',monospace;margin-top:4px;">DASHBOARD v6.3</div>
+            <div style="font-size:8px;color:#374151;letter-spacing:0.18em;font-family:'Courier New',monospace;margin-top:4px;">INSTITUTIONAL TRADING DASHBOARD</div>
           </div>
         </td>
       </tr>
