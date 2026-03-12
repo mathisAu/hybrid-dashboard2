@@ -68,9 +68,9 @@ const AssetLogo = ({ id, size = 28 }) => {
   const assetIcons = {
     XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
     BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
-    // externe publieke logo’s voor indices
-    US30: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Dow_Jones_Industrial_Average_logo.svg/1024px-Dow_Jones_Industrial_Average_logo.svg.png",
-    US100: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nasdaq_Logo.svg/1024px-Nasdaq_Logo.svg.png"
+    // Placeholder icon voor indices
+    US30: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+    US100: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
   };
 
   const icon = assetIcons[id];
@@ -81,11 +81,11 @@ const AssetLogo = ({ id, size = 28 }) => {
       <img
         src={icon}
         style={{
-          width:size,
-          height:size,
-          borderRadius:"50%",
-          background:"#111",
-          padding:3
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: "#111",
+          padding: 3,
         }}
       />
     );
@@ -93,42 +93,46 @@ const AssetLogo = ({ id, size = 28 }) => {
 
   if (!flags) {
     return (
-      <div style={{
-        width:size,
-        height:size,
-        borderRadius:"50%",
-        background:"#1f2937"
-      }}/>
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: "#1f2937",
+        }}
+      />
     );
   }
 
   return (
-    <div style={{
-      display:"flex",
-      alignItems:"center",
-      position:"relative",
-      width:size+10
-    }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        position: "relative",
+        width: size + 10,
+      }}
+    >
       <img
         src={`https://flagcdn.com/w40/${flags[0]}.png`}
         style={{
-          width:size,
-          height:size,
-          borderRadius:"50%",
-          border:"2px solid #0b0c10",
-          position:"relative",
-          zIndex:2
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          border: "2px solid #0b0c10",
+          position: "relative",
+          zIndex: 2,
         }}
       />
       <img
         src={`https://flagcdn.com/w40/${flags[1]}.png`}
         style={{
-          width:size,
-          height:size,
-          borderRadius:"50%",
-          border:"2px solid #0b0c10",
-          position:"absolute",
-          left:size/2
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          border: "2px solid #0b0c10",
+          position: "absolute",
+          left: size / 2,
         }}
       />
     </div>
