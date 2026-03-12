@@ -55,26 +55,62 @@ async function fetchLivePrice(id) {
 const DEFAULT_ACCENT = "#089981";
 
 // ── TradingView-stijl asset logo's ──────────────────────────────────────────
-const AssetLogo = ({ id, size=24 }) => {
-  const s = size;
-  const defs = {
-    XAUUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#F5C518"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#7A4F00">XAU</text></svg>,
-    US30:   <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#1652F0"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DJI</text></svg>,
-    US100:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#7B2FBE"/><text x="16" y="20" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">NQ</text></svg>,
-    EURUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#1A3A8F"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="16" fontWeight="700" fill="#FFD700">€</text></svg>,
-    GBPUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#C8102E"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="15" fontWeight="700" fill="#fff">£</text></svg>,
-    BTCUSD: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#F7931A"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">₿</text></svg>,
-    USDJPY: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#BC002D"/><text x="16" y="22" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#fff">¥</text></svg>,
-    USDCHF: <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#D52B1E"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#fff">CHF</text></svg>,
-    USOIL:  <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#2C2C2C"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">OIL</text></svg>,
-    SPX:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#1652F0"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">SPX</text></svg>,
-    DXY:    <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#374151"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#fff">DXY</text></svg>,
+const AssetLogo = ({ id, size = 28 }) => {
+
+  const pairs = {
+    EURUSD: ["eu", "us"],
+    GBPUSD: ["gb", "us"],
+    USDJPY: ["us", "jp"],
+    USDCHF: ["us", "ch"],
+    XAUUSD: ["gold", "us"],
+    BTCUSD: ["btc", "us"],
   };
-  if(defs[id]) return defs[id];
-  const colors = ["#089981","#1652F0","#7B2FBE","#F59E0B","#EF4444","#06B6D4"];
-  const bg = colors[id.charCodeAt(0) % colors.length];
-  const abbr = id.replace(/USD|EUR|GBP/,"").slice(0,3);
-  return <svg width={s} height={s} viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill={bg}/><text x="16" y="21" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize={abbr.length>3?7:9} fontWeight="700" fill="#fff">{abbr}</text></svg>;
+
+  const flags = pairs[id];
+
+  if (!flags) {
+    return (
+      <div style={{
+        width:size,
+        height:size,
+        borderRadius:"50%",
+        background:"#1f2937"
+      }}/>
+    );
+  }
+
+  return (
+    <div style={{
+      display:"flex",
+      alignItems:"center",
+      position:"relative",
+      width:size+10
+    }}>
+      <img
+        src={`https://flagcdn.com/w40/${flags[0]}.png`}
+        style={{
+          width:size,
+          height:size,
+          borderRadius:"50%",
+          border:"2px solid #0b0c10",
+          position:"relative",
+          zIndex:2
+        }}
+      />
+
+      <img
+        src={`https://flagcdn.com/w40/${flags[1]}.png`}
+        style={{
+          width:size,
+          height:size,
+          borderRadius:"50%",
+          border:"2px solid #0b0c10",
+          position:"absolute",
+          left:size/2
+        }}
+      />
+    </div>
+  );
 };
 
 const ASSET_META = {
@@ -967,7 +1003,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       className="card-hover"
       style={{
         background:"linear-gradient(160deg,#12131a,#0d0e14)",
-        border:`1px solid ${data?.bias ? c.border+"55" : "rgba(255,255,255,0.06)"}`,
+        border:`1px solid ${meta.color ? meta.color+"40" : "rgba(255,255,255,0.06)"}`,
+        boxShadow: meta.color ? `0 0 20px ${meta.color}15` : "none",
         borderRadius:8,
         padding:0,
         opacity:vis?1:0,
@@ -984,10 +1021,10 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
       {/* Asset background glow */}
       <div style={{position:"absolute",top:-40,right:-20,width:140,height:140,borderRadius:"50%",background:meta.color?`radial-gradient(circle,${meta.color}08,transparent 70%)`:"transparent",pointerEvents:"none"}}/>
 
-      <div style={{padding:"18px 20px"}}>
+      <div style={{padding:"16px"}}>
         {/* Header row */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
             <AssetLogo id={asset.id} size={26}/>
             <div>
               <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2}}>
@@ -1044,7 +1081,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
 
             {/* AI Summary block */}
-            <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.14)",borderRadius:10,padding:"11px 13px"}}>
+            <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.08)")",borderRadius:10,padding:"11px 13px"}}>
               <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
                 <div style={{width:16,height:16,borderRadius:5,background:"rgba(99,102,241,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
                   <span style={{fontSize:9}}>✦</span>
