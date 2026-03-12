@@ -2512,7 +2512,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 height: 34,
                 borderRadius: 9,
                 objectFit: "cover",
-                boxShadow: `0 4px 16px ${accent}44`,
                 flexShrink: 0
               }}
             />
