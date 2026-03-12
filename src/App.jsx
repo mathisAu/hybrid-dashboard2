@@ -2720,30 +2720,71 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* Macro bar */}
             {aResult&&(
-              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14,padding:"10px 16px",background:"#0f1011",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,alignItems:"center"}}>
-                <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
-                {(livePrices.DXY||aResult.dxy_change)&&(
-                  <InfoTooltip text="Dollar Index — meet de sterkte van de USD tegen een mandje van 6 valuta. Stijgt de DXY? Dan dalen EUR/USD en GBP/USD meestal, en staat Goud onder druk." color="#6b7280">
-                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>DXY</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span></div>
-                  </InfoTooltip>
-                )}
-                {(livePrices.VIX||aResult.vix_level)&&(
-                  <InfoTooltip text="Volatility Index — de angstmeter van de markt. Onder 15 = rustig, 15-25 = normaal, boven 25 = verhoogde onzekerheid, boven 30 = angst/crisis. Hoge VIX = risk-off, laag VIX = risk-on." color="#6b7280">
-                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>VIX</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{livePrices.VIX?.price||aResult.vix_level}</span></div>
-                  </InfoTooltip>
-                )}
-                {(livePrices.US10Y||aResult.us10y)&&(
-                  <InfoTooltip text="Amerikaanse 10-jaars rente. Stijgende yields = USD sterker, druk op Goud en groei-aandelen. Dalende yields = risk-on, gunstig voor Goud en tech. Boven 4.5% = restrictief beleid." color="#6b7280">
-                    <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",borderRadius:5,padding:"4px 9px"}}><span style={{fontSize:9,color:"#374151",letterSpacing:"0.1em"}}>US10Y</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span></div>
-                  </InfoTooltip>
-                )}
-                {aResult.session&&(
-                  <InfoTooltip text="Actieve handelssessie. London (07:00-16:00 Amsterdam) = hoogste volume voor EUR/GBP. New York (13:00-22:00 CET) = hoogste volume voor USD-paren en equities. Overlap London/NY (13:00-16:00) = meest volatiel." color="#6366f1">
-                    <Badge label={aResult.session.toUpperCase()+" SESSION"} color="#6366f1"/>
-                  </InfoTooltip>
-                )}
-                {aResult.market_context&&<div style={{flex:1,minWidth:140,fontSize:11,color:"#6b7280"}}>{aResult.market_context}</div>}
-                {aResult.timestamp&&<div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>📊 {fmtDT(aResult.timestamp)}</div>}
+              <div style={{marginBottom:14,background:"#0d0e11",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,overflow:"hidden"}}>
+                {/* Top label row */}
+                <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:9,fontWeight:700,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
+                  {aResult.timestamp&&<span style={{fontSize:8,color:"#1f2937",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>📊 {fmtDT(aResult.timestamp)}</span>}
+                </div>
+                <div style={{padding:"12px 16px",display:"flex",gap:16,alignItems:"stretch",flexWrap:"wrap"}}>
+
+                  {/* Yield regime */}
+                  {aResult.yield_regime&&(
+                    <div style={{display:"flex",flexDirection:"column",gap:4,minWidth:120}}>
+                      <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>YIELD REGIME</span>
+                      <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
+                    </div>
+                  )}
+
+                  {/* Session */}
+                  {aResult.session&&(
+                    <div style={{display:"flex",flexDirection:"column",gap:4,minWidth:100}}>
+                      <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE</span>
+                      <InfoTooltip text="Actieve handelssessie. London (07:00-16:00) = hoogste volume EUR/GBP. NY (13:00-22:00) = USD-paren en equities. Overlap = meest volatiel." color="#6366f1">
+                        <span style={{fontSize:10,fontWeight:700,color:"#6366f1",fontFamily:"'JetBrains Mono',monospace"}}>{aResult.session.toUpperCase()}</span>
+                      </InfoTooltip>
+                    </div>
+                  )}
+
+                  {/* Live metrics */}
+                  <div style={{display:"flex",gap:8,alignItems:"flex-end",flexWrap:"wrap"}}>
+                    {(livePrices.DXY||aResult.dxy_change)&&(
+                      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                        <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>DXY</span>
+                        <InfoTooltip text="Dollar Index — meet de sterkte van de USD. Stijgt de DXY? Dan dalen EUR/USD en GBP/USD meestal, en staat Goud onder druk." color="#6b7280">
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"}}>{livePrices.DXY?.change||aResult.dxy_change}</span>
+                        </InfoTooltip>
+                      </div>
+                    )}
+                    {(livePrices.VIX||aResult.vix_level)&&(
+                      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                        <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>VIX</span>
+                        <InfoTooltip text="Volatility Index — de angstmeter. Onder 15 = rustig, 15-25 = normaal, boven 25 = verhoogde onzekerheid, boven 30 = angst/crisis." color="#6b7280">
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"}}>{livePrices.VIX?.price||aResult.vix_level}</span>
+                        </InfoTooltip>
+                      </div>
+                    )}
+                    {(livePrices.US10Y||aResult.us10y)&&(
+                      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                        <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>US10Y</span>
+                        <InfoTooltip text="Amerikaanse 10-jaars rente. Stijgende yields = USD sterker, druk op Goud. Dalende yields = gunstig voor Goud en tech." color="#6b7280">
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:accent}}>{livePrices.US10Y?.price||aResult.us10y}</span>
+                        </InfoTooltip>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Divider */}
+                  {aResult.market_context&&<div style={{width:1,background:"rgba(255,255,255,0.05)",alignSelf:"stretch",flexShrink:0}}/>}
+
+                  {/* Market context — the text */}
+                  {aResult.market_context&&(
+                    <div style={{flex:1,minWidth:180,display:"flex",flexDirection:"column",gap:4}}>
+                      <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>MARKT CONTEXT</span>
+                      <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{aResult.market_context}</div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
