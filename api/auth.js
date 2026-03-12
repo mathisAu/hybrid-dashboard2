@@ -14,8 +14,8 @@
 import { Redis } from "@upstash/redis";
 
 const redis = new Redis({
-  url:   process.env.REDIS_URL,
-  token: process.env.REDIS_TOKEN,
+  url:   process.env.REDIS_URL || process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.REDIS_TOKEN || process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
 const ADMIN_KEY  = process.env.ADMIN_PASSWORD || "admin123"; // match frontend
