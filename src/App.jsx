@@ -65,11 +65,11 @@ const AssetLogo = ({ id, size = 28 }) => {
     XAUUSD: ["gold", "us"],
     BTCUSD: ["btc", "us"],
   };
- const assetIcons = {
+const assetIcons = {
   XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
   BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
-  US30: "https://s3-symbol-logo.tradingview.com/index/US30.svg",
-  US100: "https://s3-symbol-logo.tradingview.com/index/US100.svg"
+  US30: "https://s3-symbol-logo.tradingview.com/futures/US30.svg",
+  US100: "https://s3-symbol-logo.tradingview.com/futures/US100.svg"
   };
 
   const flags = pairs[id];
