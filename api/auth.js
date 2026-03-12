@@ -48,34 +48,35 @@ function emailBase(content) {
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>HybridTrader</title>
 </head>
-<body style="margin:0;padding:0;background:#060608;font-family:'Helvetica Neue',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#060608;min-height:100vh;">
-  <tr><td align="center" style="padding:40px 16px;">
+<body style="margin:0;padding:0;background:#060608;font-family:'Helvetica Neue',Arial,sans-serif;" bgcolor="#060608">
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#060608" style="background:#060608;min-height:100vh;">
+  <tr><td align="center" style="padding:40px 16px;" bgcolor="#060608">
     <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
       <!-- Header -->
       <tr>
         <td style="padding-bottom:28px;text-align:center;">
-          <div style="display:inline-block;background:linear-gradient(160deg,#111420,#0d1016);border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:16px 28px;">
+          <table cellpadding="0" cellspacing="0" align="center"><tr>
+          <td bgcolor="#111420" style="background:linear-gradient(160deg,#111420,#0d1016);border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:16px 28px;">
             <span style="font-size:22px;font-weight:800;color:#f1f2f4;letter-spacing:-0.02em;">Hybrid<span style="color:#089981;">Trader</span></span>
-            <div style="font-size:8px;color:#374151;letter-spacing:0.18em;font-family:'Courier New',monospace;margin-top:4px;">INSTITUTIONAL TRADING DASHBOARD</div>
-          </div>
+            <div style="font-size:8px;color:#6b7280;letter-spacing:0.18em;font-family:'Courier New',monospace;margin-top:4px;">INSTITUTIONAL TRADING DASHBOARD</div>
+          </td></tr></table>
         </td>
       </tr>
 
       <!-- Card -->
       <tr>
-        <td style="background:linear-gradient(160deg,#111420,#0c0d12);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:36px 40px;box-shadow:0 8px 40px rgba(0,0,0,0.6);">
+        <td bgcolor="#111420" style="background:linear-gradient(160deg,#111420,#0c0d12);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:36px 40px;">
           ${content}
         </td>
       </tr>
 
       <!-- Footer -->
       <tr>
-        <td style="padding-top:24px;text-align:center;">
-          <p style="font-size:10px;color:#2d3748;letter-spacing:0.08em;margin:0;font-family:'Courier New',monospace;">
+        <td style="padding-top:24px;text-align:center;" bgcolor="#060608">
+          <p style="font-size:10px;color:#4b5563;letter-spacing:0.08em;margin:0;font-family:'Courier New',monospace;">
             HYBRIDTRADER · INSTITUTIONAL FLOW EDITION<br/>
-            <span style="color:#1a2030;">This email was sent automatically. Do not reply.</span>
+            <span style="color:#374151;">This email was sent automatically. Do not reply.</span>
           </p>
         </td>
       </tr>
@@ -92,37 +93,39 @@ function emailWelcome(name) {
     <div style="text-align:center;margin-bottom:28px;">
       <div style="font-size:40px;margin-bottom:12px;">⏳</div>
       <h1 style="font-size:22px;font-weight:800;color:#f1f2f4;margin:0 0 8px;letter-spacing:-0.01em;">Account Created</h1>
-      <p style="font-size:14px;color:#6b7280;margin:0;">Your registration was received successfully.</p>
+      <p style="font-size:14px;color:#9ca3af;margin:0;">Your registration was received successfully.</p>
     </div>
 
-    <div style="background:rgba(8,153,129,0.08);border:1px solid rgba(8,153,129,0.20);border-radius:10px;padding:20px 24px;margin-bottom:24px;">
-      <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#089981;">${name}</strong>,</p>
-      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
-        Your HybridTrader account has been created and is <strong style="color:#f59e0b;">pending approval</strong>.
-        The administrator will review your request shortly.
-      </p>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td bgcolor="#0d1a17" style="background:rgba(8,153,129,0.08);border:1px solid rgba(8,153,129,0.20);border-radius:10px;padding:20px 24px;">
+        <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#089981;">${name}</strong>,</p>
+        <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
+          Your HybridTrader account has been created and is <strong style="color:#f59e0b;">pending approval</strong>.
+          The administrator will review your request shortly.
+        </p>
+      </td></tr>
+    </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr>
         <td style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
+          <span style="font-size:10px;color:#6b7280;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
         </td>
         <td align="right" style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <span style="background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">PENDING APPROVAL</span>
+          <span style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.30);color:#f59e0b;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">PENDING APPROVAL</span>
         </td>
       </tr>
       <tr>
         <td style="padding:12px 0;">
-          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">ACCOUNT</span>
+          <span style="font-size:10px;color:#6b7280;letter-spacing:0.1em;font-family:'Courier New',monospace;">ACCOUNT</span>
         </td>
         <td align="right" style="padding:12px 0;">
-          <span style="font-size:12px;color:#6b7280;font-family:'Courier New',monospace;">${name}</span>
+          <span style="font-size:12px;color:#9ca3af;font-family:'Courier New',monospace;">${name}</span>
         </td>
       </tr>
     </table>
 
-    <p style="font-size:12px;color:#4b5563;text-align:center;margin:0;line-height:1.6;">
+    <p style="font-size:12px;color:#6b7280;text-align:center;margin:0;line-height:1.6;">
       Once approved, you'll receive a confirmation email and can log in at<br/>
       <a href="${SITE_URL}" style="color:#089981;text-decoration:none;">${SITE_URL}</a>
     </p>
@@ -134,29 +137,31 @@ function emailApproved(name) {
     <div style="text-align:center;margin-bottom:28px;">
       <div style="font-size:40px;margin-bottom:12px;">✅</div>
       <h1 style="font-size:22px;font-weight:800;color:#f1f2f4;margin:0 0 8px;letter-spacing:-0.01em;">Access Granted</h1>
-      <p style="font-size:14px;color:#6b7280;margin:0;">Your account has been approved.</p>
+      <p style="font-size:14px;color:#9ca3af;margin:0;">Your account has been approved.</p>
     </div>
 
-    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.20);border-radius:10px;padding:20px 24px;margin-bottom:24px;">
-      <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#22c55e;">${name}</strong>,</p>
-      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
-        Great news — your HybridTrader account has been <strong style="color:#22c55e;">approved</strong>.
-        You now have full access to the dashboard.
-      </p>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td bgcolor="#0d1a13" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.20);border-radius:10px;padding:20px 24px;">
+        <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#22c55e;">${name}</strong>,</p>
+        <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
+          Great news — your HybridTrader account has been <strong style="color:#22c55e;">approved</strong>.
+          You now have full access to the dashboard.
+        </p>
+      </td></tr>
+    </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
       <tr>
         <td style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
+          <span style="font-size:10px;color:#6b7280;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
         </td>
         <td align="right" style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <span style="background:rgba(34,197,94,0.10);border:1px solid rgba(34,197,94,0.25);color:#22c55e;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">APPROVED</span>
+          <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.30);color:#22c55e;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">APPROVED</span>
         </td>
       </tr>
       <tr>
         <td style="padding:12px 0;">
-          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">ACCESS</span>
+          <span style="font-size:10px;color:#6b7280;letter-spacing:0.1em;font-family:'Courier New',monospace;">ACCESS</span>
         </td>
         <td align="right" style="padding:12px 0;">
           <span style="font-size:11px;color:#22c55e;font-family:'Courier New',monospace;">FULL DASHBOARD</span>
@@ -167,7 +172,7 @@ function emailApproved(name) {
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td align="center">
-          <a href="${SITE_URL}" style="display:inline-block;background:linear-gradient(145deg,#089981,#0bc09f);color:#fff;font-size:12px;font-weight:700;letter-spacing:0.08em;padding:14px 36px;border-radius:100px;text-decoration:none;box-shadow:0 0 24px rgba(8,153,129,0.4);">
+          <a href="${SITE_URL}" style="display:inline-block;background:#089981;color:#fff;font-size:12px;font-weight:700;letter-spacing:0.08em;padding:14px 36px;border-radius:100px;text-decoration:none;">
             OPEN DASHBOARD →
           </a>
         </td>
@@ -181,29 +186,30 @@ function emailDenied(name) {
     <div style="text-align:center;margin-bottom:28px;">
       <div style="font-size:40px;margin-bottom:12px;">🚫</div>
       <h1 style="font-size:22px;font-weight:800;color:#f1f2f4;margin:0 0 8px;letter-spacing:-0.01em;">Access Declined</h1>
-      <p style="font-size:14px;color:#6b7280;margin:0;">Your account request was not approved.</p>
+      <p style="font-size:14px;color:#9ca3af;margin:0;">Your account request was not approved.</p>
     </div>
 
-    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.20);border-radius:10px;padding:20px 24px;margin-bottom:24px;">
-      <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#f87171;">${name}</strong>,</p>
-      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
-        Unfortunately, your HybridTrader account request has been <strong style="color:#f87171;">declined</strong> by the administrator.
-        Your access has been revoked.
-      </p>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr><td bgcolor="#1a0d0d" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.20);border-radius:10px;padding:20px 24px;">
+        <p style="font-size:14px;color:#e2e4e9;margin:0 0 6px;">Hi <strong style="color:#f87171;">${name}</strong>,</p>
+        <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.7;">
+          Unfortunately, your HybridTrader account request has been <strong style="color:#f87171;">declined</strong> by the administrator.
+        </p>
+      </td></tr>
+    </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr>
         <td style="padding:12px 0;">
-          <span style="font-size:10px;color:#374151;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
+          <span style="font-size:10px;color:#6b7280;letter-spacing:0.1em;font-family:'Courier New',monospace;">STATUS</span>
         </td>
         <td align="right" style="padding:12px 0;">
-          <span style="background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.25);color:#f87171;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">ACCESS REVOKED</span>
+          <span style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.30);color:#f87171;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">ACCESS REVOKED</span>
         </td>
       </tr>
     </table>
 
-    <p style="font-size:12px;color:#4b5563;text-align:center;margin:0;line-height:1.7;">
+    <p style="font-size:12px;color:#6b7280;text-align:center;margin:0;line-height:1.7;">
       If you believe this is a mistake, please contact the administrator directly.
     </p>
   `);
