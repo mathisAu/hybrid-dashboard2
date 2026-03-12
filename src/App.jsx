@@ -1045,31 +1045,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
         cursor:data?"pointer":"default",
       }}
     >
-      {/* Animated hover border — four sides sweep from corners inward */}
-      <svg className="asset-card-svg" style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:10,overflow:"visible"}} viewBox="0 0 100 100" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id={`bgh-${asset.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={acc} stopOpacity="0"/>
-            <stop offset="40%" stopColor={acc} stopOpacity="0.9"/>
-            <stop offset="60%" stopColor={acc} stopOpacity="0.9"/>
-            <stop offset="100%" stopColor={acc} stopOpacity="0"/>
-          </linearGradient>
-          <linearGradient id={`bgv-${asset.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={acc} stopOpacity="0"/>
-            <stop offset="40%" stopColor={acc} stopOpacity="0.9"/>
-            <stop offset="60%" stopColor={acc} stopOpacity="0.9"/>
-            <stop offset="100%" stopColor={acc} stopOpacity="0"/>
-          </linearGradient>
-        </defs>
-        {/* top */}
-        <line className="asset-card-rect-top" x1="0" y1="0.5" x2="100" y2="0.5" stroke={`url(#bgh-${asset.id})`}/>
-        {/* bottom */}
-        <line className="asset-card-rect-bot" x1="100" y1="99.5" x2="0" y2="99.5" stroke={`url(#bgh-${asset.id})`}/>
-        {/* left */}
-        <line className="asset-card-rect-left" x1="0.5" y1="0" x2="0.5" y2="100" stroke={`url(#bgv-${asset.id})`}/>
-        {/* right */}
-        <line className="asset-card-rect-right" x1="99.5" y1="100" x2="99.5" y2="0" stroke={`url(#bgv-${asset.id})`}/>
-      </svg>
+      {/* Conic sweep border on hover */}
+      <div className="conic-border"/>
       <div style={{overflow:"hidden",borderRadius:8}}>
       <div style={{padding:"16px"}}>
         {/* Header row */}
@@ -2495,17 +2472,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes pageOut{to{opacity:0;transform:translateX(-12px)}}
         .deep-enter{animation:deepIn 0.38s cubic-bezier(0.16,1,0.3,1) both}
         @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
-        .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1),border-color 0.2s ease;position:relative}
-        .card-hover:hover{transform:translateY(-3px)!important}
-        .asset-card-rect-top{fill:none;stroke:url(#borderGradH);stroke-width:1;stroke-dasharray:200;stroke-dashoffset:200;transition:stroke-dashoffset 0s,opacity 0s;opacity:0}
-        .asset-card-rect-bot{fill:none;stroke:url(#borderGradH);stroke-width:1;stroke-dasharray:200;stroke-dashoffset:-200;transition:stroke-dashoffset 0s,opacity 0s;opacity:0}
-        .asset-card-rect-left{fill:none;stroke:url(#borderGradV);stroke-width:1;stroke-dasharray:200;stroke-dashoffset:200;transition:stroke-dashoffset 0s,opacity 0s;opacity:0}
-        .asset-card-rect-right{fill:none;stroke:url(#borderGradV);stroke-width:1;stroke-dasharray:200;stroke-dashoffset:-200;transition:stroke-dashoffset 0s,opacity 0s;opacity:0}
-        .card-hover:hover .asset-card-rect-top{stroke-dashoffset:0;opacity:1;transition:stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1),opacity 0.1s}
-        .card-hover:hover .asset-card-rect-bot{stroke-dashoffset:0;opacity:1;transition:stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1),opacity 0.1s}
-        .card-hover:hover .asset-card-rect-left{stroke-dashoffset:0;opacity:1;transition:stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1),opacity 0.1s}
-        .card-hover:hover .asset-card-rect-right{stroke-dashoffset:0;opacity:1;transition:stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1),opacity 0.1s}
-        .asset-card-svg{filter:drop-shadow(0 0 6px ${accent}40)}
+        .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1);position:relative}
+        .card-hover:hover{transform:translateY(-2px)!important}
+        .conic-border{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:5}
+        .conic-border::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,${accent}00 60%,${accent}99 75%,${accent} 80%,${accent}99 85%,${accent}00 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:conicSpin 2.5s linear infinite}
+        .card-hover:hover .conic-border{opacity:1}
+        @keyframes conicSpin{to{--angle:360deg}}
+        @property --angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         .news-item-hover{transition:background 0.15s,border-color 0.15s}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
         .btn-primary{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important}
