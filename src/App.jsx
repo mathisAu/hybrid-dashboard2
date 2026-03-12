@@ -1380,24 +1380,16 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
             className="card-hover"
-            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:`1px solid rgba(255,255,255,0.06)`,borderRadius:8,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
-            {/* Conic border with card-specific color */}
-            <div style={{position:"absolute",inset:-1,borderRadius:9,opacity:0,transition:"opacity 0.35s ease",pointerEvents:"none",zIndex:5}} className={`nav-conic-${id}`}>
-              <style>{`
-                .nav-conic-${id}::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--nav-angle-${id},0deg),transparent 0%,transparent 50%,${color}00 60%,${color}99 75%,${color} 80%,${color}99 85%,${color}00 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:navSpin-${id} 2.5s linear infinite}
-                .card-hover:hover .nav-conic-${id}{opacity:1}
-                @keyframes navSpin-${id}{to{--nav-angle-${id}:360deg}}
-                @property --nav-angle-${id}{syntax:"<angle>";initial-value:0deg;inherits:false}
-              `}</style>
-            </div>
-            <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>
+            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,"--conic-color":color}}>
+            <div className="conic-border"/>
+            <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color,position:"relative",zIndex:1}}>
               {icon}
             </div>
-            <div>
+            <div style={{position:"relative",zIndex:1}}>
               <div style={{fontSize:13,fontWeight:700,color:"#e2e4e9",marginBottom:5}}>{title}</div>
               <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto"}}>
+            <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto",position:"relative",zIndex:1}}>
               OPEN <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             </div>
           </button>
@@ -2480,11 +2472,18 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1);position:relative}
         .card-hover:hover{transform:translateY(-2px)!important}
         .conic-border{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:5}
-        .conic-border::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,${accent}00 60%,${accent}99 75%,${accent} 80%,${accent}99 85%,${accent}00 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:conicSpin 2.5s linear infinite}
+        .conic-border::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:conicSpin 2.5s linear infinite}
         .card-hover:hover .conic-border{opacity:1}
+        .nav-item{transition:all 0.15s ease;border-radius:8px;position:relative;overflow:hidden}
+        .nav-item:hover{background:rgba(255,255,255,0.04)!important;color:#9ca3af!important}
+        .nav-item.active{background:${accent}15!important;color:${accent}!important}
+        .nav-conic{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:0}
+        .nav-conic::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1px;background:conic-gradient(from var(--nav-angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:navConicSpin 3s linear infinite}
+        .nav-item:hover .nav-conic{opacity:1}
         @keyframes conicSpin{to{--angle:360deg}}
+        @keyframes navConicSpin{to{--nav-angle:360deg}}
         @property --angle{syntax:"<angle>";initial-value:0deg;inherits:false}
-        .news-item-hover{transition:background 0.15s,border-color 0.15s}
+        @property --nav-angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
         .btn-primary{transition:all 0.18s cubic-bezier(0.4,0,0.2,1)!important}
         .btn-primary:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.12);box-shadow:0 6px 20px rgba(8,153,129,0.35)}
@@ -2539,16 +2538,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           ].map(({id,label,sub,icon})=>(
             <button key={id} onClick={()=>switchPage(id)}
               className={`nav-item${page===id?" active":""}`}
-              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left",position:"relative",borderRadius:8,overflow:"hidden"}}>
-              {/* Conic hover border */}
-              <div style={{position:"absolute",inset:-1,borderRadius:9,opacity:0,transition:"opacity 0.35s ease",pointerEvents:"none",zIndex:0}} className={`sidenav-conic-${id}`}>
-                <style>{`
-                  .sidenav-conic-${id}::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1px;background:conic-gradient(from var(--snav-angle-${id},0deg),transparent 0%,transparent 50%,${accent}00 60%,${accent}66 75%,${accent}88 80%,${accent}66 85%,${accent}00 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:snavSpin-${id} 3s linear infinite}
-                  .nav-item:hover .sidenav-conic-${id}{opacity:1}
-                  @keyframes snavSpin-${id}{to{--snav-angle-${id}:360deg}}
-                  @property --snav-angle-${id}{syntax:"<angle>";initial-value:0deg;inherits:false}
-                `}</style>
-              </div>
+              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left","--conic-color":accent}}>
+              <div className="nav-conic"/>
               <div style={{width:30,height:30,borderRadius:8,background:page===id?`${accent}20`:"rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,position:"relative",zIndex:1}}>
                 {icon}
               </div>
