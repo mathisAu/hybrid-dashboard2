@@ -65,11 +65,11 @@ const AssetLogo = ({ id, size = 28 }) => {
     XAUUSD: ["gold", "us"],
     BTCUSD: ["btc", "us"],
   };
-  const assetIcons = {
+ const assetIcons = {
   XAUUSD: "https://s3-symbol-logo.tradingview.com/metal/gold.svg",
   BTCUSD: "https://s3-symbol-logo.tradingview.com/crypto/XTVCBTC.svg",
-  US30: "https://s3-symbol-logo.tradingview.com/index/dow-jones.svg",
-  US100: "https://s3-symbol-logo.tradingview.com/index/nasdaq-100.svg"
+  US30: "https://s3-symbol-logo.tradingview.com/country/US.svg",
+  US100: "https://s3-symbol-logo.tradingview.com/country/US.svg"
   };
 
   const flags = pairs[id];
@@ -83,8 +83,8 @@ const AssetLogo = ({ id, size = 28 }) => {
           width:size,
           height:size,
           borderRadius:"50%",
-          background:"#0b0c10",
-          padding:4
+          background:"#111",
+          padding:3
         }}
       />
     );
