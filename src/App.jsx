@@ -2587,7 +2587,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .card-hover:hover .conic-border::before{animation:conicSpin 2.5s linear infinite}
         .nav-item{transition:all 0.15s ease;border-radius:8px;position:relative;color:#9ca3af!important;}
         .nav-item:hover{background:rgba(255,255,255,0.05)!important;color:#e2e4e9!important;}
-        .nav-item.active{background:${accent}18!important;color:${accent}!important;}
+        .nav-item.active{background:transparent!important;color:${accent}!important;}
         .nav-conic{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.3s ease;pointer-events:none;z-index:0}
         .nav-conic::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--nav-angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,#089981) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:none}
         .nav-item:hover .nav-conic{opacity:1}
@@ -2766,7 +2766,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           ].map(({id,label,icon})=>(
             <button key={id} onClick={()=>switchPage(id)}
               className={`nav-item${page===id?" active":""}`}
-              style={{width:"100%",border:"none",background:page===id?`${accent}18`:"transparent",color:page===id?accent:"#4b5563",display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 6px",cursor:"pointer","--conic-color":accent,borderRadius:10,position:"relative",transition:"all 0.15s"}}>
+              style={{width:"100%",border:"none",background:"transparent",color:page===id?accent:"#6b7280",display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 6px",cursor:"pointer","--conic-color":accent,borderRadius:10,position:"relative",transition:"all 0.15s"}}>
               <div className="nav-conic"/>
               <div style={{position:"relative",zIndex:1,color:"inherit"}}>{icon}</div>
               <div style={{fontSize:9,fontWeight:600,letterSpacing:"0.04em",position:"relative",zIndex:1,color:"inherit"}}>{label}</div>
@@ -2833,48 +2833,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"50%",background:`radial-gradient(ellipse at center,${accent}14 0%,transparent 65%)`,filter:"blur(75px)"}}/>
         </div>}
 
-      {/* ── HEADER ── */}
-      <div style={{borderBottom:"1px solid rgba(255,255,255,0.04)",padding:"0 28px",height:56,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:"rgba(8,9,14,0.4)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",zIndex:51}}>
-        {/* Left: title + status */}
-        <div style={{display:"flex",alignItems:"center",gap:16}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div>
-              <div style={{fontSize:16,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1,color:"#e2e4e9"}}>
-                {page==="home"?"Home":page==="analyse"?"Analyse":page==="intel"?"Intel":page==="admin"?"Admin":"Kalender"}
-              </div>
-              <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>
-                {loading ? <span style={{color:accent,animation:"blink 1s infinite"}}>● RUNNING...</span>
-                  : aResult ? <span style={{color:"#22c55e"}}>● LIVE {lastRefresh?"· "+timeSinceRefresh:""}</span>
-                  : <span>● STANDBY</span>}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: add pair + run button */}
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {page==="home" ? (
-            null
-          ) : page==="analyse" ? (
-            <button onClick={runAnalysis} disabled={aStatus==="loading"}
-              className="btn-primary"
-              style={{padding:"8px 18px",fontSize:11,color:"#fff",opacity:aStatus==="loading"?0.6:1,"--btn-glow":`${accent}40`}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:aStatus==="loading"?"spin 1s linear infinite":"none",flexShrink:0}}>
-                {aStatus==="loading"?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M8 5l11 7-11 7V5z" fill="currentColor"/>}
-              </svg>
-              {aStatus==="loading"?`LADEN${".".repeat(dots)}`:"ANALYSE LADEN"}
-            </button>
-          ) : page==="intel" ? (
-            <button onClick={runIntel} disabled={iStatus==="loading"}
-              className="btn-primary"
-              style={{padding:"8px 18px",fontSize:11,color:"#fff","--btn-glow":`${accent}40`}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:iStatus==="loading"?"spin 1s linear infinite":"none"}}><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              {iStatus==="loading"?`LADEN${".".repeat(dots)}`:"INTEL LADEN"}
-            </button>
-          ) : null}
-        </div>
-      </div>
-
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
         <div style={{position:"fixed",inset:0,marginLeft:80,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -2923,6 +2881,42 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── CONTENT ── */}
       <div key={pageKey} className="page-enter" style={{padding:"28px 32px",maxWidth:1440,margin:"0 auto",width:"100%",position:"relative",zIndex:1}}>
+
+        {/* ── Inline page header ── */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
+          <div>
+            <div style={{fontSize:22,fontWeight:800,letterSpacing:"-0.03em",color:"#e2e4e9",lineHeight:1}}>
+              {page==="home"?"Home":page==="analyse"?"Analyse":page==="intel"?"Intel":page==="admin"?"Admin":"Kalender"}
+            </div>
+            <div style={{fontSize:10,color:"#6b7280",marginTop:5,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>
+              {loading
+                ? <span style={{color:accent,animation:"blink 1s infinite"}}>● RUNNING...</span>
+                : aResult
+                ? <span style={{color:"#22c55e"}}>● LIVE{lastRefresh?" · "+timeSinceRefresh:""}</span>
+                : <span style={{color:"#4b5563"}}>● STANDBY</span>}
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {page==="analyse"&&(
+              <button onClick={runAnalysis} disabled={aStatus==="loading"}
+                className="btn-primary"
+                style={{padding:"9px 20px",fontSize:11,color:"#fff",opacity:aStatus==="loading"?0.6:1,"--btn-glow":`${accent}40`}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:aStatus==="loading"?"spin 1s linear infinite":"none",flexShrink:0}}>
+                  {aStatus==="loading"?<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>:<path d="M8 5l11 7-11 7V5z" fill="currentColor"/>}
+                </svg>
+                {aStatus==="loading"?`LADEN${".".repeat(dots)}`:"ANALYSE LADEN"}
+              </button>
+            )}
+            {page==="intel"&&(
+              <button onClick={runIntel} disabled={iStatus==="loading"}
+                className="btn-primary"
+                style={{padding:"9px 20px",fontSize:11,color:"#fff","--btn-glow":`${accent}40`}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:iStatus==="loading"?"spin 1s linear infinite":"none"}}><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                {iStatus==="loading"?`LADEN${".".repeat(dots)}`:"INTEL LADEN"}
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* HOME PAGE */}
         {page==="home"&&(
