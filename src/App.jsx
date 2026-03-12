@@ -980,7 +980,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 function ConfidenceBar({ value, color, animated=true }) {
   return (
     <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.05)",overflow:"hidden",position:"relative"}}>
-      <div className={animated?"confidence-bar":""} style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:2,boxShadow:`0 0 8px ${color}44`}}/>
+      <div className={animated?"confidence-bar":""} style={{height:"100%",width:`${Math.min(100,value||0)}%`,background:`linear-gradient(90deg,${color}88,${color})`,borderRadius:2}}/>
     </div>
   );
 }
@@ -1050,9 +1050,6 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
         <rect className="asset-card-rect" x="0.5" y="0.5" width="99" height="99" rx="6" ry="6"/>
       </svg>
       <div style={{overflow:"hidden",borderRadius:8}}>
-      {/* Top gradient accent line */}
-      <div style={{height:2,background:meta.color ? `linear-gradient(90deg,transparent,${meta.color}55,transparent)` : data?.bias ? `linear-gradient(90deg,transparent,${c.border},${c.border}88,transparent)` : "transparent"}}/>
-
       <div style={{padding:"16px"}}>
         {/* Header row */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
