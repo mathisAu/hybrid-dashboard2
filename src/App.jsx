@@ -701,11 +701,11 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
       onClick={onClick}
       className="card-hover"
       style={{
-        background:"linear-gradient(160deg,#131520,#0e0f15)",
-        border:"1px solid rgba(255,255,255,0.09)",
-        borderRadius:10,
-        boxShadow:"0 2px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04)",
-        padding:"16px 18px",
+        background:"#0d0e13",
+        border:"1px solid rgba(255,255,255,0.07)",
+        borderRadius:12,
+        boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
+        padding:"18px 20px",
         position:"relative",
         cursor:onClick?"pointer":"default",
         "--conic-color": color,
@@ -1163,21 +1163,23 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-      {/* Hero */}
-      <div style={{background:"linear-gradient(135deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"36px 40px",position:"relative",overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)"}}>
-        <div style={{position:"absolute",top:"-30%",right:"-10%",width:"50%",height:"200%",background:`radial-gradient(ellipse at center,${acc}0f,transparent 65%)`,pointerEvents:"none"}}/>
+      {/* Hero — no box */}
+      <div style={{padding:"8px 0 4px",position:"relative"}}>
+        <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${acc}0f,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>MARKET INTEL · POWERED BY AI</div>
           <div style={{fontSize:26,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
             Live marktdata<br/><span style={{color:acc}}>nog niet geladen</span>
           </div>
-          <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:480,marginBottom:24}}>
-            Intel haalt real-time nieuws, macro regime, yield analyse en cross-asset signalen op via AI web search. Klik laden om te starten.
+          <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+            <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:480}}>
+              Intel haalt real-time nieuws, macro regime, yield analyse en cross-asset signalen op via AI web search.
+            </div>
+            <button onClick={onRunHybrid} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${acc}40`,flexShrink:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill="currentColor"/></svg>
+              HYBRID LADEN
+            </button>
           </div>
-          <button onClick={onRunHybrid} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${acc}40`}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill="currentColor"/></svg>
-            HYBRID LADEN
-          </button>
         </div>
       </div>
 
@@ -1378,12 +1380,9 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
-      {/* Hero header */}
-      <div style={{background:"linear-gradient(135deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"32px 36px",boxShadow:"0 4px 24px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)",position:"relative",overflow:"hidden"}}>
-        {/* Background glow */}
-        <div style={{position:"absolute",top:-60,right:-60,width:300,height:300,borderRadius:"50%",background:`radial-gradient(circle,${acc}12,transparent 70%)`,pointerEvents:"none"}}/>
-        <div style={{position:"absolute",bottom:-40,left:100,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(99,102,241,0.08),transparent 70%)",pointerEvents:"none"}}/>
-
+      {/* Hero header — no box */}
+      <div style={{padding:"8px 0 4px",position:"relative"}}>
+        <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${acc}0f,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:20,position:"relative"}}>
           <div>
             <div style={{fontSize:11,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
@@ -1407,7 +1406,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
           </div>
 
           {/* Run button */}
-          <div style={{display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end"}}>
+          <div style={{display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end",paddingTop:8}}>
             <button onClick={onRunHybrid} disabled={isRunning}
               className="btn-primary btn-always-spin"
               style={{padding:"12px 28px",fontSize:13,color:"#fff",opacity:isRunning?0.6:1,"--btn-glow":`${acc}40`}}>
@@ -2931,7 +2930,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       )}
 
       {/* ── CONTENT ── */}
-      <div key={pageKey} className="page-enter" style={{padding:"24px 28px",maxWidth:1440,margin:"0 auto",width:"100%",position:"relative",zIndex:1}}>
+      <div key={pageKey} className="page-enter" style={{padding:"28px 32px",maxWidth:1440,margin:"0 auto",width:"100%",position:"relative",zIndex:1}}>
 
         {/* HOME PAGE */}
         {page==="home"&&(
@@ -3235,21 +3234,23 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             }
             {/* ASSET GRID */}
             {!aResult&&aStatus!=="loading"&&(
-              <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:16}}>
-                <div style={{background:"linear-gradient(135deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"32px 40px",position:"relative",overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)"}}>
-                  <div style={{position:"absolute",top:"-30%",right:"-10%",width:"50%",height:"200%",background:`radial-gradient(ellipse at center,${accent}0f,transparent 65%)`,pointerEvents:"none"}}/>
+              <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:20}}>
+                <div style={{padding:"8px 0 4px",position:"relative"}}>
+                  <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${accent}0f,transparent 70%)`,pointerEvents:"none"}}/>
                   <div style={{position:"relative"}}>
                     <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>HYBRID ANALYSE · POWERED BY AI</div>
                     <div style={{fontSize:24,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
                       Asset analyse<br/><span style={{color:accent}}>nog niet gestart</span>
                     </div>
-                    <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:500,marginBottom:24}}>
-                      Hybrid analyseert alle 5 assets tegelijk — bias richting, confidence score, Pulse timing en institutionele flow voor de London sessie.
+                    <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+                      <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:500}}>
+                        Hybrid analyseert alle 5 assets tegelijk — bias richting, confidence score, Pulse timing en institutionele flow.
+                      </div>
+                      <button onClick={runHybrid} disabled={aStatus==="loading"} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${accent}40`,flexShrink:0}}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M8 5l11 7-11 7V5z" fill="currentColor"/></svg>
+                        HYBRID STARTEN
+                      </button>
                     </div>
-                    <button onClick={runHybrid} disabled={aStatus==="loading"} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${accent}40`}}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M8 5l11 7-11 7V5z" fill="currentColor"/></svg>
-                      HYBRID STARTEN
-                    </button>
                   </div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
@@ -3402,9 +3403,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         {page==="calendar"&&(
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-            {/* Hero */}
-            <div style={{background:"linear-gradient(135deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"36px 40px",position:"relative",overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)"}}>
-              <div style={{position:"absolute",top:"-30%",right:"-10%",width:"50%",height:"200%",background:`radial-gradient(ellipse at center,${accent}0f,transparent 65%)`,pointerEvents:"none"}}/>
+            {/* Hero — no box */}
+            <div style={{padding:"8px 0 4px",position:"relative"}}>
+              <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${accent}0f,transparent 70%)`,pointerEvents:"none"}}/>
               <div style={{position:"relative",display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:20}}>
                 <div>
                   <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>TOOLS & KALENDER · EXTERNE LINKS</div>
@@ -4296,14 +4297,14 @@ function AdminPanel({ accent }) {
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
-      <div style={{background:"linear-gradient(135deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"28px 32px",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:"-30%",right:"-5%",width:"40%",height:"180%",background:`radial-gradient(ellipse at center,${ac}0f,transparent 65%)`,pointerEvents:"none"}}/>
+      <div style={{padding:"8px 0 4px",position:"relative"}}>
+        <div style={{position:"absolute",top:-40,right:0,width:280,height:180,borderRadius:"50%",background:`radial-gradient(circle,${ac}0f,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.adminPanel}</div>
           <div style={{fontSize:22,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:8}}>{t.manageUsers} <span style={{color:ac}}>{t.users}</span></div>
           <div style={{display:"flex",gap:16,marginTop:12,alignItems:"center",flexWrap:"wrap"}}>
             {[{label:t.total,val:users.length,color:"#6b7280"},{label:t.approved,val:approved.length,color:"#22c55e"},{label:t.inProgress,val:pending.length,color:"#f59e0b"}].map(({label,val,color})=>(
-              <div key={label} style={{background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 16px",minWidth:80}}>
+              <div key={label} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"10px 16px",minWidth:80}}>
                 <div style={{fontSize:20,fontWeight:800,color,fontFamily:"'JetBrains Mono',monospace"}}>{val}</div>
                 <div style={{fontSize:8,color:"#374151",letterSpacing:"0.1em",marginTop:2}}>{label.toUpperCase()}</div>
               </div>
