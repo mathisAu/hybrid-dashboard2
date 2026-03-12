@@ -1075,10 +1075,6 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
                 <span style={{fontSize:10,fontWeight:800,color:c.text,letterSpacing:"0.06em"}}>{bias?.toUpperCase()}</span>
               </div>
             ) : loading ? <div style={{width:80,height:28,borderRadius:8,background:"rgba(255,255,255,0.04)",animation:"pulse 1.5s ease-in-out infinite"}}/> : null}
-            <button onClick={handleUpdate} title="Refresh"
-              style={{background:updating?"rgba(99,102,241,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${updating?"#6366f155":"rgba(255,255,255,0.08)"}`,borderRadius:6,padding:"4px 8px",cursor:updating?"wait":"pointer",display:"flex",alignItems:"center",gap:4,color:updating?"#818cf8":"#4b5563",fontSize:10}}>
-              <span style={{display:"inline-block",animation:updating?"spin 0.8s linear infinite":"none",fontSize:12}}>⟳</span>
-            </button>
           </div>
         </div>
 
@@ -2515,18 +2511,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     }}>
       {/* Logo */}
       <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <img
-              src="/logos/logo.jpg"
-              alt="Logo"
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 9,
-                objectFit: "cover",
-                flexShrink: 0
-              }}
-            />
+        <div onClick={()=>switchPage("home")} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+          <img src="/logos/logo.jpg" alt="Logo" style={{width:34,height:34,borderRadius:9,objectFit:"cover",flexShrink:0}}/>
           <div>
             <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1}}>
               Hybrid<span style={{color:accent}}>Trader</span>
@@ -2553,15 +2539,24 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           ].map(({id,label,sub,icon})=>(
             <button key={id} onClick={()=>switchPage(id)}
               className={`nav-item${page===id?" active":""}`}
-              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left"}}>
-              <div style={{width:30,height:30,borderRadius:8,background:page===id?`${accent}20`:"rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              style={{width:"100%",border:"none",background:page===id?`${accent}15`:"transparent",color:page===id?accent:"#4b5563",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",marginBottom:2,cursor:"pointer",textAlign:"left",position:"relative",borderRadius:8,overflow:"hidden"}}>
+              {/* Conic hover border */}
+              <div style={{position:"absolute",inset:-1,borderRadius:9,opacity:0,transition:"opacity 0.35s ease",pointerEvents:"none",zIndex:0}} className={`sidenav-conic-${id}`}>
+                <style>{`
+                  .sidenav-conic-${id}::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1px;background:conic-gradient(from var(--snav-angle-${id},0deg),transparent 0%,transparent 50%,${accent}00 60%,${accent}66 75%,${accent}88 80%,${accent}66 85%,${accent}00 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:snavSpin-${id} 3s linear infinite}
+                  .nav-item:hover .sidenav-conic-${id}{opacity:1}
+                  @keyframes snavSpin-${id}{to{--snav-angle-${id}:360deg}}
+                  @property --snav-angle-${id}{syntax:"<angle>";initial-value:0deg;inherits:false}
+                `}</style>
+              </div>
+              <div style={{width:30,height:30,borderRadius:8,background:page===id?`${accent}20`:"rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,position:"relative",zIndex:1}}>
                 {icon}
               </div>
-              <div>
+              <div style={{position:"relative",zIndex:1}}>
                 <div style={{fontSize:12,fontWeight:600,letterSpacing:"0.01em"}}>{label}</div>
                 <div style={{fontSize:10,color:page===id?`${accent}88`:"#2d3748",marginTop:1}}>{sub}</div>
               </div>
-              {page===id&&<div style={{marginLeft:"auto",width:3,height:20,background:accent,borderRadius:2,flexShrink:0}}/>}
+              {page===id&&<div style={{marginLeft:"auto",width:3,height:20,background:accent,borderRadius:2,flexShrink:0,position:"relative",zIndex:1}}/>}
             </button>
           ))}
 
