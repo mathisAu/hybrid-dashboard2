@@ -2505,10 +2505,17 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <img
-            src="/logos/logo.jpg" // jouw logo
-            alt="Logo"
-            style={{ width:34, height:34, borderRadius:9, objectFit:"cover", boxShadow:`0 4px 16px ${accent}44`, flexShrink:0 }}
-          />
+              src="/logos/logo.jpg"
+              alt="Logo"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 9,
+                objectFit: "cover",
+                boxShadow: `0 4px 16px ${accent}44`,
+                flexShrink: 0
+              }}
+            />
           <div>
             <div style={{fontSize:15,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1}}>
               Hybrid<span style={{color:accent}}>Trader</span>
