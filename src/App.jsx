@@ -3559,9 +3559,302 @@ function sanitizeIntelResult(obj) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const ADMIN_EMAIL = "admin@hybrid.com";
-const ADMIN_PASSWORD = "admin123";
 
-// Session lives in localStorage (client-side only, no sensitive data)
+// ── i18n translations ────────────────────────────────────────────────────────
+const LANGS = {
+  nl: { code:"nl", label:"Nederlands", flag:"🇳🇱" },
+  en: { code:"en", label:"English",    flag:"🇬🇧" },
+  de: { code:"de", label:"Deutsch",    flag:"🇩🇪" },
+  fr: { code:"fr", label:"Français",   flag:"🇫🇷" },
+  es: { code:"es", label:"Español",    flag:"🇪🇸" },
+  pt: { code:"pt", label:"Português",  flag:"🇵🇹" },
+};
+
+const T = {
+  nl: {
+    login:"Inloggen", register:"Registreren", name:"NAAM", email:"E-MAILADRES",
+    password:"WACHTWOORD", confirmPassword:"BEVESTIG WACHTWOORD",
+    passwordConfirmPlaceholder:"Herhaal wachtwoord",
+    loginBtn:"INLOGGEN", registerBtn:"ACCOUNT AANMAKEN", loading:"LADEN...",
+    fillAll:"Vul alle velden in.", minPw:"Wachtwoord moet minimaal 6 tekens zijn.",
+    pwNoMatch:"Wachtwoorden komen niet overeen.",
+    registerSuccess:"Account aangemaakt! Wacht op goedkeuring van de beheerder.",
+    waitApproval:"Na registratie wacht je op goedkeuring van de beheerder.",
+    connErr:"Verbindingsfout. Probeer opnieuw.",
+    noAccess:"Geen Toegang", hello:"Hallo", waitMsg:"je account wacht nog op goedkeuring van de beheerder.",
+    waitInfo:"Je aanvraag wordt beoordeeld. Je ontvangt toegang zodra je account is goedgekeurd.",
+    logout:"UITLOGGEN", settings:"Instellingen", profileDashboard:"PROFIEL & DASHBOARD",
+    profile:"Profiel", passwordTab:"Wachtwoord", dashboard:"Dashboard", account:"Account",
+    language:"Taal", languageTab:"Taal",
+    profilePhoto:"Profielfoto", uploadPhoto:"Foto uploaden", removePhoto:"Verwijderen",
+    uploadInfo:"Upload een foto (JPG/PNG, max 2MB).",
+    displayName:"WEERGAVENAAM", emailLabel:"E-MAILADRES", notEditable:"NIET WIJZIGBAAR",
+    saveProfile:"PROFIEL OPSLAAN", saving:"OPSLAAN...", saved:"✓ Profiel opgeslagen!",
+    namRequired:"Naam mag niet leeg zijn.", photoTooBig:"Foto mag maximaal 2MB zijn.",
+    currentPw:"HUIDIG WACHTWOORD", newPw:"NIEUW WACHTWOORD", repeatPw:"HERHAAL NIEUW WACHTWOORD",
+    strength:"STERKTE", weak:"Zwak", fair:"Matig", strong:"Sterk", veryStrong:"Zeer sterk",
+    changePwBtn:"WACHTWOORD WIJZIGEN", pwChanged:"✓ Wachtwoord gewijzigd!",
+    pwTooShort:"Minimaal 6 tekens vereist.", pwNoMatchErr:"Wachtwoorden komen niet overeen.",
+    currentPwWrong:"Huidig wachtwoord onjuist.", fillPwAll:"Vul alle velden in.",
+    accentColor:"ACCENTKLEUR", customColor:"EIGEN KLEURCODE", apply:"Toepassen",
+    livePreview:"LIVE PREVIEW",
+    accountInfo:"ACCOUNT INFORMATIE", nameLabel:"Naam", emailInfoLabel:"E-mail",
+    roleLabel:"Rol", statusLabel:"Status", active:"Actief", pending:"In behandeling",
+    administrator:"Administrator", logoutTitle:"Uitloggen",
+    logoutDesc:"Je sessie wordt beëindigd. Je kunt altijd opnieuw inloggen.",
+    assetsTitle:"ZICHTBARE ASSETS", assetsDesc:"Verberg assets die je niet gebruikt.",
+    adminPanel:"ADMIN PANEEL · GEBRUIKERSBEHEER", manageUsers:"Beheer",
+    users:"gebruikers", total:"Totaal", approved:"Goedgekeurd", inProgress:"In behandeling",
+    refresh:"Vernieuwen", newRequests:"nieuwe aanvraag", newRequestsPlural:"nieuwe aanvragen",
+    waitApproval2:"wachten op goedkeuring",
+    allUsers:"Alle gebruikers", inProgressTab:"In behandeling",
+    colName:"NAAM", colEmail:"E-MAIL", colStatus:"STATUS", colDate:"DATUM", colActions:"ACTIES",
+    noRequests:"Geen aanvragen in behandeling.", noUsers:"Nog geen gebruikers geregistreerd.",
+    approveBtn:"Goedkeuren", revokeBtn:"Intrekken", deleteBtn:"Verwijderen",
+    deleteConfirm:"Gebruiker verwijderen?", adminInfo:"Goedgekeurde gebruikers hebben direct toegang.",
+    autoRefresh:"Gebruikerslijst vernieuwt automatisch elke 15 seconden.",
+    statusApproved:"Goedgekeurd", statusPending:"Wachtend", editProfile:"PROFIEL BEWERKEN",
+    online:"ONLINE",
+  },
+  en: {
+    login:"Login", register:"Register", name:"NAME", email:"EMAIL ADDRESS",
+    password:"PASSWORD", confirmPassword:"CONFIRM PASSWORD",
+    passwordConfirmPlaceholder:"Repeat password",
+    loginBtn:"LOGIN", registerBtn:"CREATE ACCOUNT", loading:"LOADING...",
+    fillAll:"Please fill in all fields.", minPw:"Password must be at least 6 characters.",
+    pwNoMatch:"Passwords do not match.",
+    registerSuccess:"Account created! Waiting for admin approval.",
+    waitApproval:"After registration you await admin approval.",
+    connErr:"Connection error. Please try again.",
+    noAccess:"Access Denied", hello:"Hello", waitMsg:"your account is awaiting admin approval.",
+    waitInfo:"Your request is being reviewed. You'll gain access once approved.",
+    logout:"LOG OUT", settings:"Settings", profileDashboard:"PROFILE & DASHBOARD",
+    profile:"Profile", passwordTab:"Password", dashboard:"Dashboard", account:"Account",
+    language:"Language", languageTab:"Language",
+    profilePhoto:"Profile photo", uploadPhoto:"Upload photo", removePhoto:"Remove",
+    uploadInfo:"Upload a photo (JPG/PNG, max 2MB).",
+    displayName:"DISPLAY NAME", emailLabel:"EMAIL ADDRESS", notEditable:"NOT EDITABLE",
+    saveProfile:"SAVE PROFILE", saving:"SAVING...", saved:"✓ Profile saved!",
+    namRequired:"Name cannot be empty.", photoTooBig:"Photo must be under 2MB.",
+    currentPw:"CURRENT PASSWORD", newPw:"NEW PASSWORD", repeatPw:"REPEAT NEW PASSWORD",
+    strength:"STRENGTH", weak:"Weak", fair:"Fair", strong:"Strong", veryStrong:"Very strong",
+    changePwBtn:"CHANGE PASSWORD", pwChanged:"✓ Password changed!",
+    pwTooShort:"Minimum 6 characters required.", pwNoMatchErr:"Passwords do not match.",
+    currentPwWrong:"Current password incorrect.", fillPwAll:"Please fill in all fields.",
+    accentColor:"ACCENT COLOR", customColor:"CUSTOM COLOR CODE", apply:"Apply",
+    livePreview:"LIVE PREVIEW",
+    accountInfo:"ACCOUNT INFORMATION", nameLabel:"Name", emailInfoLabel:"Email",
+    roleLabel:"Role", statusLabel:"Status", active:"Active", pending:"Pending",
+    administrator:"Administrator", logoutTitle:"Log out",
+    logoutDesc:"Your session will end. You can always log back in.",
+    assetsTitle:"VISIBLE ASSETS", assetsDesc:"Hide assets you don't use.",
+    adminPanel:"ADMIN PANEL · USER MANAGEMENT", manageUsers:"Manage",
+    users:"users", total:"Total", approved:"Approved", inProgress:"Pending",
+    refresh:"Refresh", newRequests:"new request", newRequestsPlural:"new requests",
+    waitApproval2:"awaiting approval",
+    allUsers:"All users", inProgressTab:"Pending",
+    colName:"NAME", colEmail:"EMAIL", colStatus:"STATUS", colDate:"DATE", colActions:"ACTIONS",
+    noRequests:"No pending requests.", noUsers:"No users registered yet.",
+    approveBtn:"Approve", revokeBtn:"Revoke", deleteBtn:"Delete",
+    deleteConfirm:"Delete this user?", adminInfo:"Approved users get immediate access.",
+    autoRefresh:"User list refreshes automatically every 15 seconds.",
+    statusApproved:"Approved", statusPending:"Pending", editProfile:"EDIT PROFILE",
+    online:"ONLINE",
+  },
+  de: {
+    login:"Anmelden", register:"Registrieren", name:"NAME", email:"E-MAIL-ADRESSE",
+    password:"PASSWORT", confirmPassword:"PASSWORT BESTÄTIGEN",
+    passwordConfirmPlaceholder:"Passwort wiederholen",
+    loginBtn:"ANMELDEN", registerBtn:"KONTO ERSTELLEN", loading:"LADEN...",
+    fillAll:"Bitte alle Felder ausfüllen.", minPw:"Passwort muss mindestens 6 Zeichen lang sein.",
+    pwNoMatch:"Passwörter stimmen nicht überein.",
+    registerSuccess:"Konto erstellt! Warte auf Genehmigung des Admins.",
+    waitApproval:"Nach der Registrierung wartest du auf Admin-Genehmigung.",
+    connErr:"Verbindungsfehler. Bitte erneut versuchen.",
+    noAccess:"Kein Zugang", hello:"Hallo", waitMsg:"dein Konto wartet auf Genehmigung des Admins.",
+    waitInfo:"Deine Anfrage wird geprüft. Du erhältst Zugang sobald sie genehmigt wurde.",
+    logout:"ABMELDEN", settings:"Einstellungen", profileDashboard:"PROFIL & DASHBOARD",
+    profile:"Profil", passwordTab:"Passwort", dashboard:"Dashboard", account:"Konto",
+    language:"Sprache", languageTab:"Sprache",
+    profilePhoto:"Profilfoto", uploadPhoto:"Foto hochladen", removePhoto:"Entfernen",
+    uploadInfo:"Foto hochladen (JPG/PNG, max. 2MB).",
+    displayName:"ANZEIGENAME", emailLabel:"E-MAIL-ADRESSE", notEditable:"NICHT ÄNDERBAR",
+    saveProfile:"PROFIL SPEICHERN", saving:"SPEICHERN...", saved:"✓ Profil gespeichert!",
+    namRequired:"Name darf nicht leer sein.", photoTooBig:"Foto darf maximal 2MB sein.",
+    currentPw:"AKTUELLES PASSWORT", newPw:"NEUES PASSWORT", repeatPw:"NEUES PASSWORT WIEDERHOLEN",
+    strength:"STÄRKE", weak:"Schwach", fair:"Mittel", strong:"Stark", veryStrong:"Sehr stark",
+    changePwBtn:"PASSWORT ÄNDERN", pwChanged:"✓ Passwort geändert!",
+    pwTooShort:"Mindestens 6 Zeichen erforderlich.", pwNoMatchErr:"Passwörter stimmen nicht überein.",
+    currentPwWrong:"Aktuelles Passwort falsch.", fillPwAll:"Bitte alle Felder ausfüllen.",
+    accentColor:"AKZENTFARBE", customColor:"EIGENER FARBCODE", apply:"Anwenden",
+    livePreview:"LIVE VORSCHAU",
+    accountInfo:"KONTOINFORMATIONEN", nameLabel:"Name", emailInfoLabel:"E-Mail",
+    roleLabel:"Rolle", statusLabel:"Status", active:"Aktiv", pending:"Ausstehend",
+    administrator:"Administrator", logoutTitle:"Abmelden",
+    logoutDesc:"Deine Sitzung wird beendet. Du kannst dich jederzeit wieder anmelden.",
+    assetsTitle:"SICHTBARE ASSETS", assetsDesc:"Verstecke Assets die du nicht verwendest.",
+    adminPanel:"ADMIN-PANEL · BENUTZERVERWALTUNG", manageUsers:"Verwalte",
+    users:"Benutzer", total:"Gesamt", approved:"Genehmigt", inProgress:"Ausstehend",
+    refresh:"Aktualisieren", newRequests:"neue Anfrage", newRequestsPlural:"neue Anfragen",
+    waitApproval2:"warten auf Genehmigung",
+    allUsers:"Alle Benutzer", inProgressTab:"Ausstehend",
+    colName:"NAME", colEmail:"E-MAIL", colStatus:"STATUS", colDate:"DATUM", colActions:"AKTIONEN",
+    noRequests:"Keine ausstehenden Anfragen.", noUsers:"Noch keine Benutzer registriert.",
+    approveBtn:"Genehmigen", revokeBtn:"Widerrufen", deleteBtn:"Löschen",
+    deleteConfirm:"Diesen Benutzer löschen?", adminInfo:"Genehmigte Benutzer erhalten sofortigen Zugang.",
+    autoRefresh:"Benutzerliste aktualisiert automatisch alle 15 Sekunden.",
+    statusApproved:"Genehmigt", statusPending:"Ausstehend", editProfile:"PROFIL BEARBEITEN",
+    online:"ONLINE",
+  },
+  fr: {
+    login:"Connexion", register:"S'inscrire", name:"NOM", email:"ADRESSE E-MAIL",
+    password:"MOT DE PASSE", confirmPassword:"CONFIRMER LE MOT DE PASSE",
+    passwordConfirmPlaceholder:"Répéter le mot de passe",
+    loginBtn:"SE CONNECTER", registerBtn:"CRÉER UN COMPTE", loading:"CHARGEMENT...",
+    fillAll:"Veuillez remplir tous les champs.", minPw:"Le mot de passe doit contenir au moins 6 caractères.",
+    pwNoMatch:"Les mots de passe ne correspondent pas.",
+    registerSuccess:"Compte créé ! En attente d'approbation de l'administrateur.",
+    waitApproval:"Après l'inscription, vous attendez l'approbation de l'admin.",
+    connErr:"Erreur de connexion. Veuillez réessayer.",
+    noAccess:"Accès Refusé", hello:"Bonjour", waitMsg:"votre compte attend l'approbation de l'administrateur.",
+    waitInfo:"Votre demande est en cours d'examen. Vous aurez accès une fois approuvé.",
+    logout:"SE DÉCONNECTER", settings:"Paramètres", profileDashboard:"PROFIL & TABLEAU DE BORD",
+    profile:"Profil", passwordTab:"Mot de passe", dashboard:"Tableau de bord", account:"Compte",
+    language:"Langue", languageTab:"Langue",
+    profilePhoto:"Photo de profil", uploadPhoto:"Télécharger photo", removePhoto:"Supprimer",
+    uploadInfo:"Téléchargez une photo (JPG/PNG, max 2Mo).",
+    displayName:"NOM D'AFFICHAGE", emailLabel:"ADRESSE E-MAIL", notEditable:"NON MODIFIABLE",
+    saveProfile:"SAUVEGARDER", saving:"SAUVEGARDE...", saved:"✓ Profil sauvegardé !",
+    namRequired:"Le nom ne peut pas être vide.", photoTooBig:"La photo doit faire moins de 2Mo.",
+    currentPw:"MOT DE PASSE ACTUEL", newPw:"NOUVEAU MOT DE PASSE", repeatPw:"RÉPÉTER LE NOUVEAU MOT DE PASSE",
+    strength:"FORCE", weak:"Faible", fair:"Moyen", strong:"Fort", veryStrong:"Très fort",
+    changePwBtn:"CHANGER MOT DE PASSE", pwChanged:"✓ Mot de passe changé !",
+    pwTooShort:"Minimum 6 caractères requis.", pwNoMatchErr:"Les mots de passe ne correspondent pas.",
+    currentPwWrong:"Mot de passe actuel incorrect.", fillPwAll:"Veuillez remplir tous les champs.",
+    accentColor:"COULEUR D'ACCENT", customColor:"CODE COULEUR PERSONNALISÉ", apply:"Appliquer",
+    livePreview:"APERÇU EN DIRECT",
+    accountInfo:"INFORMATIONS DU COMPTE", nameLabel:"Nom", emailInfoLabel:"E-mail",
+    roleLabel:"Rôle", statusLabel:"Statut", active:"Actif", pending:"En attente",
+    administrator:"Administrateur", logoutTitle:"Déconnexion",
+    logoutDesc:"Votre session sera terminée. Vous pourrez vous reconnecter à tout moment.",
+    assetsTitle:"ACTIFS VISIBLES", assetsDesc:"Masquez les actifs que vous n'utilisez pas.",
+    adminPanel:"PANNEAU ADMIN · GESTION DES UTILISATEURS", manageUsers:"Gérer les",
+    users:"utilisateurs", total:"Total", approved:"Approuvés", inProgress:"En attente",
+    refresh:"Actualiser", newRequests:"nouvelle demande", newRequestsPlural:"nouvelles demandes",
+    waitApproval2:"en attente d'approbation",
+    allUsers:"Tous les utilisateurs", inProgressTab:"En attente",
+    colName:"NOM", colEmail:"E-MAIL", colStatus:"STATUT", colDate:"DATE", colActions:"ACTIONS",
+    noRequests:"Aucune demande en attente.", noUsers:"Aucun utilisateur enregistré.",
+    approveBtn:"Approuver", revokeBtn:"Révoquer", deleteBtn:"Supprimer",
+    deleteConfirm:"Supprimer cet utilisateur ?", adminInfo:"Les utilisateurs approuvés ont un accès immédiat.",
+    autoRefresh:"La liste se rafraîchit automatiquement toutes les 15 secondes.",
+    statusApproved:"Approuvé", statusPending:"En attente", editProfile:"MODIFIER LE PROFIL",
+    online:"EN LIGNE",
+  },
+  es: {
+    login:"Iniciar sesión", register:"Registrarse", name:"NOMBRE", email:"CORREO ELECTRÓNICO",
+    password:"CONTRASEÑA", confirmPassword:"CONFIRMAR CONTRASEÑA",
+    passwordConfirmPlaceholder:"Repetir contraseña",
+    loginBtn:"INICIAR SESIÓN", registerBtn:"CREAR CUENTA", loading:"CARGANDO...",
+    fillAll:"Por favor completa todos los campos.", minPw:"La contraseña debe tener al menos 6 caracteres.",
+    pwNoMatch:"Las contraseñas no coinciden.",
+    registerSuccess:"¡Cuenta creada! Esperando aprobación del administrador.",
+    waitApproval:"Tras el registro esperas la aprobación del admin.",
+    connErr:"Error de conexión. Inténtalo de nuevo.",
+    noAccess:"Acceso Denegado", hello:"Hola", waitMsg:"tu cuenta está esperando la aprobación del administrador.",
+    waitInfo:"Tu solicitud está siendo revisada. Obtendrás acceso una vez aprobada.",
+    logout:"CERRAR SESIÓN", settings:"Configuración", profileDashboard:"PERFIL & PANEL",
+    profile:"Perfil", passwordTab:"Contraseña", dashboard:"Panel", account:"Cuenta",
+    language:"Idioma", languageTab:"Idioma",
+    profilePhoto:"Foto de perfil", uploadPhoto:"Subir foto", removePhoto:"Eliminar",
+    uploadInfo:"Sube una foto (JPG/PNG, máx 2MB).",
+    displayName:"NOMBRE VISIBLE", emailLabel:"CORREO ELECTRÓNICO", notEditable:"NO EDITABLE",
+    saveProfile:"GUARDAR PERFIL", saving:"GUARDANDO...", saved:"✓ ¡Perfil guardado!",
+    namRequired:"El nombre no puede estar vacío.", photoTooBig:"La foto debe ser menos de 2MB.",
+    currentPw:"CONTRASEÑA ACTUAL", newPw:"NUEVA CONTRASEÑA", repeatPw:"REPETIR NUEVA CONTRASEÑA",
+    strength:"FUERZA", weak:"Débil", fair:"Regular", strong:"Fuerte", veryStrong:"Muy fuerte",
+    changePwBtn:"CAMBIAR CONTRASEÑA", pwChanged:"✓ ¡Contraseña cambiada!",
+    pwTooShort:"Mínimo 6 caracteres requeridos.", pwNoMatchErr:"Las contraseñas no coinciden.",
+    currentPwWrong:"Contraseña actual incorrecta.", fillPwAll:"Por favor completa todos los campos.",
+    accentColor:"COLOR DE ACENTO", customColor:"CÓDIGO DE COLOR PERSONALIZADO", apply:"Aplicar",
+    livePreview:"VISTA PREVIA",
+    accountInfo:"INFORMACIÓN DE CUENTA", nameLabel:"Nombre", emailInfoLabel:"Correo",
+    roleLabel:"Rol", statusLabel:"Estado", active:"Activo", pending:"Pendiente",
+    administrator:"Administrador", logoutTitle:"Cerrar sesión",
+    logoutDesc:"Tu sesión finalizará. Puedes volver a iniciar sesión cuando quieras.",
+    assetsTitle:"ACTIVOS VISIBLES", assetsDesc:"Oculta los activos que no usas.",
+    adminPanel:"PANEL ADMIN · GESTIÓN DE USUARIOS", manageUsers:"Gestionar",
+    users:"usuarios", total:"Total", approved:"Aprobados", inProgress:"Pendiente",
+    refresh:"Actualizar", newRequests:"nueva solicitud", newRequestsPlural:"nuevas solicitudes",
+    waitApproval2:"esperando aprobación",
+    allUsers:"Todos los usuarios", inProgressTab:"Pendiente",
+    colName:"NOMBRE", colEmail:"CORREO", colStatus:"ESTADO", colDate:"FECHA", colActions:"ACCIONES",
+    noRequests:"No hay solicitudes pendientes.", noUsers:"Aún no hay usuarios registrados.",
+    approveBtn:"Aprobar", revokeBtn:"Revocar", deleteBtn:"Eliminar",
+    deleteConfirm:"¿Eliminar este usuario?", adminInfo:"Los usuarios aprobados tienen acceso inmediato.",
+    autoRefresh:"La lista se actualiza automáticamente cada 15 segundos.",
+    statusApproved:"Aprobado", statusPending:"Pendiente", editProfile:"EDITAR PERFIL",
+    online:"EN LÍNEA",
+  },
+  pt: {
+    login:"Entrar", register:"Registrar", name:"NOME", email:"ENDEREÇO DE E-MAIL",
+    password:"SENHA", confirmPassword:"CONFIRMAR SENHA",
+    passwordConfirmPlaceholder:"Repetir senha",
+    loginBtn:"ENTRAR", registerBtn:"CRIAR CONTA", loading:"CARREGANDO...",
+    fillAll:"Por favor preencha todos os campos.", minPw:"A senha deve ter pelo menos 6 caracteres.",
+    pwNoMatch:"As senhas não coincidem.",
+    registerSuccess:"Conta criada! Aguardando aprovação do administrador.",
+    waitApproval:"Após o registro você aguarda aprovação do admin.",
+    connErr:"Erro de conexão. Tente novamente.",
+    noAccess:"Acesso Negado", hello:"Olá", waitMsg:"sua conta aguarda aprovação do administrador.",
+    waitInfo:"Seu pedido está sendo revisado. Você terá acesso assim que aprovado.",
+    logout:"SAIR", settings:"Configurações", profileDashboard:"PERFIL & PAINEL",
+    profile:"Perfil", passwordTab:"Senha", dashboard:"Painel", account:"Conta",
+    language:"Idioma", languageTab:"Idioma",
+    profilePhoto:"Foto de perfil", uploadPhoto:"Enviar foto", removePhoto:"Remover",
+    uploadInfo:"Envie uma foto (JPG/PNG, máx 2MB).",
+    displayName:"NOME DE EXIBIÇÃO", emailLabel:"ENDEREÇO DE E-MAIL", notEditable:"NÃO EDITÁVEL",
+    saveProfile:"SALVAR PERFIL", saving:"SALVANDO...", saved:"✓ Perfil salvo!",
+    namRequired:"O nome não pode estar vazio.", photoTooBig:"A foto deve ter menos de 2MB.",
+    currentPw:"SENHA ATUAL", newPw:"NOVA SENHA", repeatPw:"REPETIR NOVA SENHA",
+    strength:"FORÇA", weak:"Fraca", fair:"Razoável", strong:"Forte", veryStrong:"Muito forte",
+    changePwBtn:"ALTERAR SENHA", pwChanged:"✓ Senha alterada!",
+    pwTooShort:"Mínimo 6 caracteres necessários.", pwNoMatchErr:"As senhas não coincidem.",
+    currentPwWrong:"Senha atual incorreta.", fillPwAll:"Por favor preencha todos os campos.",
+    accentColor:"COR DE DESTAQUE", customColor:"CÓDIGO DE COR PERSONALIZADO", apply:"Aplicar",
+    livePreview:"VISUALIZAÇÃO AO VIVO",
+    accountInfo:"INFORMAÇÕES DA CONTA", nameLabel:"Nome", emailInfoLabel:"E-mail",
+    roleLabel:"Função", statusLabel:"Status", active:"Ativo", pending:"Pendente",
+    administrator:"Administrador", logoutTitle:"Sair",
+    logoutDesc:"Sua sessão será encerrada. Você pode entrar novamente a qualquer momento.",
+    assetsTitle:"ATIVOS VISÍVEIS", assetsDesc:"Oculte os ativos que você não usa.",
+    adminPanel:"PAINEL ADMIN · GERENCIAMENTO DE USUÁRIOS", manageUsers:"Gerenciar",
+    users:"usuários", total:"Total", approved:"Aprovados", inProgress:"Pendente",
+    refresh:"Atualizar", newRequests:"nova solicitação", newRequestsPlural:"novas solicitações",
+    waitApproval2:"aguardando aprovação",
+    allUsers:"Todos os usuários", inProgressTab:"Pendente",
+    colName:"NOME", colEmail:"E-MAIL", colStatus:"STATUS", colDate:"DATA", colActions:"AÇÕES",
+    noRequests:"Nenhuma solicitação pendente.", noUsers:"Nenhum usuário registrado ainda.",
+    approveBtn:"Aprovar", revokeBtn:"Revogar", deleteBtn:"Excluir",
+    deleteConfirm:"Excluir este usuário?", adminInfo:"Usuários aprovados têm acesso imediato.",
+    autoRefresh:"A lista atualiza automaticamente a cada 15 segundos.",
+    statusApproved:"Aprovado", statusPending:"Pendente", editProfile:"EDITAR PERFIL",
+    online:"ONLINE",
+  },
+};
+
+// Default assets list
+const DEFAULT_ASSETS = ["xauusd","us30","us100","eurusd","gbpusd"];
+
+// ── Preferences stored in localStorage ───────────────────────────────────────
+function getPrefs() {
+  try { return JSON.parse(localStorage.getItem("ht_prefs") || "{}"); } catch(_) { return {}; }
+}
+function savePrefs(p) { localStorage.setItem("ht_prefs", JSON.stringify(p)); }
+function getLang()    { return getPrefs().lang || "nl"; }
+function getHiddenAssets() { return getPrefs().hiddenAssets || []; }
+
+// Session lives in localStorage
 function getSession() {
   try { return JSON.parse(localStorage.getItem("ht_session") || "null"); } catch(_) { return null; }
 }
@@ -3570,7 +3863,7 @@ function saveSession(s) {
   else localStorage.removeItem("ht_session");
 }
 
-// ── API helpers ──────────────────────────────────────────────────────────────
+// ── API helpers ───────────────────────────────────────────────────────────────
 async function apiAuth(action, body) {
   const res = await fetch("/api/auth", {
     method: "POST",
@@ -3580,7 +3873,7 @@ async function apiAuth(action, body) {
   return res.json();
 }
 
-// ── Shared styles ────────────────────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────────────
 const authInp = {
   width:"100%", padding:"11px 14px", background:"#0d0e13",
   border:"1px solid rgba(255,255,255,0.10)", borderRadius:8,
@@ -3593,7 +3886,7 @@ const btnSm = (color="#089981", bg="rgba(8,153,129,0.12)") => ({
   transition:"all .15s",
 });
 
-// ── Animated primary button ──────────────────────────────────────────────────
+// ── Animated primary button ───────────────────────────────────────────────────
 function AuthBtn({ onClick, children, accent, disabled }) {
   const ac = accent || "#089981";
   const [hov, setHov] = useState(false);
@@ -3619,62 +3912,227 @@ function AuthBtn({ onClick, children, accent, disabled }) {
   );
 }
 
-// ── Eye icon ─────────────────────────────────────────────────────────────────
+// ── Glowing input wrapper ─────────────────────────────────────────────────────
+function GlowInput({ accent, children, style, filled }) {
+  const ac = accent || "#089981";
+  const [hov, setHov]     = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  const borderColor = focused ? ac : hov ? ac+"99" : filled ? ac+"55" : "rgba(255,255,255,0.10)";
+  const glow        = focused ? `0 0 0 3px ${ac}33, 0 0 16px ${ac}44`
+                    : hov     ? `0 0 0 2px ${ac}22, 0 0 10px ${ac}28`
+                    : filled  ? `0 0 6px ${ac}20`
+                    : "none";
+
+  return (
+    <div
+      onMouseEnter={()=>setHov(true)}  onMouseLeave={()=>setHov(false)}
+      onFocusCapture={()=>setFocused(true)} onBlurCapture={()=>setFocused(false)}
+      style={{borderRadius:8, border:`1.5px solid ${borderColor}`,
+        boxShadow: glow,
+        transform: focused ? "scale(1.025)" : hov ? "scale(1.015)" : "scale(1)",
+        transition:"all 0.2s ease", ...style}}>
+      {children}
+    </div>
+  );
+}
+
+// ── Eye icon ──────────────────────────────────────────────────────────────────
 const EyeIcon = ({open}) => open
   ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/></svg>
   : <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>;
 
-// ── Password input with eye toggle ───────────────────────────────────────────
-function PwInput({ value, onChange, placeholder, accent, onKeyDown }) {
+// ── Password input with eye ───────────────────────────────────────────────────
+function PwInput({ value, onChange, placeholder, accent, onKeyDown, filled }) {
   const [show, setShow] = useState(false);
   const ac = accent || "#089981";
   return (
-    <div style={{position:"relative"}}>
-      <input className="auth-input" type={show?"text":"password"}
-        placeholder={placeholder||"••••••••"} value={value} onChange={onChange}
-        onKeyDown={onKeyDown} style={{...authInp,paddingRight:42}}/>
-      <button onClick={()=>setShow(s=>!s)}
-        style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",
-          background:"none",border:"none",cursor:"pointer",color:show?ac:"#4b5563",
-          padding:2,display:"flex",alignItems:"center",transition:"color .15s"}}>
-        <EyeIcon open={show}/>
+    <GlowInput accent={ac} filled={filled}>
+      <div style={{position:"relative"}}>
+        <input className="auth-input" type={show?"text":"password"}
+          placeholder={placeholder||"••••••••"} value={value} onChange={onChange}
+          onKeyDown={onKeyDown} style={{...authInp,paddingRight:42,border:"none",background:"transparent"}}/>
+        <button onClick={()=>setShow(s=>!s)}
+          style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",
+            background:"none",border:"none",cursor:"pointer",color:show?ac:"#4b5563",
+            padding:2,display:"flex",alignItems:"center",transition:"color .15s"}}>
+          <EyeIcon open={show}/>
+        </button>
+      </div>
+    </GlowInput>
+  );
+}
+
+// ── Language Dropdown ─────────────────────────────────────────────────────────
+function LangDropdown({ lang, onSwitch, accent }) {
+  const ac = accent || "#089981";
+  const [open, setOpen] = useState(false);
+  const [hov, setHov]   = useState(false);
+  const current = LANGS[lang] || LANGS.nl;
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = () => setOpen(false);
+    setTimeout(() => document.addEventListener("click", handler), 0);
+    return () => document.removeEventListener("click", handler);
+  }, [open]);
+
+  return (
+    <div style={{display:"inline-block",position:"relative",marginTop:14}}>
+      {/* Trigger button — same glow animation as AuthBtn */}
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{position:"relative",display:"inline-flex",alignItems:"center",gap:7,
+          padding:"7px 14px 7px 10px",
+          background:"linear-gradient(145deg,#0d0d10,#161820)",
+          border:"1.5px solid rgba(255,255,255,0.13)",borderRadius:100,
+          color:"#e2e4e9",fontSize:12,fontWeight:600,cursor:"pointer",
+          overflow:"hidden",letterSpacing:"0.02em",
+          boxShadow:`0 0 ${hov?"28px":"12px"} ${ac}${hov?"44":"22"}`,
+          transform:hov?"scale(1.04)":"scale(1)",
+          transition:"all 0.25s ease"}}>
+        {/* Spinning glow — same as AuthBtn */}
+        <div style={{position:"absolute",top:"-50%",left:"-50%",width:"200%",height:"200%",
+          background:`conic-gradient(from 0deg,${ac},color-mix(in srgb,${ac} 75%,#22c55e),${ac})`,
+          animation:hov?"superRotate 3s linear infinite":"none",
+          opacity:hov?1:0,zIndex:0,transition:"opacity 0.25s"}}/>
+        <div style={{position:"absolute",inset:2,background:"linear-gradient(145deg,#0d0d10,#161820)",borderRadius:"inherit",zIndex:1}}/>
+        <span style={{position:"relative",zIndex:2,fontSize:15}}>{current.flag}</span>
+        <span style={{position:"relative",zIndex:2}}>{current.label}</span>
+        {/* Chevron */}
+        <svg style={{position:"relative",zIndex:2,transition:"transform .2s",transform:open?"rotate(180deg)":"rotate(0deg)"}}
+          width="10" height="10" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </button>
+
+      {/* Dropdown — opens to the left so it stays on screen */}
+      {open && (
+        <div onClick={e => e.stopPropagation()}
+          style={{position:"absolute",top:"calc(100% + 8px)",right:0,
+            background:"linear-gradient(160deg,#111420,#0c0d12)",
+            border:"1px solid rgba(255,255,255,0.10)",borderRadius:10,
+            boxShadow:"0 12px 40px rgba(0,0,0,0.7)",zIndex:200,
+            minWidth:160,overflow:"hidden",
+            animation:"deepIn .15s cubic-bezier(.16,1,.3,1) both"}}>
+          {Object.values(LANGS).map(l => (
+            <button key={l.code}
+              onClick={() => { onSwitch(l.code); setOpen(false); }}
+              style={{width:"100%",display:"flex",alignItems:"center",gap:10,
+                padding:"9px 14px",background:"transparent",border:"none",
+                cursor:"pointer",textAlign:"left",transition:"background .12s",
+                borderBottom:"1px solid rgba(255,255,255,0.04)"}}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <span style={{fontSize:16}}>{l.flag}</span>
+              <span style={{fontSize:12,fontWeight:lang===l.code?700:400,
+                color:lang===l.code?ac:"#9ca3af",flex:1}}>{l.label}</span>
+              {lang === l.code && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17l-5-5" stroke={ac} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab switcher with sliding pill ───────────────────────────────────────────
+function AuthTabs({ mode, onSwitch, accent, labels }) {
+  const ac = accent || "#089981";
+  const [hov, setHov] = useState(null);
+  const active = mode === "login" ? 0 : 1;
+
+  return (
+    <div style={{position:"relative", display:"flex",
+      background:"rgba(0,0,0,0.35)", borderRadius:8, padding:4, marginBottom:24}}>
+
+      {/* Sliding pill — sits behind everything */}
+      <div style={{position:"absolute",
+        top:4, bottom:4,
+        left: active === 0 ? 4 : "calc(50% + 2px)",
+        width:"calc(50% - 6px)",
+        background:"rgba(255,255,255,0.06)",
+        borderRadius:6,
+        border:`1px solid ${ac}33`,
+        transition:"left 0.25s cubic-bezier(.4,0,.2,1)",
+        pointerEvents:"none", zIndex:0}}/>
+
+      {[{id:"login",label:labels[0]},{id:"register",label:labels[1]}].map((tab) => (
+        <button key={tab.id}
+          onClick={()=>onSwitch(tab.id)}
+          onMouseEnter={()=>setHov(tab.id)}
+          onMouseLeave={()=>setHov(null)}
+          style={{flex:1, position:"relative", zIndex:1,
+            padding:"8px 18px", border:"none",
+            background:"transparent",
+            borderRadius:6, overflow:"hidden",
+            cursor:"pointer", fontSize:12, fontWeight:600,
+            letterSpacing:"0.04em",
+            color: mode===tab.id ? "#fff" : hov===tab.id ? "#9ca3af" : "#4b5563",
+            transition:"color 0.2s"}}>
+          {/* Spinning conic layer */}
+          <div style={{position:"absolute",top:"-50%",left:"-50%",width:"200%",height:"200%",
+            background:`conic-gradient(from 0deg,${ac},color-mix(in srgb,${ac} 60%,#22c55e),${ac})`,
+            animation:"superRotate 3s linear infinite",
+            opacity: hov===tab.id ? 1 : 0,
+            transition:"opacity 0.3s ease", pointerEvents:"none", zIndex:0}}/>
+          {/* Inner mask — transparent so pill shows through, but hides spinning fill */}
+          <div style={{position:"absolute", inset:1.5,
+            background:"#0d0e13",
+            borderRadius:5, zIndex:1, pointerEvents:"none"}}/>
+          <span style={{position:"relative", zIndex:2}}>{tab.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
 
 // ── Auth Screen ───────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin, accent }) {
-  const [mode, setMode]       = useState("login");
-  const [email, setEmail]     = useState("");
-  const [password, setPw]     = useState("");
-  const [name, setName]       = useState("");
-  const [error, setError]     = useState("");
+  const [mode, setMode]     = useState("login");
+  const [email, setEmail]   = useState("");
+  const [pw, setPw]         = useState("");
+  const [pw2, setPw2]       = useState("");
+  const [name, setName]     = useState("");
+  const [error, setError]   = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lang, setLang]     = useState(getLang());
   const ac = accent || "#089981";
+  const t = T[lang] || T.nl;
+
+  // Save lang preference
+  const switchLang = (l) => { setLang(l); savePrefs({...getPrefs(), lang:l}); };
 
   async function doLogin() {
     setError(""); setLoading(true);
-    if(!email.trim() || !password) { setError("Vul alle velden in."); setLoading(false); return; }
+    if(!email.trim() || !pw) { setError(t.fillAll); setLoading(false); return; }
     try {
-      const data = await apiAuth("login", {email: email.trim().toLowerCase(), password});
+      const data = await apiAuth("login", {email:email.trim().toLowerCase(), password:pw});
       if(data.error) { setError(data.error); setLoading(false); return; }
-      saveSession(data.session); onLogin(data.session);
-    } catch(_) { setError("Verbindingsfout. Probeer opnieuw."); }
+      saveSession(data.session); onLogin(data.session, pw);
+    } catch(_) { setError(t.connErr); }
     setLoading(false);
   }
 
   async function doRegister() {
     setError(""); setLoading(true);
-    if(!name.trim() || !email.trim() || !password) { setError("Vul alle velden in."); setLoading(false); return; }
-    if(password.length < 6) { setError("Wachtwoord moet minimaal 6 tekens zijn."); setLoading(false); return; }
+    if(!name.trim() || !email.trim() || !pw) { setError(t.fillAll); setLoading(false); return; }
+    if(pw.length < 6) { setError(t.minPw); setLoading(false); return; }
+    if(pw !== pw2) { setError(t.pwNoMatch); setLoading(false); return; }
     try {
-      const data = await apiAuth("register", {email: email.trim().toLowerCase(), name: name.trim(), password});
+      const data = await apiAuth("register", {email:email.trim().toLowerCase(), name:name.trim(), password:pw});
       if(data.error) { setError(data.error); setLoading(false); return; }
-      setSuccess("Account aangemaakt! Wacht op goedkeuring van de beheerder.");
-      setMode("login"); setEmail(email.trim().toLowerCase()); setPw("");
-    } catch(_) { setError("Verbindingsfout. Probeer opnieuw."); }
+      setSuccess(t.registerSuccess);
+      setMode("login"); setEmail(email.trim().toLowerCase()); setPw(""); setPw2("");
+    } catch(_) { setError(t.connErr); }
     setLoading(false);
   }
 
@@ -3686,54 +4144,91 @@ function AuthScreen({ onLogin, accent }) {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
         @keyframes superRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        .auth-input:focus{border-color:${ac}!important;box-shadow:0 0 0 3px ${ac}22}
+        @keyframes deepIn{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:translateY(0)}}
+        .auth-input:focus{border-color:transparent!important;outline:none;box-shadow:none;}
         .auth-tab{cursor:pointer;padding:8px 18px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.04em;transition:all .2s;border:none;background:transparent}
         .auth-tab.active{background:rgba(255,255,255,0.06);color:#fff}
         .auth-tab:not(.active){color:#4b5563}
         .auth-tab:not(.active):hover{color:#9ca3af;background:rgba(255,255,255,0.03)}
       `}</style>
-      <div style={{position:"fixed",inset:0,pointerEvents:"none",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:"20%",left:"30%",width:"60%",height:"60%",background:`radial-gradient(ellipse at center,${ac}18,transparent 65%)`,filter:"blur(80px)"}}/>
+
+      {/* Language dropdown — top right corner */}
+      <div style={{position:"fixed",top:16,right:20,zIndex:300}}>
+        <LangDropdown lang={lang} onSwitch={switchLang} accent={ac}/>
       </div>
+
+      {/* Background glows */}
+      <div style={{position:"fixed",inset:0,pointerEvents:"none",overflow:"hidden"}}>
+        {/* Main glow — centered behind login box, strong and visible */}
+        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",
+          width:600,height:500,
+          background:`radial-gradient(ellipse at center,${ac}35 0%,${ac}18 30%,${ac}06 60%,transparent 75%)`,
+          filter:"blur(40px)"}}/>
+        {/* Secondary softer halo */}
+        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",
+          width:900,height:700,
+          background:`radial-gradient(ellipse at center,${ac}12 0%,transparent 60%)`,
+          filter:"blur(80px)"}}/>
+      </div>
+
       <div style={{position:"relative",width:"100%",maxWidth:420}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
+        {/* Logo */}
+        <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:26,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4"}}>Hybrid<span style={{color:ac}}>Trader</span></div>
-          <div style={{fontSize:9,color:"#374151",letterSpacing:"0.18em",fontFamily:"'JetBrains Mono',monospace",marginTop:4}}>DASHBOARD v6.3</div>
+          <div style={{fontSize:9,color:"#374151",letterSpacing:"0.18em",fontFamily:"'JetBrains Mono',monospace",marginTop:4}}>INSTITUTIONAL TRADING DASHBOARD</div>
         </div>
+
         <div style={{background:"linear-gradient(160deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:14,padding:"32px 28px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.05)"}}>
-          <div style={{display:"flex",gap:4,background:"rgba(0,0,0,0.35)",borderRadius:8,padding:4,marginBottom:24}}>
-            {[{id:"login",label:"Inloggen"},{id:"register",label:"Registreren"}].map(t=>(
-              <button key={t.id} className={`auth-tab${mode===t.id?" active":""}`}
-                style={{flex:1,textAlign:"center"}} onClick={()=>{setMode(t.id);setError("");setSuccess("");}}>
-                {t.label}
-              </button>
-            ))}
+          <div style={{marginBottom:24}}>
+          <AuthTabs mode={mode} accent={ac}
+            labels={[t.login, t.register]}
+            onSwitch={(id)=>{setMode(id);setError("");setSuccess("");}}/>
           </div>
+
           {success && <div style={{background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",marginBottom:16,fontSize:12,color:"#4ade80",lineHeight:1.5}}>{success}</div>}
           {error   && <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"10px 14px",marginBottom:16,fontSize:12,color:"#f87171"}}>{error}</div>}
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {mode==="register" && (
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>NAAM</div>
-                <input className="auth-input" type="text" placeholder="Jouw naam" value={name}
-                  onChange={e=>setName(e.target.value)} onKeyDown={onKey(doRegister)} style={authInp}/>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.name}</div>
+                <GlowInput accent={ac} filled={!!name}>
+                  <input className="auth-input" type="text" placeholder={t.name.charAt(0)+t.name.slice(1).toLowerCase()} value={name}
+                    onChange={e=>setName(e.target.value)} onKeyDown={onKey(doRegister)} style={{...authInp,border:"none",background:"transparent"}}/>
+                </GlowInput>
               </div>
             )}
             <div>
-              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>E-MAILADRES</div>
-              <input className="auth-input" type="email" placeholder="jouw@email.com" value={email}
-                onChange={e=>setEmail(e.target.value)} onKeyDown={onKey(mode==="login"?doLogin:doRegister)} style={authInp}/>
+              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.email}</div>
+              <GlowInput accent={ac} filled={!!email}>
+                <input className="auth-input" type="email" placeholder="name@email.com" value={email}
+                  onChange={e=>setEmail(e.target.value)} onKeyDown={onKey(mode==="login"?doLogin:doRegister)} style={{...authInp,border:"none",background:"transparent"}}/>
+              </GlowInput>
             </div>
             <div>
-              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>WACHTWOORD</div>
-              <PwInput value={password} onChange={e=>setPw(e.target.value)}
-                placeholder={mode==="register"?"Min. 6 tekens":"••••••••"} accent={ac}
-                onKeyDown={onKey(mode==="login"?doLogin:doRegister)}/>
+              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.password}</div>
+              <PwInput value={pw} onChange={e=>setPw(e.target.value)} filled={!!pw}
+                placeholder={mode==="register"?"Min. 6":"••••••••"} accent={ac}
+                onKeyDown={mode==="login"?onKey(doLogin):undefined}/>
             </div>
+            {/* Confirm password — only on register */}
+            {mode==="register" && (
+              <div>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.confirmPassword}</div>
+                <PwInput value={pw2} onChange={e=>setPw2(e.target.value)} filled={!!pw2}
+                  placeholder={t.passwordConfirmPlaceholder} accent={ac}
+                  onKeyDown={onKey(doRegister)}/>
+                {/* Match indicator */}
+                {pw2.length > 0 && (
+                  <div style={{marginTop:6,fontSize:10,color:pw===pw2?"#22c55e":"#f87171",display:"flex",alignItems:"center",gap:4}}>
+                    {pw===pw2 ? "✓" : "✗"} {pw===pw2 ? (lang==="nl"?"Wachtwoorden komen overeen":lang==="de"?"Passwörter stimmen überein":lang==="fr"?"Les mots de passe correspondent":"Passwords match") : t.pwNoMatch}
+                  </div>
+                )}
+              </div>
+            )}
             <AuthBtn onClick={mode==="login"?doLogin:doRegister} accent={ac} disabled={loading}>
-              {loading?"LADEN...":(mode==="login"?"INLOGGEN":"ACCOUNT AANMAKEN")}
+              {loading?t.loading:(mode==="login"?t.loginBtn:t.registerBtn)}
             </AuthBtn>
-            {mode==="register" && <div style={{fontSize:11,color:"#374151",textAlign:"center",lineHeight:1.6}}>Na registratie wacht je op goedkeuring van de beheerder.</div>}
+            {mode==="register" && <div style={{fontSize:11,color:"#374151",textAlign:"center",lineHeight:1.6}}>{t.waitApproval}</div>}
           </div>
         </div>
       </div>
@@ -3744,6 +4239,7 @@ function AuthScreen({ onLogin, accent }) {
 // ── Access Denied ─────────────────────────────────────────────────────────────
 function AccessDenied({ user, onLogout, accent }) {
   const ac = accent || "#089981";
+  const t = T[getLang()] || T.nl;
   return (
     <div style={{minHeight:"100vh",background:"#060608",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`@keyframes superRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
@@ -3752,15 +4248,14 @@ function AccessDenied({ user, onLogout, accent }) {
       </div>
       <div style={{position:"relative",textAlign:"center",maxWidth:420}}>
         <div style={{fontSize:48,marginBottom:20}}>🚫</div>
-        <div style={{fontSize:22,fontWeight:800,color:"#f87171",marginBottom:10}}>Geen Toegang</div>
+        <div style={{fontSize:22,fontWeight:800,color:"#f87171",marginBottom:10}}>{t.noAccess}</div>
         <div style={{fontSize:13,color:"#4b5563",lineHeight:1.8,marginBottom:28}}>
-          Hallo <span style={{color:"#e2e4e9",fontWeight:600}}>{user?.name}</span>,<br/>
-          je account wacht nog op goedkeuring van de beheerder.
+          {t.hello} <span style={{color:"#e2e4e9",fontWeight:600}}>{user?.name}</span>, {t.waitMsg}
         </div>
         <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:10,padding:"16px 20px",marginBottom:28,fontSize:12,color:"#f87171",lineHeight:1.6}}>
-          ⏳ Je aanvraag wordt beoordeeld. Je ontvangt toegang zodra je account is goedgekeurd.
+          ⏳ {t.waitInfo}
         </div>
-        <AuthBtn onClick={onLogout} accent="#ef4444">UITLOGGEN</AuthBtn>
+        <AuthBtn onClick={onLogout} accent="#ef4444">{t.logout}</AuthBtn>
       </div>
     </div>
   );
@@ -3768,40 +4263,30 @@ function AccessDenied({ user, onLogout, accent }) {
 
 // ── Admin Panel ───────────────────────────────────────────────────────────────
 function AdminPanel({ accent }) {
-  const [users, setUsers]   = useState([]);
-  const [tab, setTab]       = useState("users");
+  const [users, setUsers]     = useState([]);
+  const [tab, setTab]         = useState("users");
   const [loading, setLoading] = useState(true);
   const ac = accent || "#089981";
+  const t = T[getLang()] || T.nl;
+  const ADMIN_PASSWORD = getSession()?.adminKey || "";
 
   async function loadUsers() {
     setLoading(true);
     try {
-      const data = await apiAuth("listUsers", {adminKey: ADMIN_PASSWORD});
+      const data = await apiAuth("listUsers", {adminKey: getAdminKey()});
       if(data.users) setUsers(data.users);
     } catch(_) {}
     setLoading(false);
   }
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(()=>{ loadUsers(); },[]);
+  useEffect(()=>{ const ti=setInterval(loadUsers,15000); return ()=>clearInterval(ti); },[]);
 
-  // Poll every 15s so admin sees new registrations live
-  useEffect(() => {
-    const t = setInterval(loadUsers, 15000);
-    return () => clearInterval(t);
-  }, []);
-
-  async function approve(id) {
-    await apiAuth("approveUser", {id, adminKey: ADMIN_PASSWORD});
-    loadUsers();
-  }
-  async function deny(id) {
-    await apiAuth("denyUser", {id, adminKey: ADMIN_PASSWORD});
-    loadUsers();
-  }
-  async function del(id) {
-    if(!confirm("Gebruiker verwijderen?")) return;
-    await apiAuth("deleteUser", {id, adminKey: ADMIN_PASSWORD});
-    loadUsers();
+  async function approve(id) { await apiAuth("approveUser",{id,adminKey:getAdminKey()}); loadUsers(); }
+  async function deny(id)    { await apiAuth("denyUser",   {id,adminKey:getAdminKey()}); loadUsers(); }
+  async function del(id)     {
+    if(!confirm(t.deleteConfirm)) return;
+    await apiAuth("deleteUser",{id,adminKey:getAdminKey()}); loadUsers();
   }
 
   const pending  = users.filter(u=>!u.approved);
@@ -3813,49 +4298,49 @@ function AdminPanel({ accent }) {
       <div style={{background:"linear-gradient(135deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"28px 32px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:"-30%",right:"-5%",width:"40%",height:"180%",background:`radial-gradient(ellipse at center,${ac}0f,transparent 65%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
-          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>ADMIN PANEEL · GEBRUIKERSBEHEER</div>
-          <div style={{fontSize:22,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:8}}>Beheer <span style={{color:ac}}>gebruikers</span></div>
-          <div style={{display:"flex",gap:16,marginTop:12,alignItems:"center"}}>
-            {[{label:"Totaal",val:users.length,color:"#6b7280"},{label:"Goedgekeurd",val:approved.length,color:"#22c55e"},{label:"In behandeling",val:pending.length,color:"#f59e0b"}].map(({label,val,color})=>(
-              <div key={label} style={{background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 16px",minWidth:90}}>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.adminPanel}</div>
+          <div style={{fontSize:22,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:8}}>{t.manageUsers} <span style={{color:ac}}>{t.users}</span></div>
+          <div style={{display:"flex",gap:16,marginTop:12,alignItems:"center",flexWrap:"wrap"}}>
+            {[{label:t.total,val:users.length,color:"#6b7280"},{label:t.approved,val:approved.length,color:"#22c55e"},{label:t.inProgress,val:pending.length,color:"#f59e0b"}].map(({label,val,color})=>(
+              <div key={label} style={{background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 16px",minWidth:80}}>
                 <div style={{fontSize:20,fontWeight:800,color,fontFamily:"'JetBrains Mono',monospace"}}>{val}</div>
                 <div style={{fontSize:8,color:"#374151",letterSpacing:"0.1em",marginTop:2}}>{label.toUpperCase()}</div>
               </div>
             ))}
             <button onClick={loadUsers} style={{marginLeft:"auto",padding:"8px 14px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,color:"#6b7280",fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Vernieuwen
+              {t.refresh}
             </button>
           </div>
           {pending.length > 0 && (
             <div style={{marginTop:12,padding:"8px 12px",background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:6,fontSize:11,color:"#f59e0b",display:"flex",alignItems:"center",gap:6}}>
-              <span style={{fontSize:14}}>🔔</span> {pending.length} nieuwe aanvraag{pending.length>1?"en":""} wachten op goedkeuring
+              🔔 {pending.length} {pending.length>1?t.newRequestsPlural:t.newRequests} {t.waitApproval2}
             </div>
           )}
         </div>
       </div>
 
       <div style={{display:"flex",gap:4,background:"rgba(0,0,0,0.3)",borderRadius:8,padding:4,width:"fit-content"}}>
-        {[{id:"users",label:"Alle gebruikers"},{id:"pending",label:`In behandeling (${pending.length})`}].map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)}
+        {[{id:"users",label:t.allUsers},{id:"pending",label:`${t.inProgressTab} (${pending.length})`}].map(tab2=>(
+          <button key={tab2.id} onClick={()=>setTab(tab2.id)}
             style={{padding:"7px 16px",borderRadius:6,border:"none",fontSize:11,fontWeight:600,letterSpacing:"0.04em",cursor:"pointer",
-              background:tab===t.id?"rgba(255,255,255,0.07)":"transparent",color:tab===t.id?"#fff":"#4b5563",transition:"all .2s"}}>
-            {t.label}
+              background:tab===tab2.id?"rgba(255,255,255,0.07)":"transparent",color:tab===tab2.id?"#fff":"#4b5563",transition:"all .2s"}}>
+            {tab2.label}
           </button>
         ))}
       </div>
 
       <div style={{background:"linear-gradient(160deg,#0f1116,#0c0d12)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden"}}>
         <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1fr 1fr 1.6fr",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"10px 16px"}}>
-          {["NAAM","E-MAIL","STATUS","DATUM","ACTIES"].map(h=>(
+          {[t.colName,t.colEmail,t.colStatus,t.colDate,t.colActions].map(h=>(
             <div key={h} style={{fontSize:8,fontWeight:700,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{h}</div>
           ))}
         </div>
         {loading ? (
-          <div style={{padding:"32px",textAlign:"center",color:"#374151",fontSize:12}}>Laden...</div>
+          <div style={{padding:"32px",textAlign:"center",color:"#374151",fontSize:12}}>...</div>
         ) : list.length===0 ? (
           <div style={{padding:"32px",textAlign:"center",color:"#374151",fontSize:12}}>
-            {tab==="pending"?"Geen aanvragen in behandeling.":"Nog geen gebruikers geregistreerd."}
+            {tab==="pending"?t.noRequests:t.noUsers}
           </div>
         ) : list.map((u,i)=>(
           <div key={u.id} style={{display:"grid",gridTemplateColumns:"2fr 2fr 1fr 1fr 1.6fr",padding:"12px 16px",borderBottom:i<list.length-1?"1px solid rgba(255,255,255,0.04)":"none",alignItems:"center"}}>
@@ -3866,23 +4351,23 @@ function AdminPanel({ accent }) {
                 background:u.approved?"rgba(34,197,94,0.10)":"rgba(245,158,11,0.10)",
                 color:u.approved?"#22c55e":"#f59e0b",
                 border:`1px solid ${u.approved?"rgba(34,197,94,0.25)":"rgba(245,158,11,0.25)"}`}}>
-                {u.approved?"Goedgekeurd":"Wachtend"}
+                {u.approved?t.statusApproved:t.statusPending}
               </span>
             </div>
             <div style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>
               {u.registeredAt?new Date(u.registeredAt).toLocaleDateString("nl-NL",{day:"2-digit",month:"2-digit",year:"2-digit"}):"—"}
             </div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {!u.approved && <button onClick={()=>approve(u.id)} style={btnSm("#22c55e","rgba(34,197,94,0.08)")}>Goedkeuren</button>}
-              {u.approved  && <button onClick={()=>deny(u.id)}    style={btnSm("#f59e0b","rgba(245,158,11,0.08)")}>Intrekken</button>}
-              <button onClick={()=>del(u.id)} style={btnSm("#ef4444","rgba(239,68,68,0.08)")}>Verwijderen</button>
+              {!u.approved && <button onClick={()=>approve(u.id)} style={btnSm("#22c55e","rgba(34,197,94,0.08)")}>{t.approveBtn}</button>}
+              {u.approved  && <button onClick={()=>deny(u.id)}    style={btnSm("#f59e0b","rgba(245,158,11,0.08)")}>{t.revokeBtn}</button>}
+              <button onClick={()=>del(u.id)} style={btnSm("#ef4444","rgba(239,68,68,0.08)")}>{t.deleteBtn}</button>
             </div>
           </div>
         ))}
       </div>
       <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"12px 16px",display:"flex",gap:10}}>
         <span style={{fontSize:14}}>ℹ️</span>
-        <span style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>Gebruikerslijst vernieuwt automatisch elke 15 seconden. Goedgekeurde gebruikers hebben direct toegang.</span>
+        <span style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{t.autoRefresh} {t.adminInfo}</span>
       </div>
     </div>
   );
@@ -3899,21 +4384,35 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
   const [newPw2, setNewPw2] = useState("");
   const [msg, setMsg]       = useState(null);
   const [saving, setSaving] = useState(false);
+  const [lang, setLang]     = useState(getLang());
+  const [hidden, setHidden] = useState(getHiddenAssets());
   const presets = ["#089981","#6366f1","#f59e0b","#22c55e","#ec4899","#ef4444","#3b82f6","#a855f7"];
   const [customColor, setCustomColor] = useState(ac);
+  const t = T[lang] || T.nl;
 
   const flash = (type, text) => { setMsg({type,text}); setTimeout(()=>setMsg(null),3500); };
 
+  function switchLang(l) {
+    setLang(l);
+    savePrefs({...getPrefs(), lang:l});
+  }
+
+  function toggleAsset(id) {
+    const next = hidden.includes(id) ? hidden.filter(x=>x!==id) : [...hidden, id];
+    setHidden(next);
+    savePrefs({...getPrefs(), hiddenAssets:next});
+  }
+
   function handleAvatarUpload(e) {
     const file = e.target.files?.[0]; if(!file) return;
-    if(file.size > 2*1024*1024) { flash("err","Foto mag maximaal 2MB zijn."); return; }
+    if(file.size > 2*1024*1024) { flash("err",t.photoTooBig); return; }
     const reader = new FileReader();
     reader.onload = ev => setAvatar(ev.target.result);
     reader.readAsDataURL(file);
   }
 
   async function saveProfiel() {
-    if(!name.trim()) { flash("err","Naam mag niet leeg zijn."); return; }
+    if(!name.trim()) { flash("err",t.namRequired); return; }
     setSaving(true);
     const updated = {...session, name:name.trim(), avatar};
     if(session.role !== "admin") {
@@ -3921,143 +4420,151 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
     }
     saveSession(updated);
     onSessionUpdate(updated);
-    flash("ok","Profiel opgeslagen!");
+    flash("ok",t.saved);
     setSaving(false);
   }
 
   async function saveWachtwoord() {
-    if(!newPw || !newPw2) { flash("err","Vul alle velden in."); return; }
-    if(newPw !== newPw2) { flash("err","Wachtwoorden komen niet overeen."); return; }
-    if(newPw.length < 6) { flash("err","Minimaal 6 tekens vereist."); return; }
+    if(!newPw || !newPw2) { flash("err",t.fillPwAll); return; }
+    if(newPw !== newPw2)  { flash("err",t.pwNoMatchErr); return; }
+    if(newPw.length < 6)  { flash("err",t.pwTooShort); return; }
     if(session.role !== "admin") {
-      if(!oldPw) { flash("err","Vul je huidige wachtwoord in."); return; }
+      if(!oldPw) { flash("err",t.fillPwAll); return; }
       const data = await apiAuth("changePassword", {email:session.email, oldPassword:oldPw, newPassword:newPw});
       if(data.error) { flash("err",data.error); return; }
     }
     setOldPw(""); setNewPw(""); setNewPw2("");
-    flash("ok","Wachtwoord gewijzigd!");
+    flash("ok",t.pwChanged);
   }
 
+  // Asset labels map
+  const ASSET_LABELS = {xauusd:"XAU/USD",us30:"US30",us100:"US100",eurusd:"EUR/USD",gbpusd:"GBP/USD"};
+
   const tabs = [
-    {id:"profiel",    label:"Profiel",    icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-    {id:"wachtwoord", label:"Wachtwoord", icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-    {id:"dashboard",  label:"Dashboard",  icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
-    {id:"account",    label:"Account",    icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>},
+    {id:"profiel",    label:t.profile,      icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+    {id:"wachtwoord", label:t.passwordTab,  icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+    {id:"dashboard",  label:t.dashboard,    icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+    {id:"taal",       label:t.languageTab,  icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" stroke="currentColor" strokeWidth="1.5"/></svg>},
+    {id:"account",    label:t.account,      icon:<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>},
   ];
   const initials = name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()||"U";
 
   return (
     <div style={{position:"fixed",inset:0,zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.7)",backdropFilter:"blur(6px)"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{width:520,maxHeight:"88vh",overflow:"hidden",display:"flex",flexDirection:"column",background:"linear-gradient(160deg,#111420,#0c0d12)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:16,boxShadow:"0 24px 80px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.06)",animation:"deepIn .3s cubic-bezier(.16,1,.3,1) both"}}>
+      <div style={{width:560,maxHeight:"90vh",overflow:"hidden",display:"flex",flexDirection:"column",background:"linear-gradient(160deg,#111420,#0c0d12)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:16,boxShadow:"0 24px 80px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.06)",animation:"deepIn .3s cubic-bezier(.16,1,.3,1) both"}}>
         <div style={{padding:"20px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexShrink:0}}>
           <div>
-            <div style={{fontSize:16,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.01em"}}>Instellingen</div>
-            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:3}}>PROFIEL & DASHBOARD</div>
+            <div style={{fontSize:16,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.01em"}}>{t.settings}</div>
+            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:3}}>{t.profileDashboard}</div>
           </div>
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,color:"#6b7280",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,flexShrink:0}}>×</button>
         </div>
-        <div style={{display:"flex",gap:2,padding:"16px 24px 0",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
-          {tabs.map(t=>(
-            <button key={t.id} onClick={()=>setTab(t.id)}
-              style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:"8px 8px 0 0",border:"none",fontSize:11,fontWeight:600,cursor:"pointer",letterSpacing:"0.03em",transition:"all .15s",marginBottom:-1,
-                background:tab===t.id?"rgba(255,255,255,0.06)":"transparent",
-                color:tab===t.id?"#e2e4e9":"#4b5563",
-                borderBottom:tab===t.id?`2px solid ${ac}`:"2px solid transparent"}}>
-              {t.icon}{t.label}
+        {/* Tab bar — scrollable on small screens */}
+        <div style={{display:"flex",gap:2,padding:"16px 24px 0",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.05)",overflowX:"auto"}}>
+          {tabs.map(tb=>(
+            <button key={tb.id} onClick={()=>setTab(tb.id)}
+              style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",borderRadius:"8px 8px 0 0",border:"none",fontSize:11,fontWeight:600,cursor:"pointer",letterSpacing:"0.03em",transition:"all .15s",marginBottom:-1,whiteSpace:"nowrap",
+                background:tab===tb.id?"rgba(255,255,255,0.06)":"transparent",
+                color:tab===tb.id?"#e2e4e9":"#4b5563",
+                borderBottom:tab===tb.id?`2px solid ${ac}`:"2px solid transparent"}}>
+              {tb.icon}{tb.label}
             </button>
           ))}
         </div>
+
         <div style={{flex:1,overflowY:"auto",padding:"20px 24px 24px"}}>
           {msg && (
             <div style={{marginBottom:16,padding:"10px 14px",borderRadius:8,fontSize:12,fontWeight:500,
               background:msg.type==="ok"?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",
               border:`1px solid ${msg.type==="ok"?"rgba(34,197,94,0.25)":"rgba(239,68,68,0.25)"}`,
               color:msg.type==="ok"?"#4ade80":"#f87171"}}>
-              {msg.type==="ok"?"✓ ":"✗ "}{msg.text}
+              {msg.text}
             </div>
           )}
 
+          {/* ── PROFIEL ── */}
           {tab==="profiel" && (
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               <div style={{display:"flex",gap:20,alignItems:"flex-start"}}>
-                <div style={{flexShrink:0}}>
-                  <div style={{width:80,height:80,borderRadius:"50%",overflow:"hidden",border:`3px solid ${ac}50`}}>
-                    {avatar
-                      ? <img src={avatar} style={{width:"100%",height:"100%",objectFit:"cover"}} alt="avatar"/>
-                      : <div style={{width:"100%",height:"100%",background:`linear-gradient(135deg,${ac}40,${ac}20)`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <span style={{fontSize:22,fontWeight:800,color:ac}}>{initials}</span>
-                        </div>}
-                  </div>
+                <div style={{width:80,height:80,borderRadius:"50%",overflow:"hidden",border:`3px solid ${ac}50`,flexShrink:0}}>
+                  {avatar
+                    ? <img src={avatar} style={{width:"100%",height:"100%",objectFit:"cover"}} alt="avatar"/>
+                    : <div style={{width:"100%",height:"100%",background:`linear-gradient(135deg,${ac}40,${ac}20)`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        <span style={{fontSize:22,fontWeight:800,color:ac}}>{initials}</span>
+                      </div>}
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:11,fontWeight:600,color:"#e2e4e9",marginBottom:6}}>Profielfoto</div>
-                  <div style={{fontSize:11,color:"#4b5563",marginBottom:12,lineHeight:1.6}}>Upload een foto (JPG/PNG, max 2MB).</div>
+                  <div style={{fontSize:11,fontWeight:600,color:"#e2e4e9",marginBottom:6}}>{t.profilePhoto}</div>
+                  <div style={{fontSize:11,color:"#4b5563",marginBottom:12,lineHeight:1.6}}>{t.uploadInfo}</div>
                   <div style={{display:"flex",gap:8}}>
                     <label style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",background:`${ac}15`,border:`1px solid ${ac}40`,borderRadius:8,color:ac,fontSize:11,fontWeight:700,cursor:"pointer",letterSpacing:"0.04em"}}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Foto uploaden
+                      {t.uploadPhoto}
                       <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{display:"none"}}/>
                     </label>
-                    {avatar && <button onClick={()=>setAvatar(null)} style={{padding:"8px 12px",background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,color:"#ef4444",fontSize:11,cursor:"pointer"}}>Verwijderen</button>}
+                    {avatar && <button onClick={()=>setAvatar(null)} style={{padding:"8px 12px",background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,color:"#ef4444",fontSize:11,cursor:"pointer"}}>{t.removePhoto}</button>}
                   </div>
                 </div>
               </div>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>WEERGAVENAAM</div>
-                <input value={name} onChange={e=>setName(e.target.value)} style={authInp} placeholder="Jouw naam"/>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.displayName}</div>
+                <input value={name} onChange={e=>setName(e.target.value)} style={authInp}/>
               </div>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>E-MAILADRES</div>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.emailLabel}</div>
                 <div style={{...authInp,color:"#4b5563",cursor:"not-allowed",display:"flex",alignItems:"center",gap:8}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.5"/><polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.5"/></svg>
                   {session?.email}
-                  <span style={{marginLeft:"auto",fontSize:9,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>NIET WIJZIGBAAR</span>
+                  <span style={{marginLeft:"auto",fontSize:9,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{t.notEditable}</span>
                 </div>
               </div>
-              <AuthBtn onClick={saveProfiel} accent={ac} disabled={saving}>{saving?"OPSLAAN...":"PROFIEL OPSLAAN"}</AuthBtn>
+              <AuthBtn onClick={saveProfiel} accent={ac} disabled={saving}>{saving?t.saving:t.saveProfile}</AuthBtn>
             </div>
           )}
 
+          {/* ── WACHTWOORD ── */}
           {tab==="wachtwoord" && (
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               <div style={{padding:"12px 14px",background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:8,fontSize:11,color:"#818cf8",lineHeight:1.6}}>
-                🔒 Kies een sterk wachtwoord van minimaal 6 tekens.
+                🔒 {t.minPw}
               </div>
               {session?.role !== "admin" && (
                 <div>
-                  <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>HUIDIG WACHTWOORD</div>
-                  <PwInput value={oldPw} onChange={e=>setOldPw(e.target.value)} placeholder="Huidig wachtwoord" accent={ac}/>
+                  <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.currentPw}</div>
+                  <PwInput value={oldPw} onChange={e=>setOldPw(e.target.value)} placeholder="••••••••" accent={ac}/>
                 </div>
               )}
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>NIEUW WACHTWOORD</div>
-                <PwInput value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="Nieuw wachtwoord" accent={ac}/>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.newPw}</div>
+                <PwInput value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="••••••••" accent={ac}/>
               </div>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>HERHAAL NIEUW WACHTWOORD</div>
-                <PwInput value={newPw2} onChange={e=>setNewPw2(e.target.value)} placeholder="Nogmaals" accent={ac}/>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.repeatPw}</div>
+                <PwInput value={newPw2} onChange={e=>setNewPw2(e.target.value)} placeholder="••••••••" accent={ac}/>
               </div>
               {newPw && (
                 <div>
-                  <div style={{fontSize:9,color:"#374151",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>STERKTE</div>
+                  <div style={{fontSize:9,color:"#374151",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.strength}</div>
                   <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                     <div style={{height:"100%",borderRadius:2,transition:"width .3s",
                       width:newPw.length<6?"20%":newPw.length<8?"50%":newPw.length<12?"75%":"100%",
                       background:newPw.length<6?"#ef4444":newPw.length<8?"#f59e0b":newPw.length<12?"#22c55e":ac}}/>
                   </div>
-                  <div style={{fontSize:9,color:"#374151",marginTop:3}}>{newPw.length<6?"Zwak":newPw.length<8?"Matig":newPw.length<12?"Sterk":"Zeer sterk"}</div>
+                  <div style={{fontSize:9,color:"#374151",marginTop:3}}>
+                    {newPw.length<6?t.weak:newPw.length<8?t.fair:newPw.length<12?t.strong:t.veryStrong}
+                  </div>
                 </div>
               )}
-              <AuthBtn onClick={saveWachtwoord} accent={ac}>WACHTWOORD WIJZIGEN</AuthBtn>
+              <AuthBtn onClick={saveWachtwoord} accent={ac}>{t.changePwBtn}</AuthBtn>
             </div>
           )}
 
+          {/* ── DASHBOARD (kleuren) ── */}
           {tab==="dashboard" && (
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10,fontFamily:"'JetBrains Mono',monospace"}}>ACCENTKLEUR</div>
-                {/* 8 presets in 2 rows of 4, small circles */}
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10,fontFamily:"'JetBrains Mono',monospace"}}>{t.accentColor}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
                   {presets.map(color=>(
                     <button key={color} onClick={()=>{setAccent(color);setCustomColor(color);}}
@@ -4069,7 +4576,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                     </button>
                   ))}
                 </div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>EIGEN KLEURCODE</div>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>{t.customColor}</div>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <input type="color" value={customColor} onChange={e=>setCustomColor(e.target.value)}
                     style={{width:34,height:34,borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"none",cursor:"pointer",padding:2,flexShrink:0}}/>
@@ -4079,12 +4586,13 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                     style={{flex:1,padding:"9px 14px",background:`${ac}18`,border:`1px solid ${ac}40`,borderRadius:8,color:ac,fontSize:11,fontWeight:700,cursor:"pointer",letterSpacing:"0.05em",transition:"all .15s"}}
                     onMouseEnter={e=>{e.currentTarget.style.background=`${ac}30`;}}
                     onMouseLeave={e=>{e.currentTarget.style.background=`${ac}18`;}}>
-                    Toepassen
+                    {t.apply}
                   </button>
                 </div>
               </div>
+              {/* Live preview */}
               <div style={{padding:"14px 16px",background:`${accent}0c`,border:`1px solid ${accent}25`,borderRadius:10}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>LIVE PREVIEW</div>
+                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{t.livePreview}</div>
                 <div style={{display:"flex",gap:10,alignItems:"center"}}>
                   <div style={{width:36,height:36,borderRadius:"50%",background:`${accent}20`,border:`2px solid ${accent}50`,display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <span style={{fontSize:13,fontWeight:800,color:accent}}>{initials}</span>
@@ -4095,29 +4603,79 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                   </div>
                 </div>
               </div>
+              {/* Assets visibility */}
+              <div>
+                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.assetsTitle}</div>
+                <div style={{fontSize:11,color:"#374151",marginBottom:12}}>{t.assetsDesc}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {DEFAULT_ASSETS.map(id=>{
+                    const visible = !hidden.includes(id);
+                    return (
+                      <div key={id} onClick={()=>toggleAsset(id)}
+                        style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",
+                          background:visible?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.2)",
+                          border:`1px solid ${visible?ac+"30":"rgba(255,255,255,0.05)"}`,
+                          borderRadius:8,cursor:"pointer",transition:"all .15s"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{width:8,height:8,borderRadius:"50%",background:visible?ac:"#374151",transition:"background .15s"}}/>
+                          <span style={{fontSize:12,fontWeight:600,color:visible?"#e2e4e9":"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{ASSET_LABELS[id]}</span>
+                        </div>
+                        {/* Toggle switch */}
+                        <div style={{width:36,height:20,borderRadius:10,background:visible?ac:"rgba(255,255,255,0.08)",position:"relative",transition:"background .2s",flexShrink:0}}>
+                          <div style={{position:"absolute",top:3,left:visible?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}}/>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
+          {/* ── TAAL ── */}
+          {tab==="taal" && (
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.language.toUpperCase()}</div>
+              {Object.values(LANGS).map(l=>(
+                <button key={l.code} onClick={()=>switchLang(l.code)}
+                  style={{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",
+                    background:lang===l.code?`${ac}12`:"rgba(255,255,255,0.02)",
+                    border:`1px solid ${lang===l.code?ac+"40":"rgba(255,255,255,0.06)"}`,
+                    borderRadius:10,cursor:"pointer",transition:"all .15s",textAlign:"left"}}>
+                  <span style={{fontSize:24}}>{l.flag}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:600,color:lang===l.code?ac:"#e2e4e9"}}>{l.label}</div>
+                    <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{l.code.toUpperCase()}</div>
+                  </div>
+                  {lang===l.code && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke={ac} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ── ACCOUNT ── */}
           {tab==="account" && (
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               <div style={{padding:"16px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>ACCOUNT INFORMATIE</div>
+                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.accountInfo}</div>
                 {[
-                  {label:"Naam", val:session?.name||"—"},
-                  {label:"E-mail", val:session?.email||"—"},
-                  ...(session?.role==="admin"?[{label:"Rol", val:"Administrator", color:"#f59e0b"}]:[]),
-                  {label:"Status", val:session?.approved?"Actief":"In behandeling", color:session?.approved?"#22c55e":"#f59e0b"},
+                  {label:t.nameLabel,  val:session?.name||"—"},
+                  {label:t.emailInfoLabel, val:session?.email||"—"},
+                  ...(session?.role==="admin"?[{label:t.roleLabel, val:t.administrator, color:"#f59e0b"}]:[]),
+                  {label:t.statusLabel, val:session?.approved?t.active:t.pending, color:session?.approved?"#22c55e":"#f59e0b"},
                 ].map(({label,val,color})=>(
                   <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
                     <span style={{fontSize:11,color:"#4b5563"}}>{label}</span>
-                    <span style={{fontSize:11,fontWeight:600,color:color||"#e2e4e9",fontFamily:label==="E-mail"?"'JetBrains Mono',monospace":"inherit"}}>{val}</span>
+                    <span style={{fontSize:11,fontWeight:600,color:color||"#e2e4e9",fontFamily:label===t.emailInfoLabel?"'JetBrains Mono',monospace":"inherit"}}>{val}</span>
                   </div>
                 ))}
               </div>
               <div style={{padding:"14px",background:"rgba(239,68,68,0.05)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:10}}>
-                <div style={{fontSize:11,fontWeight:600,color:"#f87171",marginBottom:4}}>Uitloggen</div>
-                <div style={{fontSize:11,color:"#4b5563",marginBottom:14,lineHeight:1.6}}>Je sessie wordt beëindigd. Je kunt altijd opnieuw inloggen.</div>
-                <AuthBtn onClick={onLogout} accent="#ef4444">UITLOGGEN</AuthBtn>
+                <div style={{fontSize:11,fontWeight:600,color:"#f87171",marginBottom:4}}>{t.logoutTitle}</div>
+                <div style={{fontSize:11,color:"#4b5563",marginBottom:14,lineHeight:1.6}}>{t.logoutDesc}</div>
+                <AuthBtn onClick={onLogout} accent="#ef4444">{t.logout}</AuthBtn>
               </div>
             </div>
           )}
@@ -4127,18 +4685,26 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
   );
 }
 
-// ── Settings Panel (kept for backwards compat, not used in sidebar anymore) ──
-function SettingsPanel({ accent, setAccent, onClose }) {
-  return null; // ProfileModal handles this now
-}
+// ── Settings Panel stub ───────────────────────────────────────────────────────
+function SettingsPanel() { return null; }
+
+// ── Admin key helpers (sessionStorage — cleared on tab close) ─────────────────
+function getAdminKey() { try { return sessionStorage.getItem("ht_ak") || ""; } catch(_){ return ""; } }
+function setAdminKey(k) { try { sessionStorage.setItem("ht_ak", k); } catch(_){} }
+function clearAdminKey() { try { sessionStorage.removeItem("ht_ak"); } catch(_){} }
 
 // ── Main App Wrapper ──────────────────────────────────────────────────────────
 export default function App() {
   const [session, setSession] = useState(() => getSession());
   const [accent,  setAccent]  = useState(DEFAULT_ACCENT);
 
-  function handleLogin(s)  { setSession(s); }
-  function handleLogout()  { saveSession(null); setSession(null); }
+  function handleLogin(s, rawPassword) {
+    setSession(s);
+    // Store admin password in sessionStorage so AdminPanel can make API calls.
+    // It's only kept for the duration of the browser session and never in localStorage.
+    if(s.role === "admin" && rawPassword) setAdminKey(rawPassword);
+  }
+  function handleLogout() { saveSession(null); setSession(null); clearAdminKey(); }
 
   if(!session)          return <AuthScreen onLogin={handleLogin} accent={accent}/>;
   if(!session.approved) return <AccessDenied user={session} onLogout={handleLogout} accent={accent}/>;
@@ -4152,6 +4718,7 @@ export default function App() {
       onLogout={handleLogout}
       onShowSettings={()=>{}}
       showSettings={false}
+      hiddenAssets={getHiddenAssets()}
     />
   );
 }
