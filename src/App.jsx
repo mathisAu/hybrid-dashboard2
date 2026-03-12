@@ -3657,11 +3657,6 @@ function AuthScreen({ onLogin, accent }) {
   async function doLogin() {
     setError(""); setLoading(true);
     if(!email.trim() || !password) { setError("Vul alle velden in."); setLoading(false); return; }
-    // Admin hardcoded
-    if(email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      const s = {email:ADMIN_EMAIL, name:"Admin", role:"admin", approved:true};
-      saveSession(s); onLogin(s); setLoading(false); return;
-    }
     try {
       const data = await apiAuth("login", {email: email.trim().toLowerCase(), password});
       if(data.error) { setError(data.error); setLoading(false); return; }
