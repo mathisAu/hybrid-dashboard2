@@ -1384,7 +1384,16 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
             className="card-hover"
-            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:`1px solid ${color}22`,borderRadius:8,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,border:`1px solid rgba(255,255,255,0.06)`}}>
+            style={{background:"linear-gradient(160deg,#0f1014,#0c0d11)",border:`1px solid rgba(255,255,255,0.06)`,borderRadius:8,padding:"20px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,position:"relative"}}>
+            {/* Conic border with card-specific color */}
+            <div style={{position:"absolute",inset:-1,borderRadius:9,opacity:0,transition:"opacity 0.35s ease",pointerEvents:"none",zIndex:5}} className={`nav-conic-${id}`}>
+              <style>{`
+                .nav-conic-${id}::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--nav-angle-${id},0deg),transparent 0%,transparent 50%,${color}00 60%,${color}99 75%,${color} 80%,${color}99 85%,${color}00 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:navSpin-${id} 2.5s linear infinite}
+                .card-hover:hover .nav-conic-${id}{opacity:1}
+                @keyframes navSpin-${id}{to{--nav-angle-${id}:360deg}}
+                @property --nav-angle-${id}{syntax:"<angle>";initial-value:0deg;inherits:false}
+              `}</style>
+            </div>
             <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>
               {icon}
             </div>
