@@ -688,21 +688,11 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 
   // Card wrapper
-const Card = ({children, accent=null, style={}}) => (
-  <div
-    style={{
-      background:"#0f1013",
-      border:"1px solid rgba(255,255,255,0.07)",
-      borderLeft: accent ? `3px solid ${accent}` : "1px solid rgba(255,255,255,0.07)",
-      borderRadius:10,
-      padding:"16px 18px",
-      boxShadow:"0 6px 18px rgba(0,0,0,0.35)",
-      ...style
-    }}
-  >
-    {children}
-  </div>
-);
+  const Card = ({children, style={}}) => (
+    <div style={{background:"#0f1013",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"16px 18px",...style}}>
+      {children}
+    </div>
+  );
 
   // Thin bar
   const ThinBar = ({value, max=100, color}) => (
@@ -751,7 +741,7 @@ const Card = ({children, accent=null, style={}}) => (
         </div>
 
         {/* ── GRID CONTENT ── */}
-        <div style={{padding:"24px 32px",maxWidth:1400,margin:"0 auto",display:"grid",gridTemplateColumns:"320px 300px 1fr",gap:18}}>
+        <div style={{padding:"24px 32px",maxWidth:1400,margin:"0 auto",display:"grid",gridTemplateColumns:"340px 1fr 300px",gap:14}}>
 
           {/* ── COL 1: Scores ── */}
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -760,14 +750,7 @@ const Card = ({children, accent=null, style={}}) => (
             <Card>
               <Lbl text="BIAS CONFIDENCE"/>
               <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:4}}>
-                <span style={{
-                        fontFamily:"'JetBrains Mono',monospace",
-                        fontSize:42,
-                        fontWeight:700,
-                        color:cInfo.color,
-                        lineHeight:1,
-                        textShadow:`0 0 18px ${cInfo.color}55`
-                      }}>{conf}%</span>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:42,fontWeight:700,color:cInfo.color,lineHeight:1}}>{conf}%</span>
               </div>
               <ThinBar value={conf} color={cInfo.color}/>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}>
@@ -962,17 +945,13 @@ const Card = ({children, accent=null, style={}}) => (
             )}
 
             {/* Relevant news */}
-            {data?.news_items?.slice(0,4).map((n,i)=>(
-              <div key={i} style={{
-                  display:"flex",
-                  flexDirection:"column",
-                  gap:3,
-                  paddingBottom:i<Math.min(3,data.news_items.length-1)?8:0,
-                  borderBottom:i<Math.min(3,data.news_items.length-1)?"1px solid rgba(255,255,255,0.04)":"none",
-                  cursor:n.url?"pointer":"default"
-                }}
-                onClick={()=>n.url&&window.open(n.url,"_blank")}
-  >
+            {data?.news_items?.length>0&&(
+              <Card>
+                <Lbl text="RELEVANT NIEUWS"/>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {data.news_items.slice(0,4).map((n,i)=>(
+                    <div key={i} style={{display:"flex",flexDirection:"column",gap:3,paddingBottom:i<Math.min(3,data.news_items.length-1)?8:0,borderBottom:i<Math.min(3,data.news_items.length-1)?"1px solid rgba(255,255,255,0.04)":"none",cursor:n.url?"pointer":"default"}}
+                      onClick={()=>n.url&&window.open(n.url,"_blank")}>
                       <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
                         {n.time&&<span style={{fontSize:8,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{n.time}</span>}
                         {n.source&&<span style={{fontSize:8,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.05)",borderRadius:3,padding:"1px 5px"}}>{n.source}</span>}
@@ -3093,5 +3072,3 @@ function sanitizeIntelResult(obj) {
   }
   return out;
 }
-
-
