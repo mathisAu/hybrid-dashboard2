@@ -593,7 +593,7 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
       <div onClick={e=>e.stopPropagation()} style={{background:"#0d0e13",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
           <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{news.headline}</div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16,flexShrink:0,padding:0}}>✕</button>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#6b7280",cursor:"pointer",fontSize:16,flexShrink:0,padding:0}}>✕</button>
         </div>
         <div style={{height:1,background:"#1f2023",marginBottom:14}}/>
         {loading ? (
@@ -617,7 +617,7 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
             })}
           </div>
         )}
-        <div style={{marginTop:12,fontSize:9,color:"#374151",textAlign:"right"}}>klik buiten popup om te sluiten</div>
+        <div style={{marginTop:12,fontSize:9,color:"#4b5563",textAlign:"right"}}>klik buiten popup om te sluiten</div>
       </div>
     </div>
   );
@@ -714,7 +714,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
       >
         <div className="rc-glow"/>
         <div className="conic-border"/>
-        <div style={{position:"relative",zIndex:1}}>{children}</div>
+        <div style={{position:"relative",zIndex:1,padding:"16px 18px"}}>{children}</div>
       </div>
     );
   };
@@ -727,7 +727,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
   const StatRow = ({label, value, color="#9ca3af"}) => (
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-      <span style={{fontSize:10,color:"#4b5563"}}>{label}</span>
+      <span style={{fontSize:10,color:"#6b7280"}}>{label}</span>
       <span style={{fontSize:11,fontWeight:700,color,fontFamily:"'JetBrains Mono',monospace"}}>{value||"—"}</span>
     </div>
   );
@@ -762,7 +762,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 )}
                 {data?.price_today&&<span style={{fontSize:15,fontWeight:600,color:"#6b7280",fontFamily:"'JetBrains Mono',monospace"}}>{data.price_today}</span>}
               </div>
-              <div style={{fontSize:11,color:"#374151"}}>{asset.full}
+              <div style={{fontSize:11,color:"#4b5563"}}>{asset.full}
                 {data?.analysed_at&&<span style={{marginLeft:10,fontSize:9,fontFamily:"'JetBrains Mono',monospace",color:"#1f2937"}}>geanalyseerd {fmtDT(data.analysed_at)}</span>}
               </div>
             </div>
@@ -791,7 +791,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Confidence */}
             <Card color={cInfo.color}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>BIAS CONFIDENCE</span>
+                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>BIAS CONFIDENCE</span>
                 <span style={{fontSize:9,color:cInfo.color,background:`${cInfo.color}15`,borderRadius:4,padding:"2px 7px",fontWeight:600}}>{cInfo.label}</span>
               </div>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:44,fontWeight:800,color:cInfo.color,lineHeight:1}}>{conf}%</div>
@@ -802,12 +802,12 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Macro Hold */}
             <Card color="#6366f1">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>MACRO HOLD</span>
+                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>MACRO HOLD</span>
                 <span style={{fontSize:9,color:hInfo.color,background:`${hInfo.color}15`,borderRadius:4,padding:"2px 7px",fontWeight:600}}>{hInfo.label}</span>
               </div>
               <div style={{display:"flex",alignItems:"baseline",gap:4}}>
                 <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:44,fontWeight:800,color:"#6366f1",lineHeight:1}}>{hold}</span>
-                <span style={{fontSize:13,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>/100</span>
+                <span style={{fontSize:13,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>/100</span>
               </div>
               <ThinBar value={hold} color="#6366f1"/>
               {data?.macro_hold_uitleg&&<div style={{fontSize:10,color:"#6b7280",marginTop:10,lineHeight:1.6,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.05)"}}>{data.macro_hold_uitleg}</div>}
@@ -817,7 +817,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {data?.pulse&&(
               <Card color={pc} style={{background:`${pc}07`,border:`1px solid ${pc}20`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>PULSE</span>
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>PULSE</span>
                   <span style={{fontSize:14,fontWeight:800,color:pc,letterSpacing:"0.06em"}}>{data.pulse}</span>
                 </div>
                 <div style={{display:"flex",gap:4,marginBottom:10}}>
@@ -835,7 +835,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Hold Score opbouw */}
             {data?.macro_alignment!=null&&(
               <Card color="#6366f1">
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>HOLD SCORE OPBOUW</div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>HOLD SCORE OPBOUW</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {[
                     {l:"Pillar Alignment", v:data?.macro_alignment,   max:40, color:"#22c55e"},
@@ -894,7 +894,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                 <div style={{background:"#0c0d10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"14px 18px",display:"flex",gap:0}}>
                   {stats.map((s,i)=>(
                     <div key={s.key} style={{flex:1,paddingLeft:i===0?0:16,marginLeft:i===0?0:16,borderLeft:i===0?"none":"1px solid rgba(255,255,255,0.06)"}}>
-                      <div style={{fontSize:8,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>{s.key}</div>
+                      <div style={{fontSize:8,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>{s.key}</div>
                       <div style={{display:"flex",alignItems:"center",gap:5}}>
                         {s.dot&&<div style={{width:6,height:6,borderRadius:"50%",background:s.color,flexShrink:0}}/>}
                         {s.prefix&&<span style={{fontSize:13,fontWeight:800,color:s.color}}>{s.prefix}</span>}
@@ -928,15 +928,15 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                     return (
                       <div key={i} style={{paddingBottom:i<data.bias_switch_history.length-1?10:0,borderBottom:i<data.bias_switch_history.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}>
                         <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:4}}>
-                          <span style={{fontSize:8,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(s.time)}</span>
+                          <span style={{fontSize:8,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(s.time)}</span>
                           <span style={{fontSize:10,fontWeight:700,color:vanC.text,background:vanC.bg,border:`1px solid ${vanC.border}33`,borderRadius:4,padding:"1px 7px"}}>{s.van}</span>
-                          <span style={{fontSize:10,color:"#374151"}}>→</span>
+                          <span style={{fontSize:10,color:"#4b5563"}}>→</span>
                           <span style={{fontSize:10,fontWeight:700,color:naarC.text,background:naarC.bg,border:`1px solid ${naarC.border}33`,borderRadius:4,padding:"1px 7px"}}>{s.naar}</span>
-                          <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{s.confidence}%</span>
+                          <span style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{s.confidence}%</span>
                         </div>
                         {s.nieuws?.map((n,j)=>(
                           <div key={j} style={{display:"flex",gap:5,alignItems:"flex-start",marginLeft:4}}>
-                            <span style={{fontSize:8,color:"#4b5563",flexShrink:0}}>[{n.source}]</span>
+                            <span style={{fontSize:8,color:"#6b7280",flexShrink:0}}>[{n.source}]</span>
                             <span style={{fontSize:10,color:"#6b7280",lineHeight:1.4}}>{n.headline}</span>
                           </div>
                         ))}
@@ -954,20 +954,20 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
 
             {/* Dominant mechanisme */}
             <Card color={acc}>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>DOMINANT MECHANISME</div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>DOMINANT MECHANISME</div>
               <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.7}}>{data?.dominant_mechanisme||"—"}</div>
             </Card>
 
             {/* Trend driver */}
             <Card color="#f59e0b">
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>TREND DRIVER</div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>TREND DRIVER</div>
               <div style={{fontSize:13,fontWeight:700,color:"#f59e0b",letterSpacing:"0.02em",lineHeight:1.4}}>{data?.trend_driver?.toUpperCase()||"—"}</div>
             </Card>
 
             {/* Correlatie (only if yield shown in col2) */}
             {data?.yield_regime&&data.yield_regime!=="n.v.t."&&data?.correlatie_status&&(
               <Card color={corrColors[data.correlatie_status]||"#6b7280"}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CORRELATIE</div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CORRELATIE</div>
                 <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:6}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:corrColors[data.correlatie_status]||"#6b7280"}}/>
                   <div style={{fontSize:13,fontWeight:700,color:corrColors[data.correlatie_status]||"#9ca3af"}}>{data.correlatie_status}</div>
@@ -979,7 +979,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Relevant news */}
             {data?.news_items?.length>0&&(
               <Card color="#f59e0b">
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>RELEVANT NIEUWS</div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>RELEVANT NIEUWS</div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {data.news_items.slice(0,5).map((n,i)=>(
                     <div key={i}
@@ -987,7 +987,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
                       style={{display:"flex",flexDirection:"column",gap:3,paddingBottom:i<Math.min(4,data.news_items.length-1)?8:0,borderBottom:i<Math.min(4,data.news_items.length-1)?"1px solid rgba(255,255,255,0.04)":"none",cursor:n.url?"pointer":"default"}}>
                       <div style={{display:"flex",alignItems:"center",gap:5}}>
                         {n.source&&<span style={{fontSize:8,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.05)",borderRadius:3,padding:"1px 5px"}}>{n.source}</span>}
-                        {n.time&&<span style={{fontSize:8,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{n.time}</span>}
+                        {n.time&&<span style={{fontSize:8,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{n.time}</span>}
                         <span style={{marginLeft:"auto",fontSize:10,color:dirColor[n.direction]||"#6b7280",fontWeight:700}}>{n.direction==="bullish"?"▲":n.direction==="bearish"?"▼":"—"}</span>
                       </div>
                       <div style={{fontSize:10,color:"#c9cdd4",lineHeight:1.5}}>{n.headline}</div>
@@ -1014,7 +1014,7 @@ function ConfidenceBar({ value, color, animated=true }) {
 
 function PulseBadge({ pulse }) {
   const cfg = {
-    QUIET:    {color:"#4b5563",bg:"rgba(75,85,99,0.15)",   dot:"#4b5563",  label:"QUIET"},
+    QUIET:    {color:"#6b7280",bg:"rgba(75,85,99,0.15)",   dot:"#4b5563",  label:"QUIET"},
     WAIT:     {color:"#f59e0b",bg:"rgba(245,158,11,0.12)", dot:"#f59e0b",  label:"WAIT"},
     TRADABLE: {color:"#22c55e",bg:"rgba(34,197,94,0.12)",  dot:"#22c55e",  label:"TRADABLE"},
     WILD:     {color:"#ef4444",bg:"rgba(239,68,68,0.12)",  dot:"#ef4444",  label:"WILD"},
@@ -1088,7 +1088,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
               </div>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 {displayPrice&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:600,color:"#9ca3af"}}>{displayPrice}</span>}
-                <span style={{fontSize:10,color:"#374151"}}>{asset.full}</span>
+                <span style={{fontSize:10,color:"#4b5563"}}>{asset.full}</span>
               </div>
             </div>
           </div>
@@ -1108,15 +1108,15 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
               <div>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>CONFIDENCE</span>
+                  <span style={{fontSize:9,color:"#6b7280",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>CONFIDENCE</span>
                   <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:acc}}>{conf}%</span>
                 </div>
                 <ConfidenceBar value={conf} color={acc}/>
               </div>
               <div>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <span style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>HOLD</span>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:"#6366f1"}}>{hold}<span style={{fontSize:9,color:"#374151"}}>/100</span></span>
+                  <span style={{fontSize:9,color:"#6b7280",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>HOLD</span>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:"#6366f1"}}>{hold}<span style={{fontSize:9,color:"#4b5563"}}>/100</span></span>
                 </div>
                 <ConfidenceBar value={hold} color="#6366f1"/>
               </div>
@@ -1137,7 +1137,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
             {/* Deep Dive CTA */}
             <div style={{marginTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:10,color:"#374151"}}>Geanalyseerd {data.analysed_at?fmtTime(data.analysed_at):"—"}</span>
+              <span style={{fontSize:10,color:"#4b5563"}}>Geanalyseerd {data.analysed_at?fmtTime(data.analysed_at):"—"}</span>
               <div style={{display:"flex",alignItems:"center",gap:4,color:acc,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </div>
@@ -1164,12 +1164,12 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       <div style={{padding:"8px 0 4px",position:"relative"}}>
         <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${acc}0f,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
-          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>MARKET INTEL · POWERED BY AI</div>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>MARKET INTEL · POWERED BY AI</div>
           <div style={{fontSize:26,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
             Live marktdata<br/><span style={{color:acc}}>nog niet geladen</span>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-            <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:480}}>
+            <div style={{fontSize:13,color:"#6b7280",lineHeight:1.7,maxWidth:480}}>
               Intel haalt real-time nieuws, macro regime, yield analyse en cross-asset signalen op via AI web search.
             </div>
             <button onClick={onRunHybrid} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${acc}40`,flexShrink:0}}>
@@ -1190,7 +1190,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           <div key={title} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"20px",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
             <div style={{fontSize:22,marginBottom:10}}>{icon}</div>
             <div style={{fontSize:12,fontWeight:700,color:"#e2e4e9",marginBottom:6}}>{title}</div>
-            <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
+            <div style={{fontSize:11,color:"#6b7280",lineHeight:1.6}}>{desc}</div>
             <div style={{height:2,borderRadius:1,background:`${color}22`,marginTop:14}}/>
           </div>
         ))}
@@ -1231,7 +1231,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
         <div>
           {data.session_context&&<div style={{fontSize:13,color:"#9ca3af",marginBottom:2}}>{data.session_context}</div>}
-          {data.timestamp&&<div style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>📡 {fmtDT(data.timestamp)}</div>}
+          {data.timestamp&&<div style={{fontSize:10,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>📡 {fmtDT(data.timestamp)}</div>}
         </div>
         <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary btn-always-spin" style={{padding:"9px 20px",fontSize:11,color:"#fff",opacity:status==="loading-intel"?0.6:1,"--btn-glow":`${acc}40`}}>
           <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
@@ -1243,12 +1243,12 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       <div className="rc-card" style={{"--rc-color":yieldColors[data.macro_regime]||acc,"--rc-color-glow":(yieldColors[data.macro_regime]||acc)+"20","--conic-color":yieldColors[data.macro_regime]||acc}}>
         <div className="rc-glow"/>
         <div style={{position:"relative",zIndex:1,padding:"20px 24px"}}>
-          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",marginBottom:16}}>MACRO CONTEXT</div>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:16}}>MACRO CONTEXT</div>
           <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:"12px 32px",alignItems:"start"}}>
             {/* Left: regime + driver */}
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               <div>
-                <div style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",marginBottom:4}}>REGIME</div>
+                <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em",marginBottom:4}}>REGIME</div>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.macro_regime]||"#6b7280",boxShadow:`0 0 8px ${yieldColors[data.macro_regime]||"#6b7280"}`,flexShrink:0}}/>
                   <span style={{fontSize:15,fontWeight:700,color:yieldColors[data.macro_regime]||"#e2e4e9"}}>{data.macro_regime||"—"}</span>
@@ -1258,7 +1258,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                 <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
                   {[{l:"US10Y",v:data.yield_analysis.us10y_level},{l:"US2Y",v:data.yield_analysis.us2y_level},{l:"SPREAD",v:data.yield_analysis.spread}].map(({l,v})=>v&&(
                     <div key={l}>
-                      <div style={{fontSize:8,color:"#374151",letterSpacing:"0.1em",marginBottom:2}}>{l}</div>
+                      <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.1em",marginBottom:2}}>{l}</div>
                       <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:acc}}>{v}</div>
                     </div>
                   ))}
@@ -1269,7 +1269,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {data.dominant_driver&&(
                 <div style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"10px 14px",borderLeft:`2px solid ${acc}60`}}>
-                  <div style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",marginBottom:4}}>DOMINANT DRIVER</div>
+                  <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em",marginBottom:4}}>DOMINANT DRIVER</div>
                   <div style={{fontSize:12,fontWeight:600,color:"#e2e4e9"}}>{data.dominant_driver}</div>
                 </div>
               )}
@@ -1289,7 +1289,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           <div className="rc-glow"/>
           <div className="conic-border"/>
           <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",marginBottom:14}}>NIEUWS FEED</div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:14}}>NIEUWS FEED</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[...(data.news_items||[])].sort((a,b)=>{
                 const t = s => { const m=String(s||"").match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):0; };
@@ -1326,7 +1326,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
               <div className="rc-glow"/>
               <div className="conic-border"/>
               <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",marginBottom:14}}>CROSS-ASSET SIGNALEN</div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:14}}>CROSS-ASSET SIGNALEN</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {data.cross_asset_signals.map((s,i)=>(
                     <div key={i} style={{padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)"}}>
@@ -1345,7 +1345,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
               <div className="rc-glow"/>
               <div className="conic-border"/>
               <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",marginBottom:14}}>RISK RADAR</div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:14}}>RISK RADAR</div>
                 <div style={{display:"flex",alignItems:"center",gap:16}}>
                   <div style={{position:"relative",width:56,height:56,flexShrink:0}}>
                     <svg width="56" height="56" viewBox="0 0 56 56">
@@ -1373,7 +1373,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             <div className="rc-card" style={{"--rc-color":acc,"--rc-color-glow":acc+"20","--conic-color":acc}}>
               <div className="rc-glow"/>
               <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",marginBottom:10}}>YIELD IMPLICATIE</div>
+                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:10}}>YIELD IMPLICATIE</div>
                 <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.6}}>{data.yield_analysis.implication}</div>
               </div>
             </div>
@@ -1409,7 +1409,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${acc}0f,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:20,position:"relative"}}>
           <div>
-            <div style={{fontSize:11,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
+            <div style={{fontSize:11,color:"#4b5563",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
               {dateStr.toUpperCase()} · {timeStr} AMS
             </div>
             <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
@@ -1442,7 +1442,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               {isRunning?"LADEN...":"HYBRID LADEN"}
             </button>
             {lastRefresh&&(
-              <span style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>
+              <span style={{fontSize:10,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>
                 Laatste update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}
               </span>
             )}
@@ -1463,9 +1463,9 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               <div className="rc-glow"/>
               <div className="conic-border"/>
               <div style={{position:"relative",zIndex:1,padding:"18px 20px"}}>
-                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{label.toUpperCase()}</div>
+                <div style={{fontSize:9,color:"#6b7280",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{label.toUpperCase()}</div>
                 <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:26,fontWeight:800,color,marginBottom:4,lineHeight:1}}>{value}</div>
-                <div style={{fontSize:10,color:"#374151"}}>{sub}</div>
+                <div style={{fontSize:10,color:"#4b5563"}}>{sub}</div>
               </div>
             </div>
           ))}
@@ -1490,7 +1490,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               </div>
               <div>
                 <div style={{fontSize:14,fontWeight:700,color:"#e2e4e9",marginBottom:6}}>{title}</div>
-                <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
+                <div style={{fontSize:11,color:"#6b7280",lineHeight:1.6}}>{desc}</div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto",letterSpacing:"0.06em"}}>
                 OPEN <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
@@ -1512,7 +1512,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",letterSpacing:"0.14em"}}>NEWS FEED</span>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
-              {rssLoading&&<span style={{fontSize:10,color:"#4b5563",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
+              {rssLoading&&<span style={{fontSize:10,color:"#6b7280",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
               {!rssLoading&&onRefreshRss&&<button onClick={onRefreshRss} className="btn-primary" style={{padding:"4px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>↺</button>}
               <button onClick={()=>onNavigate("analyse")} className="btn-primary" style={{padding:"4px 12px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>MEER ›</button>
             </div>
@@ -1615,6 +1615,9 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSe
       return()=>clearInterval(t);
     }
   },[aStatus,iStatus,psStatus]);
+
+  // ── RSS feeds ophalen bij opstarten ───────────────────────────────────────
+  useEffect(() => { fetchRssFeeds(); }, []);
 
   // ── Auto-load gedeelde staat bij opstarten ──────────────────────────────────
   useEffect(() => {
@@ -1933,7 +1936,7 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSe
       const res = await fetch("/api/rss", { signal: AbortSignal.timeout(15000) });
       if(!res.ok) { setRssLoading(false); return; }
       const data = await res.json();
-      setRssItems((data.items||[]).map(item => ({...item, time: new Date(item.time)})));
+      setRssItems((data.items||[]).map(item => ({...item, timeStr: item.time ? new Date(item.time).toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"}) : ""})));
     } catch(e) { console.warn("RSS fout:", e); }
     setRssLoading(false);
   }
@@ -2578,11 +2581,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
         .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1);position:relative}
         .card-hover:hover{transform:translateY(-2px)!important}
-        .conic-border{position:absolute;inset:-1px;border-radius:15px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:5}
-        .conic-border::before{content:"";position:absolute;inset:0;border-radius:15px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:none}
+        .conic-border{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:5}
+        .conic-border::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:none}
         .card-hover:hover .conic-border{opacity:1}
         .card-hover:hover .conic-border::before{animation:conicSpin 2.5s linear infinite}
-        .nav-item{transition:all 0.15s ease;border-radius:8px;position:relative;color:#e2e4e9!important;}.nav-item:hover{background:rgba(255,255,255,0.05)!important;color:#fff!important;}.nav-item.active{background:rgba(255,255,255,0.06)!important;color:#fff!important;}
+        .nav-item{transition:all 0.15s ease;border-radius:8px;position:relative;color:#9ca3af!important;}
+        .nav-item:hover{background:rgba(255,255,255,0.05)!important;color:#e2e4e9!important;}
+        .nav-item.active{background:${accent}18!important;color:${accent}!important;}
         .nav-conic{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.3s ease;pointer-events:none;z-index:0}
         .nav-conic::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--nav-angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,#089981) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:none}
         .nav-item:hover .nav-conic{opacity:1}
@@ -2597,7 +2602,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .rc-card{
           position:relative;
           background:#0f1014;
-          border-radius:20px;
+          border-radius:8px;
           box-shadow:0 1em 2.5em rgba(0,0,0,0.7);
           overflow:hidden;
           transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease;
@@ -2606,7 +2611,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           content:"";
           position:absolute;
           inset:0;
-          border-radius:20px;
+          border-radius:8px;
           border:1.5px solid transparent;
           -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
           -webkit-mask-composite:destination-out;
@@ -2627,9 +2632,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         }
         .rc-card:hover{transform:translateY(-3px);box-shadow:0 1.2em 3em rgba(0,0,0,0.8)}
         .rc-card:hover .rc-glow{opacity:1.4}
-        /* conic border on hover — layered on top of ::before */
-        .rc-card .conic-border{border-radius:20px}
-        .rc-card .conic-border::before{border-radius:20px}
+        /* conic border on hover */
+        .rc-card .conic-border{border-radius:8px}
+        .rc-card .conic-border::before{border-radius:8px}
         .rc-card:hover .conic-border{opacity:1}
         .rc-card:hover .conic-border::before{animation:conicSpin 2.5s linear infinite}
         .rc-card-footer{
@@ -2721,7 +2726,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       <div style={{
       width:80,
       minHeight:"100vh",
-      background:"rgba(8,9,14,0.75)",
+      background:"rgba(8,9,14,0.5)",
       backdropFilter:"blur(20px)",
       WebkitBackdropFilter:"blur(20px)",
       borderRight:"1px solid rgba(255,255,255,0.07)",
@@ -2797,7 +2802,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       </div>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:80,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"#080910"}}>
+      <div style={{marginLeft:80,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"transparent"}}>
 
       {/* ProfileModal — fullscreen overlay outside sidebar */}
       {showProfile && (
@@ -2837,7 +2842,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               <div style={{fontSize:16,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1,color:"#e2e4e9"}}>
                 {page==="home"?"Home":page==="analyse"?"Analyse":page==="intel"?"Intel":page==="admin"?"Admin":"Kalender"}
               </div>
-              <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>
+              <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>
                 {loading ? <span style={{color:accent,animation:"blink 1s infinite"}}>● RUNNING...</span>
                   : aResult ? <span style={{color:"#22c55e"}}>● LIVE {lastRefresh?"· "+timeSinceRefresh:""}</span>
                   : <span>● STANDBY</span>}
@@ -2880,7 +2885,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
               <div>
                 <div style={{fontSize:14,fontWeight:700,color:"#e2e4e9"}}>Hybrid Analyse Uitvoeren</div>
-                <div style={{fontSize:11,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>Sluit de tab niet tijdens de analyse</div>
+                <div style={{fontSize:11,color:"#6b7280",fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>Sluit de tab niet tijdens de analyse</div>
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -2902,7 +2907,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         : active
                         ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{animation:"spin 0.8s linear infinite"}}><path d="M12 2a10 10 0 0 1 10 10" stroke="#000" strokeWidth="2.5" strokeLinecap="round"/></svg>
-                        : <span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{step}</span>
+                        : <span style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{step}</span>
                       }
                     </div>
                     <div style={{flex:1}}>
@@ -2949,21 +2954,21 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 <div className="rc-glow"/>
                 <div style={{position:"relative",zIndex:1,padding:"16px 20px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                    <span style={{fontSize:9,fontWeight:700,color:"#4b5563",letterSpacing:"0.16em"}}>MACRO CONTEXT</span>
+                    <span style={{fontSize:9,fontWeight:700,color:"#6b7280",letterSpacing:"0.16em"}}>MACRO CONTEXT</span>
                     {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
                   </div>
                   <div style={{display:"flex",gap:20,alignItems:"stretch",flexWrap:"wrap"}}>
                     {/* Yield regime */}
                     {aResult.yield_regime&&(
                       <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                        <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em"}}>YIELD REGIME</span>
+                        <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em"}}>YIELD REGIME</span>
                         <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
                       </div>
                     )}
                     {/* Session */}
                     {aResult.session&&(
                       <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                        <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em"}}>SESSIE</span>
+                        <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em"}}>SESSIE</span>
                         <span style={{fontSize:11,fontWeight:700,color:"#6366f1"}}>{aResult.session.toUpperCase()}</span>
                       </div>
                     )}
@@ -2974,7 +2979,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       {l:"US10Y",v:livePrices.US10Y?.price||aResult.us10y,c:accent},
                     ].filter(x=>x.v).map(({l,v,c})=>(
                       <div key={l} style={{display:"flex",flexDirection:"column",gap:5}}>
-                        <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em"}}>{l}</span>
+                        <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em"}}>{l}</span>
                         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:c}}>{v}</span>
                       </div>
                     ))}
@@ -2983,7 +2988,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <>
                         <div style={{width:1,background:"rgba(255,255,255,0.06)",alignSelf:"stretch",flexShrink:0}}/>
                         <div style={{flex:1,minWidth:180}}>
-                          <span style={{fontSize:8,color:"#374151",letterSpacing:"0.12em",display:"block",marginBottom:5}}>MARKT CONTEXT</span>
+                          <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em",display:"block",marginBottom:5}}>MARKT CONTEXT</span>
                           <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{aResult.market_context}</div>
                         </div>
                       </>
@@ -3004,11 +3009,11 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     <span style={{fontSize:13}}>🧠</span>
                     <div>
                       <div style={{fontSize:10,color:accent,letterSpacing:"0.12em",fontWeight:700}}>AI MARKTBRIEFING</div>
-                      <div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(marktvisie.marktvisie_tijd||Date.now())}</div>
+                      <div style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(marktvisie.marktvisie_tijd||Date.now())}</div>
                     </div>
                   </div>
                   <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.8,marginBottom:12}}>{marktvisie.macro_samenvatting}</div>
-                  <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
                     <span>📰 NIEUWS CONTEXT PER ASSET</span>
                     <span style={{color:"#2d3748"}}>— gebaseerd op Intel nieuws van {fmtDT(marktvisie.marktvisie_tijd||Date.now())}</span>
                   </div>
@@ -3021,7 +3026,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                             <span style={{fontSize:10,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.04)",borderRadius:4,padding:"1px 8px",flexShrink:0,minWidth:64,textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>{id}</span>
                             <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.6,flex:1}}>{v.visie}</span>
                             <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0,marginTop:1}}>
-                              <span style={{fontSize:8,color:"#374151",background:"rgba(255,255,255,0.03)",borderRadius:3,padding:"1px 5px",letterSpacing:"0.06em",border:"1px solid #1f2937"}}>🤖 AI</span>
+                              <span style={{fontSize:8,color:"#4b5563",background:"rgba(255,255,255,0.03)",borderRadius:3,padding:"1px 5px",letterSpacing:"0.06em",border:"1px solid #1f2937"}}>🤖 AI</span>
                               {v.ingeprijsd&&<span style={{fontSize:8,color:"#f97316",background:"rgba(249,115,22,0.1)",borderRadius:3,padding:"1px 5px"}}>ingeprijsd?</span>}
                             </div>
                           </div>
@@ -3058,7 +3063,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     else yieldRegime = "Normaal macro regime";
                     return (
                       <div style={{background:"#0d0e13",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
-                        <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
+                        <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
                         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                           <span style={{fontSize:11,fontWeight:700,color:corrColor}}>{corrLabel}</span>
                         </div>
@@ -3067,7 +3072,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
                           {[["DXY",dxy],["XAU/USD",xau],["US10Y",us10y],["VIX",vix]].filter(([,v])=>v).map(([label,v])=>(
                             <div key={label} style={{background:"rgba(255,255,255,0.02)",borderRadius:5,padding:"5px 8px"}}>
-                              <div style={{fontSize:8,color:"#374151",letterSpacing:"0.08em"}}>{label}</div>
+                              <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.08em"}}>{label}</div>
                               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:v.raw>0?"#22c55e":"#ef4444"}}>{v.change}</div>
                             </div>
                           ))}
@@ -3087,7 +3092,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                             <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:e.actual?accent:"#e5e7eb",fontWeight:700,flexShrink:0}}>{e.time}</span>
                             <span style={{fontSize:10,color:e.actual?"#4b5563":"#e5e7eb",flex:1}}>{e.event}</span>
                             {e.actual&&<span style={{fontSize:9,fontWeight:700,color:accent,fontFamily:"'JetBrains Mono',monospace"}}>{e.actual}</span>}
-                            {!e.actual&&<span style={{fontSize:8,color:"#374151"}}>→</span>}
+                            {!e.actual&&<span style={{fontSize:8,color:"#4b5563"}}>→</span>}
                           </div>
                         ))}
                       </div>
@@ -3102,7 +3107,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               {/* Header */}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:9,fontWeight:700,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE BREAKDOWN</span>
+                  <span style={{fontSize:9,fontWeight:700,color:"#4b5563",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE BREAKDOWN</span>
                   {presession?.analysed_at&&<span style={{fontSize:8,color:"#1f2937",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(presession.analysed_at)}</span>}
                 </div>
                 <button onClick={runPresession} disabled={psStatus==="loading"} className="btn-primary" title="Sessie verversen" style={{padding:"6px 10px",fontSize:12,color:"#fff",opacity:psStatus==="loading"?0.6:1,"--btn-glow":`${accent}40`}}>
@@ -3114,7 +3119,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               {psStatus==="loading"&&(
                 <div style={{background:"#0d0e11",border:`1px solid ${accent}18`,borderRadius:10,padding:"20px 22px",display:"flex",alignItems:"center",gap:10}}>
                   <div style={{width:14,height:14,border:`2px solid ${accent}33`,borderTopColor:accent,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}}/>
-                  <span style={{fontSize:11,color:"#4b5563"}}>Sessie context ophalen...</span>
+                  <span style={{fontSize:11,color:"#6b7280"}}>Sessie context ophalen...</span>
                 </div>
               )}
 
@@ -3143,7 +3148,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:72,paddingRight:20,borderRight:"1px solid rgba(255,255,255,0.05)"}}>
                         <div style={{width:36,height:36,borderRadius:10,background:`${mc}15`,border:`1px solid ${mc}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color:mc}}>{moodIcon}</div>
                         <div style={{fontSize:12,fontWeight:700,color:mc,letterSpacing:"0.02em",textAlign:"center",lineHeight:1.2}}>{presession.mood}</div>
-                        {presession.mood_score&&<div style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{presession.mood_score}%</div>}
+                        {presession.mood_score&&<div style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{presession.mood_score}%</div>}
                         {/* Mood bar */}
                         <div style={{width:"100%",height:3,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden"}}>
                           <div style={{height:"100%",width:`${presession.mood_score||50}%`,background:mc,borderRadius:2,transition:"width 0.8s ease"}}/>
@@ -3159,7 +3164,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                               {presession.session}
                             </span>
                           )}
-                          {presession.session_time&&<span style={{fontSize:9,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>{presession.session_time}</span>}
+                          {presession.session_time&&<span style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{presession.session_time}</span>}
                           {presession.volatility_outlook&&(
                             <span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:4,padding:"2px 8px",letterSpacing:"0.06em"}}>
                               VOL: {presession.volatility_outlook.toUpperCase()}
@@ -3176,7 +3181,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
                         {/* Mood explanation */}
                         {presession.mood_explanation&&(
-                          <div style={{fontSize:11,color:"#4b5563",lineHeight:1.55,fontStyle:"italic",borderLeft:`2px solid ${mc}33`,paddingLeft:10}}>
+                          <div style={{fontSize:11,color:"#6b7280",lineHeight:1.55,fontStyle:"italic",borderLeft:`2px solid ${mc}33`,paddingLeft:10}}>
                             {presession.mood_explanation}
                           </div>
                         )}
@@ -3185,7 +3190,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       {/* Right: key events */}
                       {presession.key_events_today?.length>0&&(
                         <div style={{display:"flex",flexDirection:"column",gap:5,minWidth:140,paddingLeft:20,borderLeft:"1px solid rgba(255,255,255,0.05)"}}>
-                          <div style={{fontSize:8,fontWeight:700,color:"#374151",letterSpacing:"0.14em",marginBottom:2,fontFamily:"'JetBrains Mono',monospace"}}>KEY EVENTS</div>
+                          <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",marginBottom:2,fontFamily:"'JetBrains Mono',monospace"}}>KEY EVENTS</div>
                           {presession.key_events_today.slice(0,4).map((e,i)=>(
                             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:6}}>
                               <div style={{width:4,height:4,borderRadius:"50%",background:accent,flexShrink:0,marginTop:4,opacity:0.6}}/>
@@ -3207,12 +3212,12 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 <div style={{padding:"8px 0 4px",position:"relative"}}>
                   <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${accent}0f,transparent 70%)`,pointerEvents:"none"}}/>
                   <div style={{position:"relative"}}>
-                    <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>HYBRID ANALYSE · POWERED BY AI</div>
+                    <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>HYBRID ANALYSE · POWERED BY AI</div>
                     <div style={{fontSize:24,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
                       Asset analyse<br/><span style={{color:accent}}>nog niet gestart</span>
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-                      <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:500}}>
+                      <div style={{fontSize:13,color:"#6b7280",lineHeight:1.7,maxWidth:500}}>
                         Hybrid analyseert alle 5 assets tegelijk — bias richting, confidence score, Pulse timing en institutionele flow.
                       </div>
                       <button onClick={runHybrid} disabled={aStatus==="loading"} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${accent}40`,flexShrink:0}}>
@@ -3225,7 +3230,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
                   {["XAU/USD","US30","US100","EUR/USD","GBP/USD"].map((sym,i)=>(
                     <div key={sym} style={{background:"#0d0e13",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"14px 16px"}}>
-                      <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{sym}</div>
+                      <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{sym}</div>
                       <div style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",marginBottom:6,width:["70%","55%","80%","60%","75%"][i]}}/>
                       <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.03)",marginBottom:5,width:"90%"}}/>
                       <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"60%"}}/>
@@ -3256,7 +3261,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   <span style={{fontSize:10,fontWeight:700,color:breakingNews.length>0?"#ef4444":"#374151",letterSpacing:"0.12em"}}>BREAKING NEWS</span>
                 </div>
                 <span style={{fontSize:9,color:"#2d3748"}}>Finnhub · Reuters · Bloomberg · ForexFactory</span>
-                {bnLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span></span>}
+                {bnLoading&&<span style={{fontSize:9,color:"#6b7280",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span></span>}
                 {!bnLoading&&breakingNews.length>0&&<button onClick={fetchBreakingNews} className="btn-primary" title="Verversen" style={{marginLeft:"auto",padding:"5px 10px",fontSize:12,color:"#fff","--btn-glow":`${accent}30`}}>↺</button>}
               </div>
               <div style={{maxHeight:380,overflowY:"auto",padding:"6px 10px 10px",display:"flex",flexDirection:"column",gap:4}}>
@@ -3278,7 +3283,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   </div>
                 )}
                 {breakingNews.length===0&&!bnLoading&&aResult&&(
-                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen nieuws gevonden</div>
+                  <div style={{color:"#4b5563",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen nieuws gevonden</div>
                 )}
                 {[...breakingNews].sort((a,b)=>b.time-a.time).map((n,i)=>{
                   const isHigh = n.impact==="high";
@@ -3301,7 +3306,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         </div>
                         <div style={{fontSize:12,color:"#e2e4e9",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
                       </div>
-                      <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:"#374151",fontSize:14,flexShrink:0}}>›</div>
+                      <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:"#4b5563",fontSize:14,flexShrink:0}}>›</div>
                     </div>
                   );
                 })}
@@ -3312,7 +3317,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontSize:10,fontWeight:700,color:rssItems.length>0?"#9ca3af":"#374151",letterSpacing:"0.1em"}}>NEWS FEED</span>
                 <span style={{fontSize:9,color:"#2d3748"}}>Reuters · FF · FXStreet</span>
-                {rssLoading&&<span style={{fontSize:9,color:"#4b5563",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
+                {rssLoading&&<span style={{fontSize:9,color:"#6b7280",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
                 {!rssLoading&&rssItems.length>0&&<button onClick={fetchRssFeeds} className="btn-primary" style={{marginLeft:"auto",padding:"5px 10px",fontSize:9,color:"#fff","--btn-glow":`${accent}30`}}>↺</button>}
               </div>
               <div style={{flex:1,overflowY:"auto",maxHeight:380,padding:"6px 10px 10px",display:"flex",flexDirection:"column",gap:4}}>
@@ -3331,7 +3336,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   </div>
                 )}
                 {rssItems.length===0&&!rssLoading&&aResult&&(
-                  <div style={{color:"#374151",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen feed items</div>
+                  <div style={{color:"#4b5563",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen feed items</div>
                 )}
                 {rssItems.map((item,i)=>(
                   <div key={i}
@@ -3346,7 +3351,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       </div>
                       <div style={{fontSize:12,color:"#e2e4e9",lineHeight:1.55}}>{item.headline}</div>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"#374151",fontSize:14,flexShrink:0}}>›</div>
+                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"#4b5563",fontSize:14,flexShrink:0}}>›</div>
                   </div>
                 ))}
               </div>
@@ -3377,11 +3382,11 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${accent}0f,transparent 70%)`,pointerEvents:"none"}}/>
               <div style={{position:"relative",display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:20}}>
                 <div>
-                  <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>TOOLS & KALENDER · EXTERNE LINKS</div>
+                  <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>TOOLS & KALENDER · EXTERNE LINKS</div>
                   <div style={{fontSize:24,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
                     Alles wat je nodig hebt<br/><span style={{color:accent}}>op één plek</span>
                   </div>
-                  <div style={{fontSize:13,color:"#4b5563",lineHeight:1.7,maxWidth:500}}>
+                  <div style={{fontSize:13,color:"#6b7280",lineHeight:1.7,maxWidth:500}}>
                     Snelle links naar economische kalenders, charting tools en macro bronnen voor de London sessie.
                   </div>
                 </div>
@@ -3403,7 +3408,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* Kalenders */}
             <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>ECONOMISCHE KALENDERS</div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>ECONOMISCHE KALENDERS</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10}}>
                 {[
                   {label:"ForexFactory",  url:"https://www.forexfactory.com/calendar",              sub:"High-impact events",     color:"#f59e0b", icon:"🏭"},
@@ -3417,7 +3422,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{fontSize:22}}>{icon}</div>
                       <div>
                         <div style={{fontSize:12,fontWeight:700,color:"#e2e4e9",marginBottom:3}}>{label}</div>
-                        <div style={{fontSize:10,color:"#4b5563"}}>{sub}</div>
+                        <div style={{fontSize:10,color:"#6b7280"}}>{sub}</div>
                       </div>
                       <div style={{marginTop:"auto",height:2,borderRadius:1,background:`${color}30`}}><div style={{height:"100%",width:"100%",background:`${color}60`,borderRadius:1}}/></div>
                     </a>
@@ -3428,7 +3433,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* Charting & tools */}
             <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CHARTING & ANALYSE</div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CHARTING & ANALYSE</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10}}>
                 {[
                   {label:"TradingView",   url:"https://www.tradingview.com",                        sub:"Charts & screener",      color:accent,    icon:"📉"},
@@ -3442,7 +3447,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{fontSize:22}}>{icon}</div>
                       <div>
                         <div style={{fontSize:12,fontWeight:700,color:"#e2e4e9",marginBottom:3}}>{label}</div>
-                        <div style={{fontSize:10,color:"#4b5563"}}>{sub}</div>
+                        <div style={{fontSize:10,color:"#6b7280"}}>{sub}</div>
                       </div>
                       <div style={{marginTop:"auto",height:2,borderRadius:1,background:`${color}30`}}><div style={{height:"100%",width:"100%",background:`${color}60`,borderRadius:1}}/></div>
                     </a>
@@ -3454,7 +3459,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             {/* Tip */}
             <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"12px 18px",display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:16}}>💡</span>
-              <span style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>Intel haalt automatisch high-impact events op tijdens de hybrid analyse — je hoeft de kalender niet handmatig te checken voor de daily bias.</span>
+              <span style={{fontSize:11,color:"#6b7280",lineHeight:1.6}}>Intel haalt automatisch high-impact events op tijdens de hybrid analyse — je hoeft de kalender niet handmatig te checken voor de daily bias.</span>
             </div>
 
           </div>
@@ -4146,7 +4151,7 @@ function AuthScreen({ onLogin, accent }) {
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:26,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4"}}>Hybrid<span style={{color:ac}}>Trader</span></div>
-          <div style={{fontSize:9,color:"#374151",letterSpacing:"0.18em",fontFamily:"'JetBrains Mono',monospace",marginTop:4}}>INSTITUTIONAL TRADING DASHBOARD</div>
+          <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.18em",fontFamily:"'JetBrains Mono',monospace",marginTop:4}}>INSTITUTIONAL TRADING DASHBOARD</div>
         </div>
 
         <div style={{background:"linear-gradient(160deg,#111420,#0d1016)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:14,padding:"32px 28px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.05)"}}>
@@ -4199,7 +4204,7 @@ function AuthScreen({ onLogin, accent }) {
             <AuthBtn onClick={mode==="login"?doLogin:doRegister} accent={ac} disabled={loading}>
               {loading?t.loading:(mode==="login"?t.loginBtn:t.registerBtn)}
             </AuthBtn>
-            {mode==="register" && <div style={{fontSize:11,color:"#374151",textAlign:"center",lineHeight:1.6}}>{t.waitApproval}</div>}
+            {mode==="register" && <div style={{fontSize:11,color:"#4b5563",textAlign:"center",lineHeight:1.6}}>{t.waitApproval}</div>}
           </div>
         </div>
       </div>
@@ -4220,7 +4225,7 @@ function AccessDenied({ user, onLogout, accent }) {
       <div style={{position:"relative",textAlign:"center",maxWidth:420}}>
         <div style={{fontSize:48,marginBottom:20}}>🚫</div>
         <div style={{fontSize:22,fontWeight:800,color:"#f87171",marginBottom:10}}>{t.noAccess}</div>
-        <div style={{fontSize:13,color:"#4b5563",lineHeight:1.8,marginBottom:28}}>
+        <div style={{fontSize:13,color:"#6b7280",lineHeight:1.8,marginBottom:28}}>
           {t.hello} <span style={{color:"#e2e4e9",fontWeight:600}}>{user?.name}</span>, {t.waitMsg}
         </div>
         <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:10,padding:"16px 20px",marginBottom:28,fontSize:12,color:"#f87171",lineHeight:1.6}}>
@@ -4269,13 +4274,13 @@ function AdminPanel({ accent }) {
       <div style={{padding:"8px 0 4px",position:"relative"}}>
         <div style={{position:"absolute",top:-40,right:0,width:280,height:180,borderRadius:"50%",background:`radial-gradient(circle,${ac}0f,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
-          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.adminPanel}</div>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.adminPanel}</div>
           <div style={{fontSize:22,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:8}}>{t.manageUsers} <span style={{color:ac}}>{t.users}</span></div>
           <div style={{display:"flex",gap:16,marginTop:12,alignItems:"center",flexWrap:"wrap"}}>
             {[{label:t.total,val:users.length,color:"#6b7280"},{label:t.approved,val:approved.length,color:"#22c55e"},{label:t.inProgress,val:pending.length,color:"#f59e0b"}].map(({label,val,color})=>(
               <div key={label} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"10px 16px",minWidth:80}}>
                 <div style={{fontSize:20,fontWeight:800,color,fontFamily:"'JetBrains Mono',monospace"}}>{val}</div>
-                <div style={{fontSize:8,color:"#374151",letterSpacing:"0.1em",marginTop:2}}>{label.toUpperCase()}</div>
+                <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.1em",marginTop:2}}>{label.toUpperCase()}</div>
               </div>
             ))}
             <button onClick={loadUsers} style={{marginLeft:"auto",padding:"8px 14px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,color:"#6b7280",fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
@@ -4304,13 +4309,13 @@ function AdminPanel({ accent }) {
       <div style={{background:"linear-gradient(160deg,#0f1116,#0c0d12)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden"}}>
         <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1fr 1fr 1.6fr",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"10px 16px"}}>
           {[t.colName,t.colEmail,t.colStatus,t.colDate,t.colActions].map(h=>(
-            <div key={h} style={{fontSize:8,fontWeight:700,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{h}</div>
+            <div key={h} style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{h}</div>
           ))}
         </div>
         {loading ? (
-          <div style={{padding:"32px",textAlign:"center",color:"#374151",fontSize:12}}>...</div>
+          <div style={{padding:"32px",textAlign:"center",color:"#4b5563",fontSize:12}}>...</div>
         ) : list.length===0 ? (
-          <div style={{padding:"32px",textAlign:"center",color:"#374151",fontSize:12}}>
+          <div style={{padding:"32px",textAlign:"center",color:"#4b5563",fontSize:12}}>
             {tab==="pending"?t.noRequests:t.noUsers}
           </div>
         ) : list.map((u,i)=>(
@@ -4325,7 +4330,7 @@ function AdminPanel({ accent }) {
                 {u.approved?t.statusApproved:t.statusPending}
               </span>
             </div>
-            <div style={{fontSize:10,color:"#374151",fontFamily:"'JetBrains Mono',monospace"}}>
+            <div style={{fontSize:10,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>
               {u.registeredAt?new Date(u.registeredAt).toLocaleDateString("nl-NL",{day:"2-digit",month:"2-digit",year:"2-digit"}):"—"}
             </div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
@@ -4338,7 +4343,7 @@ function AdminPanel({ accent }) {
       </div>
       <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"12px 16px",display:"flex",gap:10}}>
         <span style={{fontSize:14}}>ℹ️</span>
-        <span style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{t.autoRefresh} {t.adminInfo}</span>
+        <span style={{fontSize:11,color:"#6b7280",lineHeight:1.6}}>{t.autoRefresh} {t.adminInfo}</span>
       </div>
     </div>
   );
@@ -4427,7 +4432,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
         <div style={{padding:"20px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexShrink:0}}>
           <div>
             <div style={{fontSize:16,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.01em"}}>{t.settings}</div>
-            <div style={{fontSize:9,color:"#374151",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:3}}>{t.profileDashboard}</div>
+            <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:3}}>{t.profileDashboard}</div>
           </div>
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,color:"#6b7280",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,flexShrink:0}}>×</button>
         </div>
@@ -4467,7 +4472,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                 </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:11,fontWeight:600,color:"#e2e4e9",marginBottom:6}}>{t.profilePhoto}</div>
-                  <div style={{fontSize:11,color:"#4b5563",marginBottom:12,lineHeight:1.6}}>{t.uploadInfo}</div>
+                  <div style={{fontSize:11,color:"#6b7280",marginBottom:12,lineHeight:1.6}}>{t.uploadInfo}</div>
                   <div style={{display:"flex",gap:8}}>
                     <label style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",background:`${ac}15`,border:`1px solid ${ac}40`,borderRadius:8,color:ac,fontSize:11,fontWeight:700,cursor:"pointer",letterSpacing:"0.04em"}}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -4479,12 +4484,12 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                 </div>
               </div>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.displayName}</div>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.displayName}</div>
                 <input value={name} onChange={e=>setName(e.target.value)} style={authInp}/>
               </div>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.emailLabel}</div>
-                <div style={{...authInp,color:"#4b5563",cursor:"not-allowed",display:"flex",alignItems:"center",gap:8}}>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.emailLabel}</div>
+                <div style={{...authInp,color:"#6b7280",cursor:"not-allowed",display:"flex",alignItems:"center",gap:8}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.5"/><polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.5"/></svg>
                   {session?.email}
                   <span style={{marginLeft:"auto",fontSize:9,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{t.notEditable}</span>
@@ -4502,27 +4507,27 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
               </div>
               {session?.role !== "admin" && (
                 <div>
-                  <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.currentPw}</div>
+                  <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.currentPw}</div>
                   <PwInput value={oldPw} onChange={e=>setOldPw(e.target.value)} placeholder="••••••••" accent={ac}/>
                 </div>
               )}
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.newPw}</div>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.newPw}</div>
                 <PwInput value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="••••••••" accent={ac}/>
               </div>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.repeatPw}</div>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{t.repeatPw}</div>
                 <PwInput value={newPw2} onChange={e=>setNewPw2(e.target.value)} placeholder="••••••••" accent={ac}/>
               </div>
               {newPw && (
                 <div>
-                  <div style={{fontSize:9,color:"#374151",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.strength}</div>
+                  <div style={{fontSize:9,color:"#4b5563",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.strength}</div>
                   <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                     <div style={{height:"100%",borderRadius:2,transition:"width .3s",
                       width:newPw.length<6?"20%":newPw.length<8?"50%":newPw.length<12?"75%":"100%",
                       background:newPw.length<6?"#ef4444":newPw.length<8?"#f59e0b":newPw.length<12?"#22c55e":ac}}/>
                   </div>
-                  <div style={{fontSize:9,color:"#374151",marginTop:3}}>
+                  <div style={{fontSize:9,color:"#4b5563",marginTop:3}}>
                     {newPw.length<6?t.weak:newPw.length<8?t.fair:newPw.length<12?t.strong:t.veryStrong}
                   </div>
                 </div>
@@ -4535,7 +4540,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
           {tab==="dashboard" && (
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:10,fontFamily:"'JetBrains Mono',monospace"}}>{t.accentColor}</div>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:10,fontFamily:"'JetBrains Mono',monospace"}}>{t.accentColor}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
                   {presets.map(color=>(
                     <button key={color} onClick={()=>{setAccent(color);setCustomColor(color);}}
@@ -4547,7 +4552,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                     </button>
                   ))}
                 </div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>{t.customColor}</div>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>{t.customColor}</div>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <input type="color" value={customColor} onChange={e=>setCustomColor(e.target.value)}
                     style={{width:34,height:34,borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"none",cursor:"pointer",padding:2,flexShrink:0}}/>
@@ -4563,7 +4568,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
               </div>
               {/* Live preview */}
               <div style={{padding:"14px 16px",background:`${accent}0c`,border:`1px solid ${accent}25`,borderRadius:10}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{t.livePreview}</div>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{t.livePreview}</div>
                 <div style={{display:"flex",gap:10,alignItems:"center"}}>
                   <div style={{width:36,height:36,borderRadius:"50%",background:`${accent}20`,border:`2px solid ${accent}50`,display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <span style={{fontSize:13,fontWeight:800,color:accent}}>{initials}</span>
@@ -4576,8 +4581,8 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
               </div>
               {/* Assets visibility */}
               <div>
-                <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.assetsTitle}</div>
-                <div style={{fontSize:11,color:"#374151",marginBottom:12}}>{t.assetsDesc}</div>
+                <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.assetsTitle}</div>
+                <div style={{fontSize:11,color:"#4b5563",marginBottom:12}}>{t.assetsDesc}</div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {DEFAULT_ASSETS.map(id=>{
                     const visible = !hidden.includes(id);
@@ -4606,7 +4611,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
           {/* ── TAAL ── */}
           {tab==="taal" && (
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.language.toUpperCase()}</div>
+              <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.language.toUpperCase()}</div>
               {Object.values(LANGS).map(l=>(
                 <button key={l.code} onClick={()=>switchLang(l.code)}
                   style={{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",
@@ -4616,7 +4621,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                   <span style={{fontSize:24}}>{l.flag}</span>
                   <div style={{flex:1}}>
                     <div style={{fontSize:13,fontWeight:600,color:lang===l.code?ac:"#e2e4e9"}}>{l.label}</div>
-                    <div style={{fontSize:9,color:"#374151",letterSpacing:"0.08em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{l.code.toUpperCase()}</div>
+                    <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.08em",marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{l.code.toUpperCase()}</div>
                   </div>
                   {lang===l.code && (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke={ac} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -4630,7 +4635,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
           {tab==="account" && (
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               <div style={{padding:"16px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10}}>
-                <div style={{fontSize:9,color:"#374151",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.accountInfo}</div>
+                <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.accountInfo}</div>
                 {[
                   {label:t.nameLabel,  val:session?.name||"—"},
                   {label:t.emailInfoLabel, val:session?.email||"—"},
@@ -4638,14 +4643,14 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                   {label:t.statusLabel, val:session?.approved?t.active:t.pending, color:session?.approved?"#22c55e":"#f59e0b"},
                 ].map(({label,val,color})=>(
                   <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                    <span style={{fontSize:11,color:"#4b5563"}}>{label}</span>
+                    <span style={{fontSize:11,color:"#6b7280"}}>{label}</span>
                     <span style={{fontSize:11,fontWeight:600,color:color||"#e2e4e9",fontFamily:label===t.emailInfoLabel?"'JetBrains Mono',monospace":"inherit"}}>{val}</span>
                   </div>
                 ))}
               </div>
               <div style={{padding:"14px",background:"rgba(239,68,68,0.05)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:10}}>
                 <div style={{fontSize:11,fontWeight:600,color:"#f87171",marginBottom:4}}>{t.logoutTitle}</div>
-                <div style={{fontSize:11,color:"#4b5563",marginBottom:14,lineHeight:1.6}}>{t.logoutDesc}</div>
+                <div style={{fontSize:11,color:"#6b7280",marginBottom:14,lineHeight:1.6}}>{t.logoutDesc}</div>
                 <AuthBtn onClick={onLogout} accent="#ef4444">{t.logout}</AuthBtn>
               </div>
             </div>
