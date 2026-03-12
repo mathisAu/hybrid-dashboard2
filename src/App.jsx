@@ -866,47 +866,37 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
               </Card>
             )}
 
-            {/* 2-col: Trend + Structuur */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <Card color={trendCol(data?.technical_trend)}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>TECHNISCHE TREND</div>
-                <div style={{fontSize:16,fontWeight:800,color:trendCol(data?.technical_trend),marginBottom:4,letterSpacing:"0.02em"}}>{data?.technical_trend||"—"}</div>
-                {data?.technical_trend_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:6}}>{data.technical_trend_uitleg}</div>}
-              </Card>
-              <Card color="#9ca3af">
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>INTRADAY STRUCTUUR</div>
-                <div style={{fontSize:16,fontWeight:800,color:"#9ca3af",marginBottom:4}}>{data?.intraday_structuur||"—"}</div>
-                {data?.structuur_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:6}}>{data.structuur_uitleg}</div>}
-              </Card>
-            </div>
-
-            {/* 2-col: Market Regime + Yield/Correlatie */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <Card color="#6366f1">
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>MARKET REGIME</div>
-                <div style={{fontSize:14,fontWeight:700,color:"#6366f1",letterSpacing:"0.02em"}}>{data?.market_regime?.toUpperCase()||"—"}</div>
-                {data?.market_regime_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:6}}>{data.market_regime_uitleg}</div>}
-              </Card>
-              {data?.yield_regime&&data.yield_regime!=="n.v.t."?(
-                <Card color={yieldColors[data.yield_regime]||"#6b7280"}>
-                  <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>YIELD REGIME</div>
-                  <div style={{display:"flex",alignItems:"center",gap:7}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:yieldColors[data.yield_regime]||"#6b7280",flexShrink:0}}/>
-                    <div style={{fontSize:13,fontWeight:700,color:yieldColors[data.yield_regime]||"#9ca3af"}}>{data.yield_regime}</div>
-                  </div>
-                  {(data.yield_regime_uitleg||data.yield_regime_explanation)&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:6}}>{data.yield_regime_uitleg||data.yield_regime_explanation}</div>}
-                </Card>
-              ):(
-                <Card color={corrColors[data?.correlatie_status]||"#6b7280"}>
-                  <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CORRELATIE</div>
-                  <div style={{display:"flex",alignItems:"center",gap:7}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:corrColors[data?.correlatie_status]||"#6b7280",flexShrink:0}}/>
-                    <div style={{fontSize:13,fontWeight:700,color:corrColors[data?.correlatie_status]||"#9ca3af"}}>{data?.correlatie_status||"—"}</div>
-                  </div>
-                  {data?.correlatie_uitleg&&<div style={{fontSize:10,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:6}}>{data.correlatie_uitleg}</div>}
-                </Card>
-              )}
-            </div>
+            {/* Compact technische stats balk */}
+            {(()=>{
+              const tl = (data?.technical_trend||"").toLowerCase();
+              const trendIsUp   = tl.includes("up")   || tl.includes("bull");
+              const trendIsDown = tl.includes("down")  || tl.includes("bear");
+              const trendColor  = trendIsUp?"#22c55e":trendIsDown?"#ef4444":trendCol(data?.technical_trend);
+              const trendArrow  = trendIsUp?"↑":trendIsDown?"↓":"→";
+              const yc = yieldColors[data?.yield_regime]||corrColors[data?.correlatie_status]||"#6b7280";
+              const yLabel = data?.yield_regime&&data.yield_regime!=="n.v.t."?data.yield_regime:data?.correlatie_status||"—";
+              const yKey   = data?.yield_regime&&data.yield_regime!=="n.v.t."?"YIELD":"CORR";
+              const stats = [
+                { key:"TREND",     value:data?.technical_trend||"—",           color:trendColor, prefix:trendArrow },
+                { key:"STRUCTUUR", value:data?.intraday_structuur||"—",         color:"#9ca3af" },
+                { key:"REGIME",    value:data?.market_regime?.toUpperCase()||"—",color:"#6366f1" },
+                { key:yKey,        value:yLabel,                                 color:yc, dot:true },
+              ];
+              return (
+                <div style={{background:"#0c0d10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"14px 18px",display:"flex",gap:0}}>
+                  {stats.map((s,i)=>(
+                    <div key={s.key} style={{flex:1,paddingLeft:i===0?0:16,marginLeft:i===0?0:16,borderLeft:i===0?"none":"1px solid rgba(255,255,255,0.06)"}}>
+                      <div style={{fontSize:8,fontWeight:700,letterSpacing:"0.12em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>{s.key}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:5}}>
+                        {s.dot&&<div style={{width:6,height:6,borderRadius:"50%",background:s.color,flexShrink:0}}/>}
+                        {s.prefix&&<span style={{fontSize:13,fontWeight:800,color:s.color}}>{s.prefix}</span>}
+                        <span style={{fontSize:11,fontWeight:700,color:s.color,lineHeight:1.3}}>{s.value}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Fail condition */}
             {data?.fail_condition&&(
