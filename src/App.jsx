@@ -1081,8 +1081,8 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
 
             {/* AI Summary block */}
-            <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.08)")",borderRadius:10,padding:"11px 13px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
+              <div style={{background:"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(8,153,129,0.04))",border:"1px solid rgba(99,102,241,0.08)",borderRadius:10,padding:"11px 13px"}}> 
+                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
                 <div style={{width:16,height:16,borderRadius:5,background:"rgba(99,102,241,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
                   <span style={{fontSize:9}}>✦</span>
                 </div>
