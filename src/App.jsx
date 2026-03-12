@@ -701,10 +701,10 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
       onClick={onClick}
       className="card-hover"
       style={{
-        background:"#0d0e13",
-        border:"1px solid rgba(255,255,255,0.07)",
-        borderRadius:12,
-        boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
+        background:"linear-gradient(145deg,#0f1117,#0b0c11)",
+        border:"1px solid rgba(255,255,255,0.08)",
+        borderRadius:14,
+        boxShadow:"0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
         padding:"18px 20px",
         position:"relative",
         cursor:onClick?"pointer":"default",
@@ -1428,25 +1428,25 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
       {/* Stats row */}
       {aResult&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
           {[
             {label:"Markt Sentiment",value:overallSentiment,color:sentimentColor,sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
             {label:"Gem. Confidence",value:avgConf+"%",color:acc,sub:"Over alle assets"},
             {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
             {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
           ].map(({label,value,color,sub})=>(
-            <div key={label} style={{background:"linear-gradient(160deg,#131520,#0e0f15)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"16px 18px",boxShadow:"0 2px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
-              <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{label.toUpperCase()}</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:22,fontWeight:700,color,marginBottom:4}}>{value}</div>
+            <div key={label} style={{background:"linear-gradient(145deg,#0f1117,#0b0c11)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"18px 20px",boxShadow:`0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.04)`,position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:`radial-gradient(circle,${color}18,transparent 70%)`,pointerEvents:"none"}}/>
+              <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{label.toUpperCase()}</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:26,fontWeight:800,color,marginBottom:4,lineHeight:1}}>{value}</div>
               <div style={{fontSize:10,color:"#374151"}}>{sub}</div>
             </div>
           ))}
         </div>
       )}
 
-
       {/* Quick nav cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
         {[
           {id:"analyse",icon:"▦",title:"Asset Analyse",desc:"Volledige bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.",color:acc},
           {id:"intel",  icon:"◉",title:"Market Intel",desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen via Anthropic web search.",color:"#6366f1"},
@@ -1454,33 +1454,35 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
             className="card-hover"
-            style={{background:"linear-gradient(160deg,#131520,#0e0f15)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"20px",boxShadow:"0 2px 16px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:10,"--conic-color":color}}>
+            style={{background:"linear-gradient(145deg,#0f1117,#0b0c11)",border:`1px solid rgba(255,255,255,0.08)`,borderRadius:14,padding:"24px",boxShadow:`0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)`,cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:12,"--conic-color":color,position:"relative",overflow:"hidden"}}>
             <div className="conic-border"/>
-            <div style={{width:36,height:36,borderRadius:10,background:`${color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color,position:"relative",zIndex:1}}>
+            {/* Subtle color glow top-right */}
+            <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:`radial-gradient(circle,${color}15,transparent 70%)`,pointerEvents:"none"}}/>
+            <div style={{width:40,height:40,borderRadius:12,background:`${color}18`,border:`1px solid ${color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color,position:"relative",zIndex:1}}>
               {icon}
             </div>
             <div style={{position:"relative",zIndex:1}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#e2e4e9",marginBottom:5}}>{title}</div>
+              <div style={{fontSize:14,fontWeight:700,color:"#e2e4e9",marginBottom:6}}>{title}</div>
               <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto",position:"relative",zIndex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto",position:"relative",zIndex:1,letterSpacing:"0.06em"}}>
               OPEN <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Recent news strip — RSS feed (clean, works well) */}
+      {/* Recent news strip */}
       {(rssItems.length>0||breakingNews.length>0)&&(
-        <div style={{background:"linear-gradient(160deg,#131520,#0e0f15)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,boxShadow:"0 2px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04)",padding:"14px 18px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+        <div style={{background:"linear-gradient(145deg,#0f1117,#0b0c11)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,boxShadow:"0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",padding:"16px 20px"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
               <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>NEWS FEED</span>
             </div>
             <button onClick={()=>onNavigate("analyse")} className="btn-primary" style={{padding:"4px 12px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>MEER ›</button>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+          <div style={{display:"flex",flexDirection:"column",gap:2}}>
             {(rssItems.length>0?rssItems:breakingNews).slice(0,5).map((n,i)=>{
               const headline = n.headline;
               const source = n.source;
@@ -1489,8 +1491,8 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               return (
                 <div key={i} onClick={()=>url&&window.open(url,"_blank")}
                   className="news-item-hover"
-                  style={{display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:4,border:"1px solid transparent",cursor:url?"pointer":"default"}}>
-                  <div style={{width:2,height:30,flexShrink:0,background:"rgba(245,158,11,0.35)",borderRadius:1}}/>
+                  style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:6,border:"1px solid transparent",cursor:url?"pointer":"default"}}>
+                  <div style={{width:2,height:32,flexShrink:0,background:"rgba(245,158,11,0.4)",borderRadius:1}}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
                       <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{source}</span>
@@ -2835,10 +2837,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       {/* ── MAIN CONTENT AREA ── */}
       <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"#060608"}}>
 
-        {`${accent}` && <div style={{position:"fixed",top:0,left:260,right:0,bottom:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-          <div style={{position:"absolute",top:"-20%",left:"15%",width:"70%",height:"65%",background:`radial-gradient(ellipse at center,${accent}1a 0%,transparent 65%)`,filter:"blur(60px)"}}/>
-          <div style={{position:"absolute",bottom:"-5%",right:"0%",width:"45%",height:"50%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.12) 0%,transparent 65%)",filter:"blur(55px)"}}/>
-          <div style={{position:"absolute",top:"40%",left:"-10%",width:"35%",height:"40%",background:`radial-gradient(ellipse at center,${accent}0e 0%,transparent 65%)`,filter:"blur(65px)"}}/>
+        {`${accent}` && <div style={{position:"fixed",top:0,left:260,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
+          <div style={{position:"absolute",top:"-10%",left:"10%",width:"80%",height:"55%",background:`radial-gradient(ellipse at center,${accent}15 0%,transparent 65%)`,filter:"blur(80px)"}}/>
+          <div style={{position:"absolute",bottom:"-10%",right:"0%",width:"50%",height:"55%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.10) 0%,transparent 65%)",filter:"blur(70px)"}}/>
+          <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"45%",background:`radial-gradient(ellipse at center,${accent}0a 0%,transparent 65%)`,filter:"blur(80px)"}}/>
         </div>}
 
       {/* ── HEADER ── */}
