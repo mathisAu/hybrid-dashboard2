@@ -88,6 +88,10 @@ export default async function handler(req, res) {
     if (action === "login") {
       const { email, password } = body;
       if (!email || !password) return err(res, "Vul alle velden in.");
+      // Admin login — check against env var
+      if (email.toLowerCase() === (process.env.ADMIN_EMAIL || "admin@hybrid.com") && password === ADMIN_KEY) {
+        return json(res, 200, { session: { email, name: "Admin", role: "admin", approved: true, avatar: null } });
+      }
       const user = await getUserByEmail(email.toLowerCase());
       if (!user) return err(res, "Geen account gevonden met dit e-mailadres.");
       if (user.password !== password) return err(res, "Wachtwoord onjuist.");
