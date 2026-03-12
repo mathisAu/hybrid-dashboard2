@@ -590,7 +590,7 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
 
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"#111214",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
           <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{news.headline}</div>
           <button onClick={onClose} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16,flexShrink:0,padding:0}}>✕</button>
@@ -695,16 +695,18 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
     </div>
   );
 
-  // Card with hover conic border — color driven by --conic-color CSS var
+  // Card — frosted glass so background glow bleeds through
   const Card = ({children, style={}, color=acc, onClick}) => (
     <div
       onClick={onClick}
       className="card-hover"
       style={{
-        background:"linear-gradient(145deg,#0f1117,#0b0c11)",
-        border:"1px solid rgba(255,255,255,0.08)",
+        background:"rgba(255,255,255,0.04)",
+        backdropFilter:"blur(12px)",
+        WebkitBackdropFilter:"blur(12px)",
+        border:"1px solid rgba(255,255,255,0.09)",
         borderRadius:14,
-        boxShadow:"0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+        boxShadow:"0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
         padding:"18px 20px",
         position:"relative",
         cursor:onClick?"pointer":"default",
@@ -1190,7 +1192,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {icon:"📊", title:"Macro Regime",         desc:"Yield curve analyse, DXY regime, VIX niveau en risk-on/off classificatie.",           color:"#6366f1"},
           {icon:"⚡", title:"Cross-Asset Signalen", desc:"Correlaties tussen Gold, indices en forex. Divergenties en flow-shifts detecteren.",   color:"#f59e0b"},
         ].map(({icon,title,desc,color})=>(
-          <div key={title} style={{background:"linear-gradient(160deg,#131520,#0e0f15)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"20px",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
+          <div key={title} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"20px",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
             <div style={{fontSize:22,marginBottom:10}}>{icon}</div>
             <div style={{fontSize:12,fontWeight:700,color:"#e2e4e9",marginBottom:6}}>{title}</div>
             <div style={{fontSize:11,color:"#4b5563",lineHeight:1.6}}>{desc}</div>
@@ -1207,7 +1209,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {label:"BREAKING NIEUWS", w:"80%"},
           {label:"MARKET SNAPSHOT", w:"55%"},
         ].map(({label,w})=>(
-          <div key={label} style={{background:"linear-gradient(160deg,#0f1016,#0c0d12)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"16px 18px"}}>
+          <div key={label} style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"16px 18px"}}>
             <div style={{fontSize:8,fontWeight:700,letterSpacing:"0.14em",color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{label}</div>
             <div style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",marginBottom:8,width:w}}/>
             <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.03)",marginBottom:6,width:"90%"}}/>
@@ -1220,7 +1222,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
   );
   if (loading) return (
     <div style={{display:"flex",flexDirection:"column",gap:16,paddingTop:20}}>
-      {[1,2,3].map(i=><div key={i} style={{background:"#111214",borderRadius:8,padding:18}}>{[100,80,60,90,70].map((w,j)=><Skeleton key={j} w={`${w}%`} h={j===0?12:8}/>)}</div>)}
+      {[1,2,3].map(i=><div key={i} style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",borderRadius:8,padding:18}}>{[100,80,60,90,70].map((w,j)=><Skeleton key={j} w={`${w}%`} h={j===0?12:8}/>)}</div>)}
     </div>
   );
 
@@ -1253,7 +1255,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
       {/* Yield analysis */}
       {data.yield_analysis&&(
-        <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
+        <div style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
           <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>YIELD ANALYSE</div>
           <div style={{display:"flex",gap:20,flexWrap:"wrap",marginBottom:8}}>
             {[{l:"US10Y",v:data.yield_analysis.us10y_level},{l:"US2Y",v:data.yield_analysis.us2y_level},{l:"SPREAD",v:data.yield_analysis.spread},{l:"REGIME",v:data.yield_analysis.regime}].map(({l,v})=>(
@@ -1271,7 +1273,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       <div style={{display:"grid",gridTemplateColumns:"minmax(0,1.1fr) minmax(0,0.9fr)",gap:14}}>
 
         {/* News */}
-        <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
+        <div style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
           <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:12}}>NIEUWS FEED</div>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {[...(data.news_items||[])].sort((a,b)=>{
@@ -1305,7 +1307,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Cross-asset signals */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
-            <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
+            <div style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid #1a1b1e",borderRadius:8,padding:"14px 18px"}}>
               <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:10}}>CROSS-ASSET SIGNALEN</div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {data.cross_asset_signals.map((s,i)=>(
@@ -1321,7 +1323,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* Risk radar only */}
           <div style={{display:"grid",gridTemplateColumns:"1fr",gap:10}}>
             {data.risk_radar&&(
-              <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+              <div style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
                 <InfoTooltip text="Samengestelde risicoscore van 0-100 op basis van macro-omgeving, volatiliteit en cross-asset signalen. Groen (0-40) = laag risico, Oranje (40-70) = verhoogd, Rood (70-100) = hoog risico." color="#6b7280">
                   <div style={{fontSize:10,color:"#374151",letterSpacing:"0.12em",marginBottom:8}}>RISK RADAR</div>
                 </InfoTooltip>
@@ -1435,7 +1437,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
             {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
           ].map(({label,value,color,sub})=>(
-            <div key={label} style={{background:"linear-gradient(145deg,#0f1117,#0b0c11)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"18px 20px",boxShadow:`0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.04)`,position:"relative",overflow:"hidden"}}>
+            <div key={label} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:14,padding:"18px 20px",boxShadow:"0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:`radial-gradient(circle,${color}18,transparent 70%)`,pointerEvents:"none"}}/>
               <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{label.toUpperCase()}</div>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:26,fontWeight:800,color,marginBottom:4,lineHeight:1}}>{value}</div>
@@ -1454,7 +1456,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
             className="card-hover"
-            style={{background:"linear-gradient(145deg,#0f1117,#0b0c11)",border:`1px solid rgba(255,255,255,0.08)`,borderRadius:14,padding:"24px",boxShadow:`0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)`,cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:12,"--conic-color":color,position:"relative",overflow:"hidden"}}>
+            style={{background:"rgba(255,255,255,0.045)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid rgba(255,255,255,0.10)`,borderRadius:14,padding:"24px",boxShadow:`0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)`,cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:12,"--conic-color":color,position:"relative",overflow:"hidden"}}>
             <div className="conic-border"/>
             {/* Subtle color glow top-right */}
             <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:`radial-gradient(circle,${color}15,transparent 70%)`,pointerEvents:"none"}}/>
@@ -1474,7 +1476,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
       {/* Recent news strip */}
       {(rssItems.length>0||breakingNews.length>0)&&(
-        <div style={{background:"linear-gradient(145deg,#0f1117,#0b0c11)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,boxShadow:"0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",padding:"16px 20px"}}>
+        <div style={{background:"rgba(255,255,255,0.045)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:14,boxShadow:"0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)",padding:"16px 20px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{display:"flex",alignItems:"center",gap:7}}>
               <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
@@ -1511,7 +1513,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   );
 }
 
-function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onLogout, onShowSettings }) {
+function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSessionUpdate, onLogout, onShowSettings }) {
   const [page,          setPage]          = useState("home");
   const [pageKey,       setPageKey]       = useState(0);
   const switchPage = (newPage) => { if(newPage===page) return; setPageKey(k=>k+1); setPage(newPage); };
@@ -2495,7 +2497,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
 
   return (
-    <div style={{minHeight:"100vh",background:"#060608",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",display:"flex"}}>
+    <div style={{minHeight:"100vh",background:"#080910",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",display:"flex"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         :root {
@@ -2539,8 +2541,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes deepIn{from{opacity:0;transform:translateY(32px) scale(0.97)}to{opacity:1;transform:none}}
         .card-hover{transition:transform 0.2s cubic-bezier(0.4,0,0.2,1);position:relative}
         .card-hover:hover{transform:translateY(-2px)!important}
-        .conic-border{position:absolute;inset:-1px;border-radius:9px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:5}
-        .conic-border::before{content:"";position:absolute;inset:0;border-radius:9px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:none}
+        .conic-border{position:absolute;inset:-1px;border-radius:15px;opacity:0;transition:opacity 0.35s ease;pointer-events:none;z-index:5}
+        .conic-border::before{content:"";position:absolute;inset:0;border-radius:15px;padding:1.5px;background:conic-gradient(from var(--angle,0deg),transparent 0%,transparent 50%,transparent 60%,var(--conic-color,${accent}) 80%,transparent 95%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:none}
         .card-hover:hover .conic-border{opacity:1}
         .card-hover:hover .conic-border::before{animation:conicSpin 2.5s linear infinite}
         .nav-item{transition:all 0.15s ease;border-radius:8px;position:relative;color:#e2e4e9!important;}.nav-item:hover{background:rgba(255,255,255,0.05)!important;color:#fff!important;}.nav-item.active{background:rgba(255,255,255,0.06)!important;color:#fff!important;}
@@ -2656,8 +2658,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       <div style={{
       width:260,
       minHeight:"100vh",
-      background:"#08080b",
-      borderRight:"1px solid rgba(255,255,255,0.05)",
+      background:"rgba(8,9,14,0.75)",
+      backdropFilter:"blur(20px)",
+      WebkitBackdropFilter:"blur(20px)",
+      borderRight:"1px solid rgba(255,255,255,0.07)",
       display:"flex",
       flexDirection:"column",
       position:"fixed",
@@ -2825,6 +2829,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         const users=getUsers();
                         saveUsers(users.map(u=>u.email===updated.email?{...u,name:updated.name,avatar:updated.avatar,password:updated.password||u.password}:u));
                       }
+                      if(onSessionUpdate) onSessionUpdate(updated);
                     }}
                   />
                 )}
@@ -2835,7 +2840,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       </div>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"#060608"}}>
+      <div style={{marginLeft:260,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"#080910"}}>
 
         {`${accent}` && <div style={{position:"fixed",top:0,left:260,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
           <div style={{position:"absolute",top:"-10%",left:"10%",width:"80%",height:"55%",background:`radial-gradient(ellipse at center,${accent}15 0%,transparent 65%)`,filter:"blur(80px)"}}/>
@@ -2888,7 +2893,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
         <div style={{position:"fixed",inset:0,marginLeft:260,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{background:"linear-gradient(160deg,#131520,#0e0f15)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,padding:"32px 40px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06)",minWidth:340,maxWidth:420}}>
+          <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,padding:"32px 40px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06)",minWidth:340,maxWidth:420}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><path d="M12 2a10 10 0 0 1 10 10" stroke={accent} strokeWidth="2.5" strokeLinecap="round"/></svg>
@@ -2958,7 +2963,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* Macro bar */}
             {aResult&&(
-              <div style={{marginBottom:14,background:"linear-gradient(160deg,#131520,#0e0f15)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,boxShadow:"0 2px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04)",overflow:"hidden"}}>
+              <div style={{marginBottom:14,background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,boxShadow:"0 2px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04)",overflow:"hidden"}}>
                 {/* Top label row */}
                 <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:9,fontWeight:700,color:"#374151",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
@@ -3090,7 +3095,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     else if(!dxyUp && xauUp && yieldsUp)  yieldRegime = "Inflatie domineert";
                     else yieldRegime = "Normaal macro regime";
                     return (
-                      <div style={{background:"#111214",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
+                      <div style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:`1px solid ${corrColor}22`,borderRadius:8,padding:"12px 14px"}}>
                         <div style={{fontSize:9,color:"#374151",letterSpacing:"0.1em",marginBottom:8}}>v6.3 CORRELATIE STATUS</div>
                         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                           <span style={{fontSize:11,fontWeight:700,color:corrColor}}>{corrLabel}</span>
@@ -3112,7 +3117,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
                   {/* High impact events vandaag */}
                   {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).length>0&&(
-                    <div style={{background:"#111214",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
+                    <div style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid #1a1b1e",borderRadius:8,padding:"12px 14px"}}>
                       <div style={{fontSize:9,color:"#ef4444",letterSpacing:"0.1em",marginBottom:8}}>🔴 HIGH IMPACT VANDAAG</div>
                       <div style={{display:"flex",flexDirection:"column",gap:5}}>
                         {(iResult?.economic_calendar||[]).filter(e=>e.date==="today"&&e.impact==="high").slice(0,5).map((e,i)=>(
@@ -3257,7 +3262,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
                   {["XAU/USD","US30","US100","EUR/USD","GBP/USD"].map((sym,i)=>(
-                    <div key={sym} style={{background:"linear-gradient(160deg,#0f1016,#0c0d12)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"14px 16px"}}>
+                    <div key={sym} style={{background:"rgba(255,255,255,0.03)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"14px 16px"}}>
                       <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#374151",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{sym}</div>
                       <div style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",marginBottom:6,width:["70%","55%","80%","60%","75%"][i]}}/>
                       <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.03)",marginBottom:5,width:"90%"}}/>
@@ -3282,7 +3287,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* BREAKING NEWS + RSS FEED */}
             <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 340px",gap:10}}>
-            <div style={{background:"linear-gradient(160deg,#0e0f12,#0b0c0f)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
+            <div style={{background:"rgba(255,255,255,0.035)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
               <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
                   {breakingNews.length>0&&<div style={{width:6,height:6,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 7px #ef4444",animation:"pulse 1.5s infinite"}}/>}
@@ -3341,7 +3346,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
             </div>
             {/* RSS FEED */}
-            <div style={{background:"linear-gradient(160deg,#0e0f12,#0b0c0f)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
+            <div style={{background:"rgba(255,255,255,0.035)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
               <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontSize:10,fontWeight:700,color:rssItems.length>0?"#9ca3af":"#374151",letterSpacing:"0.1em"}}>NEWS FEED</span>
                 <span style={{fontSize:9,color:"#2d3748"}}>Reuters · FF · FXStreet</span>
@@ -3446,7 +3451,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 ].map(({label,url,sub,color,icon})=>(
                   <div key={label} className="cal-link" style={{position:"relative",borderRadius:10}}>
                     <div className="conic-border" style={{"--conic-color":color}}/>
-                    <a href={url} target="_blank" rel="noopener noreferrer" style={{display:"flex",flexDirection:"column",gap:10,background:"linear-gradient(160deg,#131520,#0e0f15)",border:`1px solid ${color}20`,borderRadius:10,padding:"18px",cursor:"pointer",textDecoration:"none",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
+                    <a href={url} target="_blank" rel="noopener noreferrer" style={{display:"flex",flexDirection:"column",gap:10,background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:`1px solid ${color}20`,borderRadius:10,padding:"18px",cursor:"pointer",textDecoration:"none",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
                       <div style={{fontSize:22}}>{icon}</div>
                       <div>
                         <div style={{fontSize:12,fontWeight:700,color:"#e2e4e9",marginBottom:3}}>{label}</div>
@@ -3471,7 +3476,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 ].map(({label,url,sub,color,icon})=>(
                   <div key={label} className="cal-link" style={{position:"relative",borderRadius:10}}>
                     <div className="conic-border" style={{"--conic-color":color}}/>
-                    <a href={url} target="_blank" rel="noopener noreferrer" style={{display:"flex",flexDirection:"column",gap:10,background:"linear-gradient(160deg,#131520,#0e0f15)",border:`1px solid ${color}20`,borderRadius:10,padding:"18px",cursor:"pointer",textDecoration:"none",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
+                    <a href={url} target="_blank" rel="noopener noreferrer" style={{display:"flex",flexDirection:"column",gap:10,background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:`1px solid ${color}20`,borderRadius:10,padding:"18px",cursor:"pointer",textDecoration:"none",boxShadow:"0 2px 14px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04)"}}>
                       <div style={{fontSize:22}}>{icon}</div>
                       <div>
                         <div style={{fontSize:12,fontWeight:700,color:"#e2e4e9",marginBottom:3}}>{label}</div>
@@ -4143,7 +4148,7 @@ function AuthScreen({ onLogin, accent }) {
   const onKey = (fn) => (e) => { if(e.key==="Enter") fn(); };
 
   return (
-    <div style={{minHeight:"100vh",background:"#060608",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
+    <div style={{minHeight:"100vh",background:"#080910",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
@@ -4245,7 +4250,7 @@ function AccessDenied({ user, onLogout, accent }) {
   const ac = accent || "#089981";
   const t = T[getLang()] || T.nl;
   return (
-    <div style={{minHeight:"100vh",background:"#060608",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
+    <div style={{minHeight:"100vh",background:"#080910",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`@keyframes superRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
       <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
         <div style={{position:"absolute",top:"20%",left:"30%",width:"60%",height:"60%",background:"radial-gradient(ellipse at center,rgba(239,68,68,0.10),transparent 65%)",filter:"blur(80px)"}}/>
@@ -4710,6 +4715,11 @@ export default function App() {
   }
   function handleLogout() { saveSession(null); setSession(null); clearAdminKey(); }
 
+  function handleSessionUpdate(updated) {
+    saveSession(updated);
+    setSession({...updated});
+  }
+
   if(!session)          return <AuthScreen onLogin={handleLogin} accent={accent}/>;
   if(!session.approved) return <AccessDenied user={session} onLogout={handleLogout} accent={accent}/>;
 
@@ -4719,6 +4729,7 @@ export default function App() {
       injectedAccent={accent}
       onAccentChange={setAccent}
       injectedSession={session}
+      onSessionUpdate={handleSessionUpdate}
       onLogout={handleLogout}
       onShowSettings={()=>{}}
       showSettings={false}
