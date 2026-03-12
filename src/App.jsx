@@ -1393,7 +1393,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               HybridTrader<br/><span style={{color:acc}}>Dashboard</span>
             </h1>
             <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
-              {(()=>{ const tl = T[getLang()]||T.nl; return <>{tl.welcomeBack} <span style={{color:"#e2e4e9",fontWeight:600}}>{injectedSession?.name||"Trader"}</span> — jouw institutioneel macro-analyse systeem voor de London session.</>; })()}
+              {(()=>{ const tl = T[getLang()]||T.nl; const s = getSession(); return <>{tl.welcomeBack} <span style={{color:"#e2e4e9",fontWeight:600}}>{s?.name||"Trader"}</span> — jouw institutioneel macro-analyse systeem voor de London session.</>; })()}
             </p>
             {presession&&(
               <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
