@@ -1548,10 +1548,9 @@ function SessionCountdown({ acc }) {
   );
 }
 
-function DailyBriefing({ aResult, assets, acc, rssItems }) {
-  const [summaries, setSummaries] = React.useState({});
-  const [loading,   setLoading]   = React.useState(false);
-  const [error,     setError]     = React.useState(null);
+function DailyBriefing({ aResult, assets, acc, rssItems, summaries, setSummaries }) {
+  const [loading, setLoading] = React.useState(false);
+  const [error,   setError]   = React.useState(null);
   const prevKey = React.useRef(null);
 
   const runBriefing = React.useCallback((result) => {
@@ -1599,14 +1598,13 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
   React.useEffect(() => {
     if (!aResult) return;
     const key = JSON.stringify(aResult);
-    if (key === prevKey.current) return;  // zelfde data, niet opnieuw
-    if (Object.keys(summaries).length > 0) {
-      prevKey.current = key;  // update key maar genereer niet opnieuw
-      return;
-    }
+    if (key === prevKey.current) return;  // zelfde data of al geladen
     prevKey.current = key;
-    runBriefing(aResult);
-  }, [aResult]);  // bewust geen runBriefing/summaries in deps om loops te vermijden
+    // Alleen genereren als summaries leeg zijn (prop van buiten)
+    if (Object.keys(summaries).length === 0) {
+      runBriefing(aResult);
+    }
+  }, [aResult]);
 
   const color = acc;
 
@@ -1675,6 +1673,7 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
 
 function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews, rssItems, onRefreshRss, rssLoading }) {
   const acc = accent || DEFAULT_ACCENT;
+  const [briefingSummaries, setBriefingSummaries] = React.useState({});
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
   const now = new Date();
   const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
@@ -1794,7 +1793,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         </div>
 
         {/* ── MIDDEN KOLOM: DAILY BRIEFING ── */}
-        <DailyBriefing aResult={aResult} assets={assets} acc={acc} rssItems={rssItems} />
+        <DailyBriefing aResult={aResult} assets={assets} acc={acc} rssItems={rssItems} summaries={briefingSummaries} setSummaries={setBriefingSummaries} />
 
         {/* ── RECHTER KOLOM: NEWS ── */}
         <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
