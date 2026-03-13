@@ -730,7 +730,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   return (
     <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#0a0a0a",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
+      <div style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
 
         {/* Deep dive page glow */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -904,7 +904,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Fail condition */}
             {data?.fail_condition&&(
               <Card color="#ef4444" style={{background:"rgba(239,68,68,0.05)",border:"1px solid rgba(239,68,68,0.18)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                   <span style={{fontSize:11}}>⚠️</span>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#ef4444",fontFamily:"'JetBrains Mono',monospace"}}>FAIL CONDITION</span>
                 </div>
@@ -1219,7 +1219,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
   const NewsItem = ({n}) => (
     <div onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-      style={{padding:"9px 12px",borderRadius:6,background:"#1c1c1c",border:"1px solid #252525",cursor:"pointer",transition:"border-color 0.15s"}}
+      style={{padding:"10px 14px",borderRadius:8,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",transition:"border-color 0.15s"}}
       onMouseEnter={e=>e.currentTarget.style.borderColor="#333"}
       onMouseLeave={e=>e.currentTarget.style.borderColor="#272727"}>
       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5,flexWrap:"wrap"}}>
@@ -1256,7 +1256,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* ── MAIN GRID: nieuws links, signalen rechts ── */}
-      <div className="grid-intel-2col" style={{display:"grid",gap:16,alignItems:"start"}}>
+      <div className="grid-intel-2col" style={{display:"grid",gap:20,alignItems:"start"}}>
 
         {/* ── LEFT: nieuws ── */}
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -1265,8 +1265,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {highNews.length>0&&(
             <div className="rc-card" style={{"--conic-color":"#ef4444"}}>
               <div className="conic-border"/>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <div style={{padding:"16px 18px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
                   <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
@@ -1281,8 +1281,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* ALL NEWS */}
           <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
             <div className="conic-border"/>
-            <div style={{padding:"14px 16px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+            <div style={{padding:"16px 18px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                 <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b"}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>NIEUWS FEED</span>
                 <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
@@ -1301,8 +1301,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
             <div className="rc-card" style={{"--conic-color":"#6366f1"}}>
               <div className="conic-border"/>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <div style={{padding:"16px 18px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:"#6366f1"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>CROSS-ASSET SIGNALEN</span>
                 </div>
@@ -1322,8 +1322,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {data.risk_radar&&(
             <div className="rc-card" style={{"--conic-color":data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}>
               <div className="conic-border"/>
-              <div style={{padding:"14px 16px"}}> 
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <div style={{padding:"16px 18px"}}> 
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>RISK RADAR</span>
                 </div>
@@ -1352,7 +1352,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* Yield implication */}
           {data.yield_analysis?.implication&&(
             <div className="rc-card" style={{"--conic-color":acc}}>
-              <div style={{padding:"14px 16px"}}>
+              <div style={{padding:"16px 18px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:acc}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>YIELD IMPLICATIE</span>
@@ -1365,8 +1365,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* ── MACRO CONTEXT — compact onderaan ── */}
           <div className="rc-card" style={{"--conic-color":yieldColors[data.macro_regime]||acc}}>
             <div className="conic-border"/>
-            <div style={{padding:"14px 16px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+            <div style={{padding:"16px 18px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                 <div style={{width:5,height:5,borderRadius:"50%",background:yieldColors[data.macro_regime]||acc,boxShadow:`0 0 5px ${yieldColors[data.macro_regime]||acc}`}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>MACRO CONTEXT</span>
                 <span style={{fontSize:11,fontWeight:700,color:yieldColors[data.macro_regime]||acc,marginLeft:"auto"}}>{data.macro_regime||"—"}</span>
@@ -2561,7 +2561,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
 
   return (
-    <div style={{minHeight:"100vh",background:"#0a0a0a",fontFamily:"'Inter',sans-serif",color:"#e2e4e9",display:"flex"}}>
+    <div style={{minHeight:"100vh",background:"#070708",fontFamily:"'Inter',sans-serif",color:"#e2e4e9",display:"flex"}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         * { font-family: 'Inter', sans-serif !important; }
@@ -2627,15 +2627,17 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* ── Clean dark card ── */
         .rc-card{
           position:relative;
-          background:#141414;
-          border:1px solid rgba(255,255,255,0.06);
-          border-top:1px solid var(--conic-color, rgba(8,153,129,0.35));
-          border-radius:10px;
+          background:rgba(16,16,18,0.75);
+          backdrop-filter:blur(12px);
+          -webkit-backdrop-filter:blur(12px);
+          border:1px solid rgba(255,255,255,0.05);
+          border-top:1px solid var(--conic-color, rgba(8,153,129,0.4));
+          border-radius:12px;
           overflow:hidden;
           transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease,border-color 0.22s ease;
         }
         .rc-card .rc-glow{ display:none; }
-        .rc-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.7);border-top-color:var(--conic-color,rgba(8,153,129,0.6))}
+        .rc-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.6);border-top-color:var(--conic-color,rgba(8,153,129,0.7))}
         .rc-card .conic-border{border-radius:10px}
         .rc-card .conic-border::before{border-radius:10px}
         .rc-card:hover .conic-border{opacity:1}
@@ -2648,8 +2650,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         }
         /* AI analysis inner box */
         .ai-inner-box{
-          background:#242424;
-          border:1px solid #303030;
+          background:rgba(255,255,255,0.03);
+          border:1px solid rgba(255,255,255,0.06);
           border-radius:8px;
           padding:12px 14px;
           margin-top:12px;
@@ -3300,7 +3302,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </div>
                 <div className="grid-analyse-5" style={{display:"grid",gap:10}}>
                   {["XAU/USD","US30","US100","EUR/USD","GBP/USD"].map((sym,i)=>(
-                    <div key={sym} style={{background:"#0d0e13",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"14px 16px"}}>
+                    <div key={sym} style={{background:"#0d0e13",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"16px 18px"}}>
                       <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{sym}</div>
                       <div style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",marginBottom:6,width:["70%","55%","80%","60%","75%"][i]}}/>
                       <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.03)",marginBottom:5,width:"90%"}}/>
@@ -3929,7 +3931,7 @@ async function apiAuth(action, body) {
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const authInp = {
-  width:"100%", padding:"14px 16px", background:"#0d0e13",
+  width:"100%", padding:"16px 18px", background:"#0d0e13",
   border:"1px solid rgba(255,255,255,0.10)", borderRadius:8,
   color:"#e2e4e9", fontSize:13, outline:"none", fontFamily:"inherit",
   transition:"border-color 0.2s",
@@ -4196,7 +4198,7 @@ function AuthScreen({ onLogin, accent }) {
   const onKey = (fn) => (e) => { if(e.key==="Enter") fn(); };
 
   return (
-    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
+    <div style={{minHeight:"100vh",background:"#070708",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
@@ -4298,7 +4300,7 @@ function AccessDenied({ user, onLogout, accent }) {
   const ac = accent || "#089981";
   const t = T[getLang()] || T.nl;
   return (
-    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
+    <div style={{minHeight:"100vh",background:"#070708",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`@keyframes superRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
       <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
         <div style={{position:"absolute",top:"20%",left:"30%",width:"60%",height:"60%",background:"radial-gradient(ellipse at center,rgba(239,68,68,0.10),transparent 65%)",filter:"blur(80px)"}}/>
@@ -4652,7 +4654,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                 </div>
               </div>
               {/* Live preview */}
-              <div style={{padding:"14px 16px",background:`${accent}0c`,border:`1px solid ${accent}25`,borderRadius:10}}>
+              <div style={{padding:"16px 18px",background:`${accent}0c`,border:`1px solid ${accent}25`,borderRadius:10}}>
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{t.livePreview}</div>
                 <div style={{display:"flex",gap:10,alignItems:"center"}}>
                   <div style={{width:36,height:36,borderRadius:"50%",background:`${accent}20`,border:`2px solid ${accent}50`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -4699,7 +4701,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
               <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.language.toUpperCase()}</div>
               {Object.values(LANGS).map(l=>(
                 <button key={l.code} onClick={()=>switchLang(l.code)}
-                  style={{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",
+                  style={{display:"flex",alignItems:"center",gap:14,padding:"16px 18px",
                     background:lang===l.code?`${ac}12`:"rgba(255,255,255,0.02)",
                     border:`1px solid ${lang===l.code?ac+"40":"rgba(255,255,255,0.06)"}`,
                     borderRadius:10,cursor:"pointer",transition:"all .15s",textAlign:"left"}}>
