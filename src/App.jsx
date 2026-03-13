@@ -3860,7 +3860,12 @@ function getSession() {
 }
 async function anthropicFetch(body, headers={}) {
   const session = getSession();
-  const fullBody = { ...body, _sessionUserId: session?.id || "" };
+  const fullBody = {
+    ...body,
+    _sessionUserId:   session?.id   || "",
+    _sessionRole:     session?.role || "",
+    _sessionApproved: session?.approved ?? false,
+  };
   return fetch("/api/anthropic", {
     method:"POST",
     headers:{"Content-Type":"application/json", ...headers},
