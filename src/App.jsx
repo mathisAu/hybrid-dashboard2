@@ -1595,6 +1595,9 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
         </div>
 
+        {/* ── MIDDEN SPACER ── */}
+        <div/>
+
         {/* ── RECHTER KOLOM: NEWS ── */}
         <div className="rc-card" style={{"--conic-color":"#f59e0b",height:"100%"}}>
           <div className="conic-border"/>
@@ -2871,7 +2874,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
           .grid-2col{grid-template-columns:1fr 1fr}
-          .home-main-grid{grid-template-columns:280px 1fr 380px;justify-items:stretch}
+          .home-main-grid{grid-template-columns:280px 1fr 420px}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
