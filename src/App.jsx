@@ -1219,9 +1219,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
   const NewsItem = ({n}) => (
     <div onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-      style={{padding:"11px 14px",borderRadius:7,background:"#181819",border:"1px solid #222",cursor:"pointer",transition:"background 0.15s"}}
-      onMouseEnter={e=>e.currentTarget.style.background="#1e1e20"}
-      onMouseLeave={e=>e.currentTarget.style.background="#181819"}>
+      style={{padding:"8px 12px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22",cursor:"pointer",transition:"background 0.15s"}}
+      onMouseEnter={e=>e.currentTarget.style.background="#161618"}
+      onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5,flexWrap:"wrap"}}>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#4a4a4a",fontWeight:600}}>{n.time||"—"}</span>
         <Badge label={n.source} color="#4a4a4a"/>
@@ -1231,7 +1231,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {n.direction==="bullish"?"▲ Bullish":n.direction==="bearish"?"▼ Bearish":"—"}
         </span>
       </div>
-      <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
+      <div style={{fontSize:11,color:"#b8bcc8",lineHeight:1.5,fontWeight:400}}>{n.headline}</div>
       {n.assets_affected&&n.assets_affected.length>0&&(
         <div style={{display:"flex",gap:3,flexWrap:"wrap",marginTop:5}}>
           {n.assets_affected.map(a=><Badge key={a} label={a} color="#252525"/>)}
@@ -1256,15 +1256,15 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div className="grid-intel-2col" style={{display:"grid",gap:22,alignItems:"start"}}>
+      <div className="grid-intel-2col" style={{display:"grid",gap:24,alignItems:"start"}}>
 
         {/* LEFT: nieuws */}
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
           {/* HIGH IMPACT */}
           {highNews.length>0&&(
-            <div style={{background:"#111113",border:"1px solid rgba(239,68,68,0.25)",borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"18px 20px"}}>
+            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"20px 22px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
@@ -1278,8 +1278,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           )}
 
           {/* ALL NEWS */}
-          <div style={{background:"#111113",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,overflow:"hidden"}}>
-            <div style={{padding:"18px 20px"}}>
+          <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+            <div style={{padding:"20px 22px"}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b"}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>NIEUWS FEED</span>
@@ -1297,15 +1297,15 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Cross-asset */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
-            <div style={{background:"#111113",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"18px 20px"}}>
+            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"20px 22px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#6366f1"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>CROSS-ASSET SIGNALEN</span>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {data.cross_asset_signals.map((s,i)=>(
-                    <div key={i} style={{padding:"10px 12px",borderRadius:7,background:"#181819",border:"1px solid #222"}}>
+                    <div key={i} style={{padding:"8px 11px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22"}}>
                       <Badge label={s.signal} color={s.type==="anomalie"?"#ef4444":"#6366f1"}/>
                       <div style={{fontSize:11,color:"#a0a8b8",marginTop:5,lineHeight:1.55}}>{s.implication}</div>
                     </div>
@@ -1321,8 +1321,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             const rc = score>7?"#ef4444":score>4?"#f97316":"#22c55e";
             const circ = 2*Math.PI*16; // r=16
             return (
-              <div style={{background:"#111113",border:`1px solid ${rc}33`,borderRadius:10,overflow:"hidden"}}>
-                <div style={{padding:"18px 20px"}}>
+              <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+                <div style={{padding:"20px 22px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                     <div style={{width:4,height:4,borderRadius:"50%",background:rc}}/>
                     <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>RISK RADAR</span>
@@ -1357,8 +1357,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Yield */}
           {data.yield_analysis?.implication&&(
-            <div style={{background:"#111113",border:`1px solid ${acc}30`,borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"18px 20px"}}>
+            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"20px 22px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:acc}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>YIELD IMPLICATIE</span>
@@ -1369,8 +1369,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           )}
 
           {/* Macro context */}
-          <div style={{background:"#111113",border:`1px solid ${(yieldColors[data.macro_regime]||acc)}33`,borderRadius:10,overflow:"hidden"}}>
-            <div style={{padding:"18px 20px"}}>
+          <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+            <div style={{padding:"20px 22px"}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:yieldColors[data.macro_regime]||acc}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>MACRO CONTEXT</span>
@@ -1480,7 +1480,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
           ].map(({label,value,color,sub})=>(
             <div key={label} className="rc-card card-hover" style={{"--conic-color":color}}>
               <div className="conic-border"/>
-              <div style={{padding:"18px 20px"}}>
+              <div style={{padding:"20px 22px"}}>
                 <div style={{fontSize:9,color:"#555",letterSpacing:"0.1em",marginBottom:10}}>{label.toUpperCase()}</div>
                 <div style={{fontSize:26,fontWeight:700,color,marginBottom:4,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
                 <div style={{fontSize:10,color:"#444"}}>{sub}</div>
@@ -3219,7 +3219,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     {/* Top accent strip */}
                     <div style={{height:2,background:`linear-gradient(90deg,transparent,${mc}66,${mc}44,transparent)`}}/>
 
-                    <div style={{padding:"18px 20px",display:"grid",gridTemplateColumns:"auto 1fr auto",gap:20,alignItems:"start"}}>
+                    <div style={{padding:"20px 22px",display:"grid",gridTemplateColumns:"auto 1fr auto",gap:20,alignItems:"start"}}>
 
                       {/* Left: mood block */}
                       <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:72,paddingRight:20,borderRight:"1px solid rgba(255,255,255,0.05)"}}>
