@@ -11,8 +11,39 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_TOKEN,
 });
 
-const ADMIN_KEY   = process.env.ADMIN_PASSWORD || "admin123";
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL   || "admin@hybrid.com").toLowerCase();
+const ADMIN_KEY    = process.env.ADMIN_PASSWORD     || "admin123";
+const ADMIN_EMAIL  = (process.env.ADMIN_EMAIL  || "admin@hybrid.com").toLowerCase();
+const ADMIN_SECRET = process.env.ADMIN_SESSION_SECRET || "change-this-in-vercel";
+
+// ── HMAC-SHA256 token signing (Web Crypto — available in Vercel Edge + Node) ─
+async function signAdminToken(payload) {
+  const enc  = new TextEncoder();
+  const key  = await crypto.subtle.importKey(
+    "raw", enc.encode(ADMIN_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig  = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  return Buffer.from(sig).toString("hex");
+}
+
+async function makeAdminToken() {
+  const ts      = Date.now();
+  const payload = `admin:${ts}`;
+  const sig     = await signAdminToken(payload);
+  return `${payload}:${sig}`;
+}
+
+async function verifyAdminToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const parts = token.split(":");
+  if (parts.length !== 3) return false;
+  const [prefix, ts, sig] = parts;
+  if (prefix !== "admin") return false;
+  // Token geldig voor max 12 uur
+  if (Date.now() - parseInt(ts) > 12 * 60 * 60 * 1000) return false;
+  const payload  = `admin:${ts}`;
+  const expected = await signAdminToken(payload);
+  return expected === sig;
+}
 const SITE_URL    = process.env.SITE_URL        || "https://hybrid-dashboard2.vercel.app";
 const USERS_KEY   = "ht:users";
 const SALT_ROUNDS = 10;
@@ -280,8 +311,9 @@ export default async function handler(req, res) {
       if (!email || !password) return err(res, "Vul alle velden in.");
       if (email.toLowerCase() === ADMIN_EMAIL) {
         if (password !== ADMIN_KEY) return err(res, "Wachtwoord onjuist.");
+        const adminToken = await makeAdminToken();
         return json(res, 200, {
-          session: { email: ADMIN_EMAIL, name: "Admin", role: "admin", approved: true, avatar: null }
+          session: { email: ADMIN_EMAIL, name: "Admin", role: "admin", approved: true, avatar: null, adminToken }
         });
       }
       const user = await getUserByEmail(email.toLowerCase());
@@ -382,3 +414,5 @@ export default async function handler(req, res) {
     return err(res, "Serverfout. Probeer opnieuw.", 500);
   }
 }
+
+export { verifyAdminToken };
