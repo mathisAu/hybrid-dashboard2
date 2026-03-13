@@ -1599,7 +1599,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         <div/>
 
         {/* ── RECHTER KOLOM: NEWS ── */}
-        <div className="rc-card" style={{"--conic-color":"#f59e0b",height:"100%"}}>
+        <div className="rc-card" style={{"--conic-color":"#f59e0b", height:"100%", minHeight:"600px"}}>
           <div className="conic-border"/>
           <div style={{padding:"20px 22px",position:"relative",zIndex:1,display:"flex",flexDirection:"column",gap:0}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
@@ -2874,7 +2874,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
           .grid-2col{grid-template-columns:1fr 1fr}
-          .home-main-grid{grid-template-columns:280px 1fr 420px}
+          .home-main-grid{grid-template-columns:280px 1fr 620px}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
