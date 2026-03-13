@@ -1427,7 +1427,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
       <div style={{padding:"10px 2px 0",position:"relative"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
           <div>
-            <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>
+            <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>
               {dateStr.toUpperCase()} · {timeStr} AMS
             </div>
             <h1 style={{fontSize:24,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:6}}>
@@ -1455,7 +1455,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               </svg>
               {isRunning?"LADEN...":"HYBRID LADEN"}
             </button>
-            {lastRefresh&&<span style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>Update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}</span>}
+            {lastRefresh&&<span style={{fontSize:9,color:"#6b7280",fontFamily:"'JetBrains Mono',monospace"}}>Update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}</span>}
           </div>
         </div>
       </div>
@@ -1469,10 +1469,13 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
             {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
           ].map(({label,value,color,sub})=>(
-            <div key={label} style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,padding:"16px 18px"}}>
+            <div key={label} className="rc-card card-hover" style={{"--conic-color":color}}>
+              <div className="conic-border"/>
+              <div style={{padding:"16px 18px",position:"relative",zIndex:1}}>
               <div style={{fontSize:9,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:8,opacity:0.5}}>{label.toUpperCase()}</div>
               <div style={{fontSize:22,fontWeight:700,color,marginBottom:3,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
               <div style={{fontSize:10,color:"#e2e4e9",opacity:0.4}}>{sub}</div>
+              </div>
             </div>
           ))}
         </div>
@@ -1486,9 +1489,10 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
           {id:"calendar",icon:"≡", title:"Tools & Links", desc:"ForexFactory, TradingView, Investing.com en andere trading resources.", color:"#f59e0b"},
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
-            style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,cursor:"pointer",width:"100%",textAlign:"left",padding:"18px 20px",display:"flex",flexDirection:"column",gap:10,transition:"border-color 0.2s"}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor=`${acc}55`}
-            onMouseLeave={e=>e.currentTarget.style.borderColor=`${acc}22`}>
+            className="rc-card card-hover"
+            style={{"--conic-color":color,cursor:"pointer",width:"100%",textAlign:"left",border:"none",background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)"}}>
+            <div className="conic-border"/>
+            <div style={{padding:"18px 20px",display:"flex",flexDirection:"column",gap:10,position:"relative",zIndex:1}}>
             <div style={{width:32,height:32,borderRadius:8,background:`${color}15`,border:`1px solid ${color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color}}>
               {icon}
             </div>
@@ -1499,20 +1503,23 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             <div style={{display:"flex",alignItems:"center",gap:4,color,fontSize:9,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",marginTop:"auto"}}>
               OPEN <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             </div>
+            </div>
           </button>
         ))}
       </div>
 
       {/* ── NEWS FEED ── */}
       {(rssItems.length>0||breakingNews.length>0)&&(
-        <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,padding:"18px 20px"}}>
+        <div className="rc-card card-hover" style={{"--conic-color":acc}}>
+          <div className="conic-border"/>
+          <div style={{padding:"18px 20px",position:"relative",zIndex:1}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
               <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
               <span style={{fontSize:9,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",opacity:0.6}}>NEWS FEED</span>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
-              {rssLoading&&<span style={{fontSize:10,color:"#6b7280",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
+              {rssLoading&&<span style={{fontSize:10,color:"#c8cdd8",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
               {!rssLoading&&onRefreshRss&&<button onClick={onRefreshRss} className="btn-primary" style={{padding:"3px 9px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>↺</button>}
               <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>MEER ›</button>
             </div>
@@ -1532,14 +1539,15 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
                       <span style={{fontSize:8,fontWeight:700,color:acc,letterSpacing:"0.06em"}}>{source}</span>
-                      <span style={{fontSize:8,color:"#444",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
+                      <span style={{fontSize:8,color:"#8a8f9a",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
                     </div>
                     <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{headline}</div>
                   </div>
-                  {url&&<span style={{fontSize:10,color:"#444",flexShrink:0}}>›</span>}
+                  {url&&<span style={{fontSize:10,color:"#8a8f9a",flexShrink:0}}>›</span>}
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
       )}
@@ -2624,8 +2632,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease,border-color 0.22s ease;
         }
         .rc-card .rc-glow{ display:none; }
-        .rc-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.6);border-color:rgba(8,153,129,0.45)}
-        .rc-card .conic-border{border-radius:10px}
+        .rc-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.6)}
+        .rc-card .conic-border{border-radius:10px;opacity:0;transition:opacity 0.35s ease}
         .rc-card .conic-border::before{border-radius:10px}
         .rc-card:hover .conic-border{opacity:1}
         .rc-card:hover .conic-border::before{animation:conicSpin 2.5s linear infinite}
