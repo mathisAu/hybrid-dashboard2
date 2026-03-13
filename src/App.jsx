@@ -1184,7 +1184,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* Ghost preview cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+      <div className="grid-2col" style={{display:"grid",gap:12}}>
         {[
           {label:"MACRO REGIME",    w:"60%"},
           {label:"YIELD CURVE",     w:"45%"},
@@ -1223,7 +1223,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       style={{padding:"6px 10px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22",cursor:"pointer",transition:"background 0.15s"}}
       onMouseEnter={e=>e.currentTarget.style.background="#161618"}
       onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
-      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap",minWidth:0,overflow:"hidden"}}>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#8a8f9a",fontWeight:600}}>{n.time||"—"}</span>
         <Badge label={n.source} color="#8a8f9a"/>
         <Badge label={n.category} color="#6366f1"/>
@@ -1308,7 +1308,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       {/* ── TOP BAR ── */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-          {data.session_context&&<span style={{fontSize:11,color:"#f0f1f3",fontWeight:500}}>{data.session_context}</span>}
+          {data.session_context&&<span style={{fontSize:11,color:"#f0f1f3",fontWeight:500,wordBreak:"break-word",flex:1,minWidth:0}}>{data.session_context}</span>}
           {data.timestamp&&<span style={{fontSize:10,color:"#f0f1f3",fontFamily:"'JetBrains Mono',monospace"}}>· {fmtDT(data.timestamp)}</span>}
         </div>
         <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{padding:"6px 14px",fontSize:10,color:"#fff",opacity:status==="loading-intel"?0.6:1,"--btn-glow":`${acc}40`}}>
@@ -2803,11 +2803,13 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* ── No horizontal scroll ── */
         *{box-sizing:border-box}
         html,body{overflow-x:hidden;max-width:100vw}
+        #root{overflow-x:hidden;width:100%}
 
         /* ── Responsive ─────────────────────────────────────────────────────── */
         /* Mobile: < 640px */
         @media(max-width:639px){
           .sessie-grid{grid-template-columns:1fr!important;gap:12px!important}
+          .grid-2col{grid-template-columns:1fr!important}
           .hero-row{flex-direction:column!important}
           .hero-row>div:last-child{align-items:flex-start!important}
           .grid-stats{grid-template-columns:1fr 1fr!important}
@@ -2817,6 +2819,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:1fr 1fr!important}
           .grid-marktvisie{grid-template-columns:1fr!important}
           .grid-deepdive{grid-template-columns:1fr!important}
+          .grid-2col{grid-template-columns:1fr 1fr!important}
           .page-pad{padding:12px!important}
           .header-title{display:none}
           .rc-card{border-radius:8px!important}
@@ -2838,6 +2841,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-intel-2col{grid-template-columns:1fr 360px}
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
+          .grid-2col{grid-template-columns:1fr 1fr}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
@@ -3034,7 +3038,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       )}
 
       {/* ── CONTENT ── */}
-      <div key={pageKey} className="page-enter page-pad" style={{padding:"20px 24px",maxWidth:1440,margin:"0 auto",width:"100%",position:"relative",zIndex:1}}>
+      <div key={pageKey} className="page-enter page-pad" style={{padding:"20px 24px",maxWidth:1440,margin:"0 auto",width:"100%",minWidth:0,position:"relative",zIndex:1,overflow:"hidden"}}>
 
         {/* ── Inline page header ── */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
@@ -3283,16 +3287,23 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
                   onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
               ))}
-              {/* Macro context — als extra card naast GBP/USD */}
-              {aResult.market_context&&(
-                <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}20`,borderRadius:10,padding:"16px 18px",display:"flex",flexDirection:"column",gap:8}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.6}}/>
-                    <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
-                  </div>
-                  <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.65}}>{aResult.market_context}</div>
+              {/* Macro context — altijd naast GBP/USD, ook als leeg */}
+              <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"16px 18px",display:"flex",flexDirection:"column",gap:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.5}}/>
+                  <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
                 </div>
-              )}
+                {aResult.market_context ? (
+                  <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.7}}>{aResult.market_context}</div>
+                ) : (
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    <div style={{fontSize:10,color:"#555",lineHeight:1.6,fontStyle:"italic"}}>Laad Intel voor macro context.</div>
+                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"80%"}}/>
+                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"60%"}}/>
+                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"70%"}}/>
+                  </div>
+                )}
+              </div>
             </div>}
 
 
