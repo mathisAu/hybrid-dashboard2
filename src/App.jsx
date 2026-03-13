@@ -1483,7 +1483,6 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
   const dateStr = now.toLocaleDateString("nl-NL",{timeZone:"Europe/Amsterdam",weekday:"long",day:"numeric",month:"long"});
 
-  // Overall market sentiment from results
   const allBiases = aResult ? assets.map(a=>aResult.assets?.[a.id]?.bias).filter(Boolean) : [];
   const bullCount = allBiases.filter(b=>b.toLowerCase().includes("bull")).length;
   const bearCount = allBiases.filter(b=>b.toLowerCase().includes("bear")).length;
@@ -1491,33 +1490,26 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   const sentimentColor = overallSentiment==="Bullish"?"#22c55e":overallSentiment==="Bearish"?"#ef4444":"#f59e0b";
   const avgConf = aResult ? Math.round(assets.reduce((s,a)=>s+(aResult.assets?.[a.id]?.confidence||0),0)/assets.length) : null;
 
+  const newsItems = (rssItems.length>0?rssItems:breakingNews);
+
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
-      {/* ── HERO ZWEVEND — geen box ── */}
-      <div style={{padding:"10px 2px 0",position:"relative"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
+      {/* ── HERO — verplaatst naar waar Home·LIVE stond ── */}
+      <div style={{padding:"4px 0 0"}}>
+        <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>
+          {dateStr.toUpperCase()} · {timeStr} AMS
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
           <div>
-            <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>
-              {dateStr.toUpperCase()} · {timeStr} AMS
-            </div>
-            <h1 style={{fontSize:24,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:6}}>
+            <h1 style={{fontSize:22,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:5}}>
               HybridTrader <span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:11,color:"#c8cdd8",lineHeight:1.55,maxWidth:400}}>
+            <p style={{fontSize:11,color:"#c8cdd8",lineHeight:1.5,maxWidth:420}}>
               {(()=>{ const tl = T[getLang()]||T.nl; const s = getSession(); return <>{tl.welcomeBack} <span style={{color:acc,fontWeight:600}}>{s?.name||"Trader"}</span> — institutioneel macro-analyse systeem voor de London session.</>; })()}
             </p>
-            {presession&&(
-              <div style={{marginTop:10,display:"flex",alignItems:"center",gap:6}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",border:`1px solid ${acc}22`,borderRadius:20,padding:"4px 10px"}}>
-                  <div style={{width:5,height:5,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:10,color:"#c8cdd8",fontWeight:500}}>{presession.session}</span>
-                  <span style={{fontSize:10,fontWeight:700,color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b"}}>{presession.mood}</span>
-                </div>
-              </div>
-            )}
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end",paddingTop:4}}>
+          <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
             <button onClick={onRunHybrid} disabled={isRunning}
               className="btn-primary btn-always-spin"
               style={{padding:"9px 20px",fontSize:11,color:"#fff",opacity:isRunning?0.6:1,"--btn-glow":`${acc}40`}}>
@@ -1531,97 +1523,127 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         </div>
       </div>
 
-      {/* ── STATS ROW ── */}
-      {aResult&&(
-        <div className="grid-stats" style={{display:"grid",gap:14}}>
-          {[
-            {label:"Markt Sentiment",value:overallSentiment,color:sentimentColor,sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
-            {label:"Gem. Confidence",value:avgConf+"%",color:acc,sub:"Over alle assets"},
-            {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
-            {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
-          ].map(({label,value,color,sub})=>(
-            <div key={label} className="rc-card card-hover" style={{"--conic-color":color}}>
-              <div className="conic-border"/>
-              <div style={{padding:"16px 18px",position:"relative",zIndex:1}}>
-              <div style={{fontSize:9,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:8,opacity:0.5}}>{label.toUpperCase()}</div>
-              <div style={{fontSize:22,fontWeight:700,color,marginBottom:3,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
-              <div style={{fontSize:10,color:"#e2e4e9",opacity:0.4}}>{sub}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* ── HOOFD LAYOUT: links kolom + rechts news ── */}
+      <div className="home-main-grid" style={{display:"grid",gap:18,alignItems:"start"}}>
 
-      {/* ── NAV CARDS ── */}
-      <div className="grid-nav" style={{display:"grid",gap:14}}>
-        {[
-          {id:"analyse", icon:"▦", title:"Asset Analyse", desc:"Bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.", color:acc},
-          {id:"intel",   icon:"◉", title:"Market Intel",  desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen.", color:"#6366f1"},
-          {id:"calendar",icon:"≡", title:"Tools & Links", desc:"ForexFactory, TradingView, Investing.com en andere trading resources.", color:"#f59e0b"},
-        ].map(({id,icon,title,desc,color})=>(
-          <button key={id} onClick={()=>onNavigate(id)}
-            className="rc-card card-hover"
-            style={{"--conic-color":color,cursor:"pointer",width:"100%",textAlign:"left",border:"none",background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)"}}>
+        {/* ── LINKER KOLOM ── */}
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+
+          {/* STATS BOX */}
+          <div className="rc-card" style={{"--conic-color":acc}}>
             <div className="conic-border"/>
-            <div style={{padding:"18px 20px",display:"flex",flexDirection:"column",gap:10,position:"relative",zIndex:1}}>
-            <div style={{width:32,height:32,borderRadius:8,background:`${color}15`,border:`1px solid ${color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color}}>
-              {icon}
-            </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:700,color:"#f0f1f3",marginBottom:4}}>{title}</div>
-              <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.55,opacity:0.6}}>{desc}</div>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:4,color,fontSize:9,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",marginTop:"auto"}}>
-              OPEN <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* ── NEWS FEED ── */}
-      {(rssItems.length>0||breakingNews.length>0)&&(
-        <div className="rc-card card-hover" style={{"--conic-color":acc}}>
-          <div className="conic-border"/>
-          <div style={{padding:"18px 20px",position:"relative",zIndex:1}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-            <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-              <span style={{fontSize:9,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",opacity:0.6}}>NEWS FEED</span>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              {rssLoading&&<span style={{fontSize:10,color:"#c8cdd8",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
-              {!rssLoading&&onRefreshRss&&<button onClick={onRefreshRss} className="btn-primary" style={{padding:"3px 9px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>↺</button>}
-              <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>MEER ›</button>
-            </div>
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            {(rssItems.length>0?rssItems:breakingNews).slice(0,5).map((n,i)=>{
-              const headline = n.headline;
-              const source = n.source;
-              const time = n.time ? fmtDT(n.time) : n.timeStr||"";
-              const url = n.link||n.url||"";
-              return (
-                <div key={i} onClick={()=>url&&window.open(url,"_blank")}
-                  style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22",cursor:url?"pointer":"default",transition:"background 0.15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.background="#161618"}
-                  onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
-                  <div style={{width:2,height:28,flexShrink:0,background:`${acc}55`,borderRadius:1}}/>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
-                      <span style={{fontSize:8,fontWeight:700,color:acc,letterSpacing:"0.06em"}}>{source}</span>
-                      <span style={{fontSize:8,color:"#8a8f9a",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
+            <div style={{padding:"20px 22px",position:"relative",zIndex:1}}>
+              <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>MARKT OVERZICHT</div>
+              {aResult ? (
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                  {[
+                    {label:"MARKT SENTIMENT", value:overallSentiment, color:sentimentColor, sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
+                    {label:"GEM. CONFIDENCE",  value:avgConf+"%",     color:acc,           sub:"Over alle assets"},
+                    {label:"ASSETS",           value:assets.length,   color:"#6366f1",     sub:"Geanalyseerd"},
+                    {label:"BREAKING NEWS",    value:breakingNews.length, color:"#f59e0b", sub:"Vandaag gefilterd"},
+                  ].map(({label,value,color,sub})=>(
+                    <div key={label}>
+                      <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.1em",marginBottom:5,fontFamily:"'JetBrains Mono',monospace"}}>{label}</div>
+                      <div style={{fontSize:20,fontWeight:800,color,marginBottom:2,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
+                      <div style={{fontSize:9,color:"#6b7280"}}>{sub}</div>
                     </div>
-                    <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{headline}</div>
-                  </div>
-                  {url&&<span style={{fontSize:10,color:"#8a8f9a",flexShrink:0}}>›</span>}
+                  ))}
                 </div>
-              );
-            })}
+              ) : (
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                  {[1,2,3,4].map(i=>(
+                    <div key={i}>
+                      <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"60%",marginBottom:8}}/>
+                      <div style={{height:14,borderRadius:4,background:"rgba(255,255,255,0.06)",width:"40%",marginBottom:5}}/>
+                      <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"70%"}}/>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* NAV BOX — buitenste wrapper donkerder + doorzichtig */}
+          <div style={{background:"rgba(6,6,8,0.7)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:`1px solid ${acc}14`,borderRadius:12,padding:"16px"}}>
+            <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>NAVIGATIE</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[
+                {id:"analyse",  icon:"▦", title:"Asset Analyse", desc:"Bias · confidence · hold score · AI samenvatting", color:acc},
+                {id:"intel",    icon:"◉", title:"Market Intel",  desc:"Nieuws · yield · macro regime · cross-asset",     color:"#6366f1"},
+                {id:"calendar", icon:"≡", title:"Tools & Links", desc:"ForexFactory · TradingView · Investing.com",       color:"#f59e0b"},
+              ].map(({id,icon,title,desc,color})=>(
+                <button key={id} onClick={()=>onNavigate(id)}
+                  className="rc-card card-hover"
+                  style={{"--conic-color":color,cursor:"pointer",width:"100%",textAlign:"left",border:"none",
+                    background:"rgba(14,14,17,0.9)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)"}}>
+                  <div className="conic-border"/>
+                  <div style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12,position:"relative",zIndex:1}}>
+                    <div style={{width:28,height:28,borderRadius:7,background:`${color}18`,border:`1px solid ${color}30`,
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color,flexShrink:0}}>
+                      {icon}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#f0f1f3",marginBottom:2}}>{title}</div>
+                      <div style={{fontSize:9,color:"#6b7280",lineHeight:1.4}}>{desc}</div>
+                    </div>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,color}}><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── RECHTER KOLOM: NEWS ── */}
+        <div className="rc-card" style={{"--conic-color":"#f59e0b",height:"100%"}}>
+          <div className="conic-border"/>
+          <div style={{padding:"20px 22px",position:"relative",zIndex:1,display:"flex",flexDirection:"column",gap:0}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+                <span style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",opacity:0.7}}>NEWS FEED</span>
+                {rssLoading&&<span style={{fontSize:10,color:"#6b7280",animation:"spin 0.8s linear infinite",display:"inline-block",marginLeft:4}}>⟳</span>}
+              </div>
+              <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":"#f59e0b30"}}>MEER ›</button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {newsItems.length>0 ? newsItems.map((n,i)=>{
+                const url = n.link||n.url||"";
+                return (
+                  <div key={i} onClick={()=>url&&window.open(url,"_blank")}
+                    style={{display:"flex",alignItems:"flex-start",gap:8,padding:"9px 11px",borderRadius:7,
+                      background:"#0d0e13",border:"1px solid #1a1b1f",
+                      cursor:url?"pointer":"default",transition:"background 0.15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="#131418"}
+                    onMouseLeave={e=>e.currentTarget.style.background="#0d0e13"}>
+                    <div style={{width:2,height:"100%",minHeight:28,flexShrink:0,background:"rgba(245,158,11,0.4)",borderRadius:1,alignSelf:"stretch"}}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
+                        <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{n.source}</span>
+                        <span style={{fontSize:8,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>{n.timeStr||""}</span>
+                      </div>
+                      <div style={{fontSize:10,color:"#c8cdd8",lineHeight:1.45}}>{n.headline}</div>
+                    </div>
+                    {url&&<span style={{fontSize:11,color:"#444",flexShrink:0,alignSelf:"center"}}>›</span>}
+                  </div>
+                );
+              }) : (
+                <div style={{display:"flex",flexDirection:"column",gap:7}}>
+                  {[1,2,3,4,5].map(i=>(
+                    <div key={i} style={{padding:"9px 11px",borderRadius:7,background:"#0d0e13",border:"1px solid #1a1b1f"}}>
+                      <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.05)",width:"30%",marginBottom:7}}/>
+                      <div style={{height:7,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"90%",marginBottom:4}}/>
+                      <div style={{height:7,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"70%"}}/>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      )}
+
+      </div>
     </div>
   );
 }
@@ -2822,7 +2844,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* ── Responsive ─────────────────────────────────────────────────────── */
         /* Mobile: < 640px */
         @media(max-width:639px){
-          .sessie-grid,.grid-stats,.grid-nav,.grid-intel-2col,.grid-intel-macro,.grid-analyse-5,.grid-marktvisie,.grid-deepdive,.grid-2col{grid-template-columns:1fr!important}
+          .sessie-grid,.grid-stats,.grid-nav,.grid-intel-2col,.grid-intel-macro,.grid-analyse-5,.grid-marktvisie,.grid-deepdive,.grid-2col,.home-main-grid{grid-template-columns:1fr!important}
           .sessie-grid{gap:12px!important}
           .grid-stats{grid-template-columns:1fr 1fr!important}
           .hero-row{flex-direction:column!important}
@@ -2849,6 +2871,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
           .grid-2col{grid-template-columns:1fr 1fr}
+          .home-main-grid{grid-template-columns:1fr 320px}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
