@@ -904,7 +904,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             {/* Fail condition */}
             {data?.fail_condition&&(
               <Card color="#ef4444" style={{background:"rgba(239,68,68,0.05)",border:"1px solid rgba(239,68,68,0.18)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
                   <span style={{fontSize:11}}>⚠️</span>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.12em",color:"#ef4444",fontFamily:"'JetBrains Mono',monospace"}}>FAIL CONDITION</span>
                 </div>
@@ -1219,7 +1219,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
   const NewsItem = ({n}) => (
     <div onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-      style={{padding:"9px 12px",borderRadius:6,background:"#1e1e1e",border:"1px solid #272727",cursor:"pointer",transition:"border-color 0.15s"}}
+      style={{padding:"7px 10px",borderRadius:5,background:"#161616",border:"1px solid #1e1e1e",cursor:"pointer",transition:"border-color 0.15s"}}
       onMouseEnter={e=>e.currentTarget.style.borderColor="#333"}
       onMouseLeave={e=>e.currentTarget.style.borderColor="#272727"}>
       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5,flexWrap:"wrap"}}>
@@ -1231,7 +1231,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {n.direction==="bullish"?"▲ Bullish":n.direction==="bearish"?"▼ Bearish":"—"}
         </span>
       </div>
-      <div style={{fontSize:11,color:"#d0d4dc",lineHeight:1.5,fontWeight:400}}>{n.headline}</div>
+      <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.5,fontWeight:400}}>{n.headline}</div>
       {n.assets_affected&&n.assets_affected.length>0&&(
         <div style={{display:"flex",gap:3,flexWrap:"wrap",marginTop:5}}>
           {n.assets_affected.map(a=><Badge key={a} label={a} color="#2a2a2a"/>)}
@@ -1246,8 +1246,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       {/* ── TOP BAR ── */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
         <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-          {data.session_context&&<span style={{fontSize:11,color:"#6b7280"}}>{data.session_context}</span>}
-          {data.timestamp&&<span style={{fontSize:10,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>· {fmtDT(data.timestamp)}</span>}
+          {data.session_context&&<span style={{fontSize:11,color:"#c8cdd8",fontWeight:500}}>{data.session_context}</span>}
+          {data.timestamp&&<span style={{fontSize:10,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>· {fmtDT(data.timestamp)}</span>}
         </div>
         <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{padding:"7px 16px",fontSize:10,color:"#fff",opacity:status==="loading-intel"?0.6:1,"--btn-glow":`${acc}40`}}>
           <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
@@ -1256,7 +1256,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* ── MAIN GRID: nieuws links, signalen rechts ── */}
-      <div className="grid-intel-2col" style={{display:"grid",gap:14,alignItems:"start"}}>
+      <div className="grid-intel-2col" style={{display:"grid",gap:12,alignItems:"start"}}>
 
         {/* ── LEFT: nieuws ── */}
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -1265,8 +1265,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {highNews.length>0&&(
             <div className="rc-card" style={{"--conic-color":"#ef4444"}}>
               <div className="conic-border"/>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <div style={{padding:"11px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
                   <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
@@ -1281,8 +1281,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* ALL NEWS */}
           <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
             <div className="conic-border"/>
-            <div style={{padding:"14px 16px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+            <div style={{padding:"11px 14px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
                 <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b"}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>NIEUWS FEED</span>
                 <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
@@ -1301,16 +1301,16 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
             <div className="rc-card" style={{"--conic-color":"#6366f1"}}>
               <div className="conic-border"/>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <div style={{padding:"11px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:"#6366f1"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>CROSS-ASSET SIGNALEN</span>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:6}}>
                   {data.cross_asset_signals.map((s,i)=>(
-                    <div key={i} style={{padding:"8px 10px",borderRadius:6,background:"#1e1e1e",border:"1px solid #272727"}}>
+                    <div key={i} style={{padding:"8px 10px",borderRadius:6,background:"#161616",border:"1px solid #222"}}>
                       <Badge label={s.signal} color={s.type==="anomalie"?"#ef4444":"#6366f1"}/>
-                      <div style={{fontSize:11,color:"#9ca3af",marginTop:5,lineHeight:1.5}}>{s.implication}</div>
+                      <div style={{fontSize:11,color:"#a0a8b8",marginTop:4,lineHeight:1.5}}>{s.implication}</div>
                     </div>
                   ))}
                 </div>
@@ -1322,8 +1322,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {data.risk_radar&&(
             <div className="rc-card" style={{"--conic-color":data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}>
               <div className="conic-border"/>
-              <div style={{padding:"14px 16px"}}> 
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <div style={{padding:"11px 14px"}}> 
+                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>RISK RADAR</span>
                 </div>
@@ -1352,12 +1352,12 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* Yield implication */}
           {data.yield_analysis?.implication&&(
             <div className="rc-card" style={{"--conic-color":acc}}>
-              <div style={{padding:"14px 16px"}}>
+              <div style={{padding:"11px 14px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:acc}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>YIELD IMPLICATIE</span>
                 </div>
-                <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{data.yield_analysis.implication}</div>
+                <div style={{fontSize:11,color:"#a0a8b8",lineHeight:1.6}}>{data.yield_analysis.implication}</div>
               </div>
             </div>
           )}
@@ -1365,15 +1365,15 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* ── MACRO CONTEXT — compact onderaan ── */}
           <div className="rc-card" style={{"--conic-color":yieldColors[data.macro_regime]||acc}}>
             <div className="conic-border"/>
-            <div style={{padding:"14px 16px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+            <div style={{padding:"11px 14px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
                 <div style={{width:5,height:5,borderRadius:"50%",background:yieldColors[data.macro_regime]||acc,boxShadow:`0 0 5px ${yieldColors[data.macro_regime]||acc}`}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>MACRO CONTEXT</span>
                 <span style={{fontSize:11,fontWeight:700,color:yieldColors[data.macro_regime]||acc,marginLeft:"auto"}}>{data.macro_regime||"—"}</span>
               </div>
               {data.dominant_driver&&(
                 <div style={{fontSize:11,color:"#6b7280",marginBottom:8,paddingBottom:8,borderBottom:"1px solid #222"}}>
-                  <span style={{color:"#444",fontSize:9,letterSpacing:"0.08em"}}>DRIVER · </span>
+                  <span style={{color:"#555",fontSize:9,letterSpacing:"0.08em"}}>DRIVER · </span>
                   {data.dominant_driver}
                 </div>
               )}
@@ -2627,8 +2627,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* ── Clean dark card ── */
         .rc-card{
           position:relative;
-          background:#1c1c1c;
-          border:1px solid #2a2a2a;
+          background:#181818;
+          border:1px solid #242424;
           border-radius:10px;
           overflow:hidden;
           transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease,border-color 0.22s ease;
@@ -3059,7 +3059,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         <div style={{width:1,background:"rgba(255,255,255,0.06)",alignSelf:"stretch",flexShrink:0}}/>
                         <div style={{flex:1,minWidth:180}}>
                           <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em",display:"block",marginBottom:5}}>MARKT CONTEXT</span>
-                          <div style={{fontSize:11,color:"#9ca3af",lineHeight:1.6}}>{aResult.market_context}</div>
+                          <div style={{fontSize:11,color:"#a0a8b8",lineHeight:1.6}}>{aResult.market_context}</div>
                         </div>
                       </>
                     )}
@@ -3299,7 +3299,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </div>
                 <div className="grid-analyse-5" style={{display:"grid",gap:10}}>
                   {["XAU/USD","US30","US100","EUR/USD","GBP/USD"].map((sym,i)=>(
-                    <div key={sym} style={{background:"#0d0e13",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"14px 16px"}}>
+                    <div key={sym} style={{background:"#0d0e13",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"11px 14px"}}>
                       <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{sym}</div>
                       <div style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",marginBottom:6,width:["70%","55%","80%","60%","75%"][i]}}/>
                       <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.03)",marginBottom:5,width:"90%"}}/>
@@ -3433,6 +3433,11 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         {/* INTEL PAGE */}
         {page==="intel"&&(
           <>
+            {/* Intel page glow */}
+            <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
+              <div style={{position:"absolute",top:"10%",left:"20%",width:"60%",height:"50%",background:`radial-gradient(ellipse at center,${accent}0d 0%,transparent 65%)`,filter:"blur(80px)"}}/>
+              <div style={{position:"absolute",bottom:"5%",right:"5%",width:"40%",height:"40%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.07) 0%,transparent 65%)",filter:"blur(70px)"}}/>
+            </div>
             {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
             <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} onRunHybrid={runHybrid} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)} accent={accent}/>
           </>
@@ -4324,7 +4329,11 @@ function AdminPanel({ accent }) {
   async function loadUsers() {
     setLoading(true);
     try {
-      const data = await apiAuth("listUsers", {adminKey: getAdminKey()});
+      const s = getSession();
+      const data = await apiAuth("listUsers", {
+        adminKey:   getAdminKey(),
+        adminToken: s?.adminToken || "",
+      });
       if(data.users) setUsers(data.users);
     } catch(_) {}
     setLoading(false);
@@ -4333,11 +4342,11 @@ function AdminPanel({ accent }) {
   useEffect(()=>{ loadUsers(); },[]);
   useEffect(()=>{ const ti=setInterval(loadUsers,15000); return ()=>clearInterval(ti); },[]);
 
-  async function approve(id) { await apiAuth("approveUser",{id,adminKey:getAdminKey()}); loadUsers(); }
-  async function deny(id)    { await apiAuth("denyUser",   {id,adminKey:getAdminKey()}); loadUsers(); }
+  async function approve(id) { const s=getSession(); await apiAuth("approveUser",{id,adminKey:getAdminKey(),adminToken:s?.adminToken||""}); loadUsers(); }
+  async function deny(id)    { const s=getSession(); await apiAuth("denyUser",{id,adminKey:getAdminKey(),adminToken:s?.adminToken||""}); loadUsers(); }
   async function del(id)     {
     if(!confirm(t.deleteConfirm)) return;
-    await apiAuth("deleteUser",{id,adminKey:getAdminKey()}); loadUsers();
+    const s=getSession(); await apiAuth("deleteUser",{id,adminKey:getAdminKey(),adminToken:s?.adminToken||""}); loadUsers();
   }
 
   const pending  = users.filter(u=>!u.approved);
@@ -4642,7 +4651,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
                 </div>
               </div>
               {/* Live preview */}
-              <div style={{padding:"14px 16px",background:`${accent}0c`,border:`1px solid ${accent}25`,borderRadius:10}}>
+              <div style={{padding:"11px 14px",background:`${accent}0c`,border:`1px solid ${accent}25`,borderRadius:10}}>
                 <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{t.livePreview}</div>
                 <div style={{display:"flex",gap:10,alignItems:"center"}}>
                   <div style={{width:36,height:36,borderRadius:"50%",background:`${accent}20`,border:`2px solid ${accent}50`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -4689,7 +4698,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
               <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.1em",marginBottom:4,fontFamily:"'JetBrains Mono',monospace"}}>{t.language.toUpperCase()}</div>
               {Object.values(LANGS).map(l=>(
                 <button key={l.code} onClick={()=>switchLang(l.code)}
-                  style={{display:"flex",alignItems:"center",gap:14,padding:"14px 16px",
+                  style={{display:"flex",alignItems:"center",gap:14,padding:"11px 14px",
                     background:lang===l.code?`${ac}12`:"rgba(255,255,255,0.02)",
                     border:`1px solid ${lang===l.code?ac+"40":"rgba(255,255,255,0.06)"}`,
                     borderRadius:10,cursor:"pointer",transition:"all .15s",textAlign:"left"}}>
