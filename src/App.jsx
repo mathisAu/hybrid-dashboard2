@@ -1268,7 +1268,10 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
-                  <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
+                  <span style={{fontSize:9,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
+                  <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{marginLeft:"auto",padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`,opacity:status==="loading-intel"?0.5:1}}>
+                    <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
+                  </button>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {highNews.map((n,i)=><NewsItem key={i} n={n}/>)}
@@ -1283,7 +1286,10 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b"}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#e2e4e9"}}>NIEUWS FEED</span>
-                <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
+                <span style={{fontSize:9,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
+                <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{marginLeft:"auto",padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`,opacity:status==="loading-intel"?0.5:1}}>
+                  <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
+                </button>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {normalNews.map((n,i)=><NewsItem key={i} n={n}/>)}
