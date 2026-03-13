@@ -3862,9 +3862,9 @@ async function anthropicFetch(body, headers={}) {
   const session = getSession();
   const fullBody = {
     ...body,
-    _sessionUserId:   session?.id   || "",
-    _sessionRole:     session?.role || "",
-    _sessionApproved: session?.approved ?? false,
+    _sessionUserId: session?.id         || "",
+    // Admin: stuur gesigneerd server-token — nooit client-claims
+    ...(session?.adminToken ? { _adminToken: session.adminToken } : {}),
   };
   return fetch("/api/anthropic", {
     method:"POST",
