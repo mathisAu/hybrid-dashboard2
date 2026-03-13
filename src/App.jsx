@@ -728,7 +728,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto"}}
+    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto",animation:"pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
 
@@ -3470,16 +3470,14 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* DEEP DIVE */}
       {deepAsset&&(
-        <div className="page-enter">
-          <DeepDiveModal
-            asset={deepAsset.asset}
-            data={deepAsset.data}
-            onClose={()=>setDeepAsset(null)}
-            onRefreshAsset={()=>refreshSingleAsset(deepAsset.asset)}
-            refreshing={deepRefreshing}
-            accent={accent}
-          />
-        </div>
+        <DeepDiveModal
+          asset={deepAsset.asset}
+          data={deepAsset.data}
+          onClose={()=>setDeepAsset(null)}
+          onRefreshAsset={()=>refreshSingleAsset(deepAsset.asset)}
+          refreshing={deepRefreshing}
+          accent={accent}
+        />
       )}
 
       {newsImpact&&(
