@@ -1611,7 +1611,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":"#f59e0b30"}}>MEER ›</button>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:7,overflowY:"auto",maxHeight:520}}>
-              {newsItems.length>0 ? newsItems.slice(0,7).map((n,i)=>{
+              {newsItems.length>0 ? newsItems.slice(0,9).map((n,i)=>{
                 const url = n.link||n.url||"";
                 return (
                   <div key={i} onClick={()=>url&&window.open(url,"_blank")}
