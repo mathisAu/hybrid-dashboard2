@@ -1597,14 +1597,14 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
   // Alleen automatisch laden als er nog geen summaries zijn (eerste keer na Hybrid run)
   React.useEffect(() => {
     if (!aResult) return;
+    // Nooit auto-runnen als er al summaries zijn (persistent top-level state)
+    if (Object.keys(summaries).length > 0) return;
+    // Alleen eerste keer na Hybrid run (prevKey voorkomt dubbele calls in zelfde sessie)
     const key = JSON.stringify(aResult);
-    if (key === prevKey.current) return;  // zelfde data of al geladen
+    if (key === prevKey.current) return;
     prevKey.current = key;
-    // Alleen genereren als summaries leeg zijn (prop van buiten)
-    if (Object.keys(summaries).length === 0) {
-      runBriefing(aResult);
-    }
-  }, [aResult]);
+    runBriefing(aResult);
+  }, [aResult, summaries]);
 
   const color = acc;
 
@@ -1671,9 +1671,8 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
 }
 
 
-function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews, rssItems, onRefreshRss, rssLoading }) {
+function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews, rssItems, onRefreshRss, rssLoading, briefingSummaries, setBriefingSummaries }) {
   const acc = accent || DEFAULT_ACCENT;
-  const [briefingSummaries, setBriefingSummaries] = React.useState({});
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
   const now = new Date();
   const timeStr = now.toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"});
@@ -1870,6 +1869,7 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSe
   const [aStatus,       setAStatus]       = useState("idle");
   const [iStatus,       setIStatus]       = useState("idle");
   const [aResult,       setAResult]       = useState(null);
+  const [briefingSummaries, setBriefingSummaries] = useState({});
   const [iResult,       setIResult]       = useState(null);
   // Refs zodat runHybrid altijd de meest recente waarden kan lezen voor de save
   const aResultRef   = useRef(null);
@@ -3322,6 +3322,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             rssItems={rssItems}
             onRefreshRss={fetchRssFeeds}
             rssLoading={rssLoading}
+            briefingSummaries={briefingSummaries}
+            setBriefingSummaries={setBriefingSummaries}
           />
         )}
 
