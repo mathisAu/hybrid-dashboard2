@@ -492,8 +492,8 @@ function resolveBias(bias, confidence) {
 }
 
 const biasColors = {
-  Bullish:  { bg:"rgba(34,197,94,0.08)",  border:"rgba(34,197,94,0.35)",  text:"#4ade80" },
-  Bearish:  { bg:"rgba(239,68,68,0.08)",  border:"rgba(239,68,68,0.35)",  text:"#f87171" },
+  Bullish:  { bg:"rgba(34,197,94,0.18)",  border:"rgba(34,197,94,0.7)",   text:"#4ade80" },
+  Bearish:  { bg:"rgba(239,68,68,0.18)",  border:"rgba(239,68,68,0.7)",   text:"#f87171" },
   Neutraal: { bg:"rgba(75,85,99,0.12)",   border:"rgba(75,85,99,0.35)",   text:"#9ca3af" },
   Fragiel:  { bg:"rgba(8,153,129,0.08)",  border:"rgba(8,153,129,0.35)",  text:"#0dd9b6" },
 };
@@ -749,7 +749,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
             <div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:3}}>
                 <span style={{fontSize:24,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em"}}>{asset.label}</span>
-                <span style={{fontSize:11,fontWeight:700,color:bc.text,background:bc.bg,border:`1px solid ${bc.border}44`,borderRadius:6,padding:"4px 12px",letterSpacing:"0.08em"}}>{bias?.toUpperCase()}</span>
+                <span style={{fontSize:11,fontWeight:700,color:bc.text,background:bc.bg,border:`1px solid ${bc.border}`,borderRadius:6,padding:"4px 12px",letterSpacing:"0.08em"}}>{bias?.toUpperCase()}</span>
                 {data?.price_direction&&data?.price_change_today&&(
                   <span style={{fontSize:12,fontWeight:700,color:data.price_direction==="up"?"#22c55e":"#ef4444",fontFamily:"'JetBrains Mono',monospace",background:data.price_direction==="up"?"rgba(34,197,94,0.08)":"rgba(239,68,68,0.08)",borderRadius:5,padding:"3px 10px",border:`1px solid ${data.price_direction==="up"?"rgba(34,197,94,0.2)":"rgba(239,68,68,0.2)"}`}}>
                     {data.price_direction==="up"?"↑":"↓"} {data.price_change_today}
@@ -2800,9 +2800,14 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .ticker-scroll{animation:tickerMove 30s linear infinite}
         @keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
+        /* ── No horizontal scroll ── */
+        *{box-sizing:border-box}
+        html,body{overflow-x:hidden;max-width:100vw}
+
         /* ── Responsive ─────────────────────────────────────────────────────── */
         /* Mobile: < 640px */
         @media(max-width:639px){
+          .sessie-grid{grid-template-columns:1fr!important;gap:12px!important}
           .grid-stats{grid-template-columns:1fr 1fr!important}
           .grid-nav{grid-template-columns:1fr 1fr!important}
           .grid-intel-2col{grid-template-columns:1fr!important}
@@ -3124,15 +3129,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       </div>
                     ))}
                     {/* Market context text */}
-                    {aResult.market_context&&(
-                      <>
-                        <div style={{width:1,background:"rgba(255,255,255,0.06)",alignSelf:"stretch",flexShrink:0}}/>
-                        <div style={{flex:1,minWidth:180}}>
-                          <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em",display:"block",marginBottom:5}}>MARKT CONTEXT</span>
-                          <div style={{fontSize:11,color:"#a0a8b8",lineHeight:1.6}}>{aResult.market_context}</div>
-                        </div>
-                      </>
-                    )}
+
                   </div>
                 </div>
               </div>
@@ -3286,6 +3283,16 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
                   onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
               ))}
+              {/* Macro context — als extra card naast GBP/USD */}
+              {aResult.market_context&&(
+                <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}20`,borderRadius:10,padding:"16px 18px",display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.6}}/>
+                    <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
+                  </div>
+                  <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.65}}>{aResult.market_context}</div>
+                </div>
+              )}
             </div>}
 
 
@@ -3329,10 +3336,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     {/* Top accent strip */}
                     <div style={{height:2,background:`linear-gradient(90deg,transparent,${mc}66,${mc}44,transparent)`}}/>
 
-                    <div style={{padding:"20px 22px",display:"grid",gridTemplateColumns:"auto 1fr auto",gap:20,alignItems:"start"}}>
+                    <div className="sessie-grid" style={{padding:"20px 22px",display:"grid",gridTemplateColumns:"auto 1fr auto",gap:20,alignItems:"start"}}>
 
                       {/* Left: mood block */}
-                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:72,paddingRight:20,borderRight:"1px solid rgba(255,255,255,0.05)"}}>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:0,paddingRight:20,borderRight:"1px solid rgba(255,255,255,0.05)"}}>
                         <div style={{width:36,height:36,borderRadius:10,background:`${mc}15`,border:`1px solid ${mc}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color:mc}}>{moodIcon}</div>
                         <div style={{fontSize:12,fontWeight:700,color:mc,letterSpacing:"0.02em",textAlign:"center",lineHeight:1.2}}>{presession.mood}</div>
                         {presession.mood_score&&<div style={{fontSize:9,color:"#c8cdd8",fontFamily:"'JetBrains Mono',monospace"}}>{presession.mood_score}%</div>}
@@ -3376,7 +3383,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
                       {/* Right: key events */}
                       {presession.key_events_today?.length>0&&(
-                        <div style={{display:"flex",flexDirection:"column",gap:5,minWidth:140,paddingLeft:20,borderLeft:"1px solid rgba(255,255,255,0.05)"}}>
+                        <div style={{display:"flex",flexDirection:"column",gap:5,minWidth:0,paddingLeft:20,borderLeft:"1px solid rgba(255,255,255,0.05)"}}>
                           <div style={{fontSize:8,fontWeight:700,color:"#c8cdd8",letterSpacing:"0.14em",marginBottom:2,fontFamily:"'JetBrains Mono',monospace"}}>KEY EVENTS</div>
                           {presession.key_events_today.slice(0,4).map((e,i)=>(
                             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:6}}>
