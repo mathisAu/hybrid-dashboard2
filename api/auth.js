@@ -298,7 +298,7 @@ export default async function handler(req, res) {
       }
       if (!passwordOk) return err(res, "Wachtwoord onjuist.");
       return json(res, 200, {
-        session: { email: user.email, name: user.name, role: "user", approved: user.approved, avatar: user.avatar || null }
+        session: { id: user.id, email: user.email, name: user.name, role: "user", approved: user.approved, avatar: user.avatar || null }
       });
     }
 
