@@ -1476,116 +1476,125 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
 
 // ── HOME PAGE ─────────────────────────────────────────────────────────────────
-function DailyBriefing({ aResult, assets, acc }) {
-  const [briefing, setBriefing] = React.useState(null);
-  const [loading,  setLoading]  = React.useState(false);
-  const [error,    setError]    = React.useState(null);
-  const prevAResult = React.useRef(null);
+function DailyBriefing({ aResult, assets, acc, rssItems }) {
+  const [summaries, setSummaries] = React.useState({});
+  const [loading,   setLoading]   = React.useState(false);
+  const [error,     setError]     = React.useState(null);
+  const prevKey = React.useRef(null);
 
   const runBriefing = React.useCallback((result) => {
-    if (!result) return;
-    const topAssets = assets
-      .map(a => ({ id: a.id, label: a.label || a.id, ...result.assets?.[a.id] }))
-      .filter(a => a.bias)
-      .sort((a,b) => (b.confidence||0) - (a.confidence||0))
-      .slice(0, 2);
+    const newsSnippet = (rssItems||[]).slice(0,8).map(n => n.title||n.headline||"").filter(Boolean).join(" | ");
 
-    const allBiases = assets.map(a => result.assets?.[a.id]?.bias).filter(Boolean);
-    const bullCount = allBiases.filter(b => b.toLowerCase().includes("bull")).length;
-    const bearCount = allBiases.filter(b => b.toLowerCase().includes("bear")).length;
-    const sentiment = bullCount > bearCount ? "Bullish" : bearCount > bullCount ? "Bearish" : "Gemengd";
-    const avgConf   = Math.round(assets.reduce((s,a) => s + (result.assets?.[a.id]?.confidence||0), 0) / assets.length);
+    const assetList = assets.map(a => {
+      const d = result?.assets?.[a.id];
+      return `${a.label||a.id} (bias: ${d?.bias||"?"}, mini_summary: "${d?.mini_summary||""}")`;
+    }).join("\n");
 
-    const prompt = `Je bent een institutionele trading analyst. Geef een KORTE dagelijkse briefing in het Nederlands (max 5 zinnen) op basis van deze data:\n\nMarkt sentiment: ${sentiment} (gem. confidence: ${avgConf}%)\nTop tradable assets:\n${topAssets.map(a => `- ${a.label}: ${a.bias}, confidence ${a.confidence||"?"}%, hold score ${a.holdScore||"?"}`).join("\n")}\nMacro samenvatting: ${result.macro?.summary || "niet beschikbaar"}\n\nGeef: 1) één zin over het overall markt sentiment, 2) welke 1-2 assets de meeste kans bieden vandaag en waarom kort, 3) één zin wat de trader vandaag moet weten of vermijden. Wees direct, institutioneel en bondig. Geen bullet points, gewoon lopende tekst.`;
+    const prompt = `Je bent een institutionele trading analyst. Geef per asset een samenvatting van 3 zinnen in het Nederlands over wat er NU speelt, gebaseerd op het laatste nieuws en de asset context.
+
+Nieuws headlines: ${newsSnippet || "geen nieuws beschikbaar"}
+
+Assets:
+${assetList}
+
+Reageer ALLEEN met een JSON object, geen uitleg, geen markdown backticks. Exact dit formaat:
+{"${assets.map(a=>a.id).join('":"...", "')}":"..."}
+
+Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
 
     setLoading(true);
     setError(null);
-    setBriefing(null);
+    setSummaries({});
 
     anthropicFetch({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }]
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 800,
+      messages: [{ role: "user", content: prompt }]
     })
     .then(r => r.json())
     .then(d => {
       const text = d.content?.map(b => b.text||"").join("").trim();
-      if (text) setBriefing(text);
-      else setError("Geen briefing ontvangen.");
+      try {
+        const clean = text.replace(/```json|```/g, "").trim();
+        setSummaries(JSON.parse(clean));
+      } catch(_) { setError("Verwerken mislukt."); }
     })
-    .catch(() => setError("Briefing ophalen mislukt."))
+    .catch(() => setError("Ophalen mislukt."))
     .finally(() => setLoading(false));
-  }, [assets]);
+  }, [assets, rssItems]);
 
   React.useEffect(() => {
-    if (!aResult || aResult === prevAResult.current) return;
-    prevAResult.current = aResult;
+    if (!aResult) return;
+    const key = JSON.stringify(aResult);
+    if (key === prevKey.current) return;
+    prevKey.current = key;
     runBriefing(aResult);
   }, [aResult, runBriefing]);
 
   const color = acc;
 
-  // ── Ghost state (geen data) ──
+  // Ghost state
   if (!aResult && !loading) return (
-    <div style={{background:`rgba(6,6,8,0.55)`,backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
-      border:`1px solid ${color}14`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:12,alignSelf:"start"}}>
-      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:4}}>FOR YOU · DAILY BRIEFING</div>
-      {/* ghost lines */}
-      {[80,100,65,90,50].map((w,i) => (
-        <div key={i} style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",width:`${w}%`}}/>
+    <div style={{background:"rgba(6,6,8,0.55)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+      border:`1px solid ${color}14`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:10,alignSelf:"start"}}>
+      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · MARKT BRIEFING</div>
+      {[1,2,3,4,5].map(i => (
+        <div key={i} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"12px 14px",display:"flex",flexDirection:"column",gap:7}}>
+          <div style={{height:7,borderRadius:3,background:"rgba(255,255,255,0.06)",width:"35%"}}/>
+          <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"100%"}}/>
+          <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"85%"}}/>
+          <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"70%"}}/>
+        </div>
       ))}
-      <div style={{marginTop:4,fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>Voer eerst een Hybrid run uit</div>
+      <div style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>Voer eerst een Hybrid run uit</div>
     </div>
   );
 
   return (
-    /* buitenste wrapper — donkerder + subtiele glow rand (zelfde stijl als Nav box) */
-    <div style={{background:`rgba(6,6,8,0.55)`,backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+    <div style={{background:"rgba(6,6,8,0.55)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
       border:`1px solid ${color}22`,borderRadius:12,padding:16,alignSelf:"start",
       boxShadow:`0 0 0 1px ${color}10, 0 4px 24px ${color}08`}}>
 
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-        <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · DAILY BRIEFING</div>
-        <button
-          onClick={()=>runBriefing(aResult)}
-          disabled={loading||!aResult}
-          className="btn-primary"
-          style={{padding:"3px 8px",fontSize:10,color:"#fff",opacity:(loading||!aResult)?0.4:1,"--btn-glow":`${color}40`,display:"flex",alignItems:"center",gap:4}}
-        >
+        <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · MARKT BRIEFING</div>
+        <button onClick={()=>runBriefing(aResult)} disabled={loading||!aResult} className="btn-primary"
+          style={{padding:"3px 8px",fontSize:10,color:"#fff",opacity:(loading||!aResult)?0.4:1,"--btn-glow":`${color}40`,display:"flex",alignItems:"center"}}>
           <span style={{display:"inline-block",animation:loading?"spin 0.8s linear infinite":"none",fontSize:11}}>↺</span>
         </button>
       </div>
 
-      {/* binnenste card met conic glow */}
-      <div className="rc-card" style={{"--conic-color":color,position:"relative"}}>
-        <div className="conic-border"/>
-        <div style={{padding:"16px 18px",position:"relative",zIndex:1}}>
-
-          {loading && (
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {[90,75,85,60].map((w,i) => (
-                <div key={i} style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.06)",width:`${w}%`,
-                  animation:"pulse 1.5s ease-in-out infinite",animationDelay:`${i*0.15}s`}}/>
-              ))}
-              <div style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginTop:4}}>Briefing genereren…</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {assets.map(asset => {
+          const summary = summaries[asset.id];
+          return (
+            <div key={asset.id} className="rc-card" style={{"--conic-color":color,position:"relative"}}>
+              <div className="conic-border"/>
+              <div style={{padding:"12px 14px",position:"relative",zIndex:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                  <span style={{fontSize:10,color:color}}>✦</span>
+                  <span style={{fontSize:11,fontWeight:700,color:"#f0f1f3"}}>{asset.label||asset.id}</span>
+                </div>
+                {loading && !summary ? (
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {[100,85,70].map((w,i)=>(
+                      <div key={i} style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.06)",width:`${w}%`,
+                        animation:"pulse 1.5s ease-in-out infinite",animationDelay:`${i*0.1}s`}}/>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{fontSize:11,color:"#a8b0bf",lineHeight:1.7}}>{summary || "—"}</div>
+                )}
+              </div>
             </div>
-          )}
-
-          {error && !loading && (
-            <div style={{fontSize:11,color:"#ef4444",fontFamily:"'JetBrains Mono',monospace"}}>{error}</div>
-          )}
-
-          {briefing && !loading && (
-            <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.7,fontFamily:"'Inter',sans-serif"}}>
-              {briefing}
-            </div>
-          )}
-
-        </div>
+          );
+        })}
       </div>
+
+      {error && <div style={{fontSize:10,color:"#ef4444",fontFamily:"'JetBrains Mono',monospace",marginTop:8}}>{error}</div>}
     </div>
   );
 }
+
 
 function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews, rssItems, onRefreshRss, rssLoading }) {
   const acc = accent || DEFAULT_ACCENT;
@@ -1707,7 +1716,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         </div>
 
         {/* ── MIDDEN KOLOM: DAILY BRIEFING ── */}
-        <DailyBriefing aResult={aResult} assets={assets} acc={acc} />
+        <DailyBriefing aResult={aResult} assets={assets} acc={acc} rssItems={rssItems} />
 
         {/* ── RECHTER KOLOM: NEWS ── */}
         <div className="rc-card" style={{"--conic-color":"#f59e0b", height:"100%"}}>
