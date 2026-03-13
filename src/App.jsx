@@ -737,9 +737,9 @@ function DeepDiveModal({ asset, data, onClose, forceClosing, onRefreshAsset, ref
 
         {/* Deep dive page glow */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-          <div style={{position:"absolute",top:"-20%",left:"15%",width:"70%",height:"65%",background:`radial-gradient(ellipse at center,${acc}1a 0%,transparent 65%)`,filter:"blur(60px)"}}/>
+          <div style={{position:"absolute",top:"-20%",left:"15%",width:"70%",height:"65%",background:`radial-gradient(ellipse at center,${acc}3a 0%,transparent 65%)`,filter:"blur(80px)"}}/>
           
-          <div style={{position:"absolute",top:"40%",left:"-10%",width:"35%",height:"40%",background:`radial-gradient(ellipse at center,${acc}0e 0%,transparent 65%)`,filter:"blur(65px)"}}/>
+          <div style={{position:"absolute",top:"40%",left:"-10%",width:"35%",height:"40%",background:`radial-gradient(ellipse at center,${acc}22 0%,transparent 65%)`,filter:"blur(80px)"}}/>
         </div>
 
         {/* Bias color strip */}
@@ -1156,7 +1156,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
       {/* Hero — no box */}
       <div style={{padding:"8px 0 4px",position:"relative"}}>
-        <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${acc}0f,transparent 70%)`,pointerEvents:"none"}}/>
+        <div style={{position:"absolute",top:-40,right:0,width:500,height:300,borderRadius:"50%",background:`radial-gradient(circle,${acc}28,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>MARKET INTEL · POWERED BY AI</div>
           <div style={{fontSize:26,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
@@ -1476,6 +1476,78 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
 
 // ── HOME PAGE ─────────────────────────────────────────────────────────────────
+function SessionCountdown({ acc }) {
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const color = acc;
+  const ams = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Amsterdam" }));
+  const h = ams.getHours(), m = ams.getMinutes(), s = ams.getSeconds();
+  const totalSec = h * 3600 + m * 60 + s;
+
+  const PREMARKET    = 7  * 3600;
+  const LONDON_OPEN  = 8  * 3600;
+  const LONDON_CLOSE = 16 * 3600;
+
+  let label, secondsLeft, totalWindow, phase, phaseColor;
+
+  if (totalSec < PREMARKET) {
+    label = "Pre-sessie start"; secondsLeft = PREMARKET - totalSec;
+    totalWindow = PREMARKET; phase = "WACHTEN"; phaseColor = "#6b7280";
+  } else if (totalSec < LONDON_OPEN) {
+    label = "London open"; secondsLeft = LONDON_OPEN - totalSec;
+    totalWindow = LONDON_OPEN - PREMARKET; phase = "PRE-SESSIE"; phaseColor = "#f59e0b";
+  } else if (totalSec < LONDON_CLOSE) {
+    label = "London close"; secondsLeft = LONDON_CLOSE - totalSec;
+    totalWindow = LONDON_CLOSE - LONDON_OPEN; phase = "LONDON LIVE"; phaseColor = "#22c55e";
+  } else {
+    label = "Sessie gesloten"; secondsLeft = 0;
+    totalWindow = 1; phase = "GESLOTEN"; phaseColor = "#ef4444";
+  }
+
+  const hh = String(Math.floor(secondsLeft / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, "0");
+  const ss = String(secondsLeft % 60).padStart(2, "0");
+  const progress = Math.max(0, Math.min(1, 1 - secondsLeft / Math.max(totalWindow, 1)));
+  const timeNow = ams.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+  return (
+    <div style={{background:"rgba(6,6,8,0.7)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+      border:`1px solid ${color}14`,borderRadius:12,padding:"16px"}}>
+      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>SESSIE TIMER</div>
+      <div className="rc-card" style={{"--conic-color":phaseColor,position:"relative"}}>
+        <div className="conic-border"/>
+        <div style={{padding:"14px 16px",position:"relative",zIndex:1}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:5,background:`${phaseColor}18`,border:`1px solid ${phaseColor}33`,borderRadius:4,padding:"3px 8px"}}>
+              <div style={{width:5,height:5,borderRadius:"50%",background:phaseColor,
+                animation:phase==="LONDON LIVE"?"pulseDot 2s ease-in-out infinite":"none"}}/>
+              <span style={{fontSize:9,fontWeight:700,color:phaseColor,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>{phase}</span>
+            </div>
+            <span style={{fontSize:10,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>{timeNow}</span>
+          </div>
+          {secondsLeft > 0 ? (
+            <>
+              <div style={{fontSize:9,color:"#6b7280",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>{label} over</div>
+              <div style={{fontSize:28,fontWeight:800,color:"#f0f1f3",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.05em",lineHeight:1,marginBottom:12}}>
+                {hh}<span style={{color:"#4b5563"}}>:</span>{mm}<span style={{color:"#4b5563"}}>:</span>{ss}
+              </div>
+            </>
+          ) : (
+            <div style={{fontSize:13,fontWeight:700,color:phaseColor,fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>Sessie gesloten</div>
+          )}
+          <div style={{height:3,background:"#141414",borderRadius:2,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${progress*100}%`,background:phaseColor,borderRadius:2,transition:"width 1s linear"}}/>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DailyBriefing({ aResult, assets, acc, rssItems }) {
   const [summaries, setSummaries] = React.useState({});
   const [loading,   setLoading]   = React.useState(false);
@@ -1650,36 +1722,34 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
           {/* STATS BOX */}
-          <div className="rc-card" style={{"--conic-color":acc}}>
-            <div className="conic-border"/>
-            <div style={{padding:"20px 22px",position:"relative",zIndex:1}}>
-              <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>MARKT OVERZICHT</div>
-              {aResult ? (
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                  {[
-                    {label:"MARKT SENTIMENT", value:overallSentiment, color:sentimentColor, sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
-                    {label:"GEM. CONFIDENCE",  value:avgConf+"%",     color:acc,           sub:"Over alle assets"},
-                    {label:"ASSETS",           value:assets.length,   color:"#6366f1",     sub:"Geanalyseerd"},
-                    {label:"BREAKING NEWS",    value:breakingNews.length, color:"#f59e0b", sub:"Vandaag gefilterd"},
-                  ].map(({label,value,color,sub})=>(
-                    <div key={label}>
-                      <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.1em",marginBottom:5,fontFamily:"'JetBrains Mono',monospace"}}>{label}</div>
-                      <div style={{fontSize:20,fontWeight:800,color,marginBottom:2,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
-                      <div style={{fontSize:9,color:"#6b7280"}}>{sub}</div>
-                    </div>
-                  ))}
+          <div style={{background:"rgba(6,6,8,0.7)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:`1px solid ${acc}14`,borderRadius:12,padding:"16px"}}>
+            <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>MARKT OVERZICHT</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {(aResult ? [
+                {label:"MARKT SENTIMENT", value:overallSentiment, color:sentimentColor, sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
+                {label:"GEM. CONFIDENCE",  value:avgConf+"%",     color:acc,           sub:"Over alle assets"},
+                {label:"ASSETS",           value:assets.length,   color:"#6366f1",     sub:"Geanalyseerd"},
+                {label:"BREAKING NEWS",    value:breakingNews.length, color:"#f59e0b", sub:"Vandaag gefilterd"},
+              ] : [{},{},{},{}]).map(({label,value,color,sub},i)=>(
+                <div key={i} className="rc-card" style={{"--conic-color":color||acc,position:"relative"}}>
+                  <div className="conic-border"/>
+                  <div style={{padding:"10px 12px",position:"relative",zIndex:1}}>
+                    {label ? (
+                      <>
+                        <div style={{fontSize:7,color:"#4b5563",letterSpacing:"0.1em",marginBottom:5,fontFamily:"'JetBrains Mono',monospace"}}>{label}</div>
+                        <div style={{fontSize:18,fontWeight:800,color,marginBottom:2,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
+                        <div style={{fontSize:8,color:"#6b7280"}}>{sub}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"70%",marginBottom:7}}/>
+                        <div style={{height:12,borderRadius:3,background:"rgba(255,255,255,0.06)",width:"45%",marginBottom:5}}/>
+                        <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"60%"}}/>
+                      </>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                  {[1,2,3,4].map(i=>(
-                    <div key={i}>
-                      <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"60%",marginBottom:8}}/>
-                      <div style={{height:14,borderRadius:4,background:"rgba(255,255,255,0.06)",width:"40%",marginBottom:5}}/>
-                      <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"70%"}}/>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
           </div>
 
@@ -1712,6 +1782,9 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               ))}
             </div>
           </div>
+
+          {/* SESSIE COUNTDOWN */}
+          <SessionCountdown acc={acc} />
 
         </div>
 
@@ -3139,9 +3212,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       )}
 
         {`${accent}` && <div style={{position:"fixed",top:0,left:sidebarW,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
-          <div style={{position:"absolute",top:"-5%",left:"5%",width:"90%",height:"60%",background:`radial-gradient(ellipse at center,${accent}28 0%,transparent 60%)`,filter:"blur(70px)"}}/>
+          <div style={{position:"absolute",top:"-5%",left:"5%",width:"90%",height:"60%",background:`radial-gradient(ellipse at center,${accent}45 0%,transparent 60%)`,filter:"blur(90px)"}}/>
           
-          <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"50%",background:`radial-gradient(ellipse at center,${accent}14 0%,transparent 65%)`,filter:"blur(75px)"}}/>
+          <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"50%",background:`radial-gradient(ellipse at center,${accent}28 0%,transparent 65%)`,filter:"blur(90px)"}}/>
         </div>}
 
       {/* ── LOADING OVERLAY ── */}
@@ -3363,7 +3436,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             {!aResult&&aStatus!=="loading"&&(
               <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:20}}>
                 <div style={{padding:"8px 0 4px",position:"relative"}}>
-                  <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${accent}0f,transparent 70%)`,pointerEvents:"none"}}/>
+                  <div style={{position:"absolute",top:-40,right:0,width:500,height:300,borderRadius:"50%",background:`radial-gradient(circle,${accent}28,transparent 70%)`,pointerEvents:"none"}}/>
                   <div style={{position:"relative"}}>
                     <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>HYBRID ANALYSE · POWERED BY AI</div>
                     <div style={{fontSize:24,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:10,lineHeight:1.2}}>
@@ -3522,7 +3595,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           <>
             {/* Intel page glow */}
             <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-              <div style={{position:"absolute",top:"10%",left:"20%",width:"60%",height:"50%",background:`radial-gradient(ellipse at center,${accent}0d 0%,transparent 65%)`,filter:"blur(80px)"}}/>
+              <div style={{position:"absolute",top:"10%",left:"20%",width:"60%",height:"50%",background:`radial-gradient(ellipse at center,${accent}28 0%,transparent 65%)`,filter:"blur(100px)"}}/>
               
             </div>
             {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
@@ -4388,7 +4461,7 @@ function AccessDenied({ user, onLogout, accent }) {
     <div style={{minHeight:"100vh",background:"#070708",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",color:"#e2e4e9",padding:20}}>
       <style>{`@keyframes superRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
       <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
-        <div style={{position:"absolute",top:"20%",left:"30%",width:"60%",height:"60%",background:"radial-gradient(ellipse at center,rgba(239,68,68,0.10),transparent 65%)",filter:"blur(80px)"}}/>
+        <div style={{position:"absolute",top:"20%",left:"30%",width:"60%",height:"60%",background:"radial-gradient(ellipse at center,rgba(239,68,68,0.22),transparent 65%)",filter:"blur(100px)"}}/>
       </div>
       <div style={{position:"relative",textAlign:"center",maxWidth:420}}>
         <div style={{fontSize:48,marginBottom:20}}>🚫</div>
@@ -4444,7 +4517,7 @@ function AdminPanel({ accent }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <div style={{padding:"8px 0 4px",position:"relative"}}>
-        <div style={{position:"absolute",top:-40,right:0,width:280,height:180,borderRadius:"50%",background:`radial-gradient(circle,${ac}0f,transparent 70%)`,pointerEvents:"none"}}/>
+        <div style={{position:"absolute",top:-40,right:0,width:460,height:280,borderRadius:"50%",background:`radial-gradient(circle,${ac}28,transparent 70%)`,pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.18em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>{t.adminPanel}</div>
           <div style={{fontSize:22,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.02em",marginBottom:8}}>{t.manageUsers} <span style={{color:ac}}>{t.users}</span></div>
