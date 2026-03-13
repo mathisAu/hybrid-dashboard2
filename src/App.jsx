@@ -1219,59 +1219,58 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
   const NewsItem = ({n}) => (
     <div onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-      style={{padding:"10px 14px",borderRadius:8,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",transition:"border-color 0.15s"}}
-      onMouseEnter={e=>e.currentTarget.style.borderColor="#333"}
-      onMouseLeave={e=>e.currentTarget.style.borderColor="#272727"}>
+      style={{padding:"9px 12px",borderRadius:7,background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.05)",cursor:"pointer",transition:"background 0.15s"}}
+      onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}
+      onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.025)"}>
       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5,flexWrap:"wrap"}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#555",fontWeight:600}}>{n.time||"—"}</span>
-        <Badge label={n.source} color="#555"/>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#4a4a4a",fontWeight:600}}>{n.time||"—"}</span>
+        <Badge label={n.source} color="#4a4a4a"/>
         <Badge label={n.category} color="#6366f1"/>
         {n.impact==="high"&&<Badge label="HIGH" color="#ef4444"/>}
         <span style={{fontSize:10,fontWeight:600,color:dirColor[n.direction]||"#555",marginLeft:"auto"}}>
           {n.direction==="bullish"?"▲ Bullish":n.direction==="bearish"?"▼ Bearish":"—"}
         </span>
       </div>
-      <div style={{fontSize:11,color:"#d4d8e2",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
+      <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
       {n.assets_affected&&n.assets_affected.length>0&&(
         <div style={{display:"flex",gap:3,flexWrap:"wrap",marginTop:5}}>
-          {n.assets_affected.map(a=><Badge key={a} label={a} color="#2a2a2a"/>)}
+          {n.assets_affected.map(a=><Badge key={a} label={a} color="#252525"/>)}
         </div>
       )}
     </div>
   );
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
       {/* ── TOP BAR ── */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
           {data.session_context&&<span style={{fontSize:11,color:"#c8cdd8",fontWeight:500}}>{data.session_context}</span>}
           {data.timestamp&&<span style={{fontSize:10,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>· {fmtDT(data.timestamp)}</span>}
         </div>
-        <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{padding:"7px 16px",fontSize:10,color:"#fff",opacity:status==="loading-intel"?0.6:1,"--btn-glow":`${acc}40`}}>
+        <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{padding:"6px 14px",fontSize:10,color:"#fff",opacity:status==="loading-intel"?0.6:1,"--btn-glow":`${acc}40`}}>
           <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
           {status==="loading-intel"?`LADEN${".".repeat(dots)}`:"VERNIEUWEN"}
         </button>
       </div>
 
-      {/* ── MAIN GRID: nieuws links, signalen rechts ── */}
-      <div className="grid-intel-2col" style={{display:"grid",gap:20,alignItems:"start"}}>
+      {/* ── MAIN GRID ── */}
+      <div className="grid-intel-2col" style={{display:"grid",gap:18,alignItems:"start"}}>
 
-        {/* ── LEFT: nieuws ── */}
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        {/* LEFT: nieuws */}
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-          {/* HIGH IMPACT NEWS */}
+          {/* HIGH IMPACT */}
           {highNews.length>0&&(
-            <div className="rc-card" style={{"--conic-color":"#ef4444"}}>
-              <div className="conic-border"/>
-              <div style={{padding:"16px 18px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-                  <div style={{width:5,height:5,borderRadius:"50%",background:"#ef4444"}}/>
+            <div style={{background:"rgba(239,68,68,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(239,68,68,0.12)",borderTop:"1px solid rgba(239,68,68,0.35)",borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"14px 16px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+                  <div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
                   <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
                 </div>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {highNews.map((n,i)=><NewsItem key={i} n={n}/>)}
                 </div>
               </div>
@@ -1279,38 +1278,36 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           )}
 
           {/* ALL NEWS */}
-          <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
-            <div className="conic-border"/>
-            <div style={{padding:"16px 18px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-                <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b"}}/>
-                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>NIEUWS FEED</span>
+          <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid rgba(245,158,11,0.3)`,borderRadius:10,overflow:"hidden"}}>
+            <div style={{padding:"14px 16px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+                <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b"}}/>
+                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>NIEUWS FEED</span>
                 <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
               </div>
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {normalNews.map((n,i)=><NewsItem key={i} n={n}/>)}
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── RIGHT: signalen + macro ── */}
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        {/* RIGHT: signalen */}
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-          {/* Cross-asset signals */}
+          {/* Cross-asset */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
-            <div className="rc-card" style={{"--conic-color":"#6366f1"}}>
-              <div className="conic-border"/>
-              <div style={{padding:"16px 18px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-                  <div style={{width:5,height:5,borderRadius:"50%",background:"#6366f1"}}/>
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>CROSS-ASSET SIGNALEN</span>
+            <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:"1px solid rgba(99,102,241,0.35)",borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"14px 16px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+                  <div style={{width:4,height:4,borderRadius:"50%",background:"#6366f1"}}/>
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>CROSS-ASSET SIGNALEN</span>
                 </div>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {data.cross_asset_signals.map((s,i)=>(
-                    <div key={i} style={{padding:"8px 10px",borderRadius:6,background:"#161616",border:"1px solid #222"}}>
+                    <div key={i} style={{padding:"8px 11px",borderRadius:7,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.05)"}}>
                       <Badge label={s.signal} color={s.type==="anomalie"?"#ef4444":"#6366f1"}/>
-                      <div style={{fontSize:11,color:"#a0a8b8",marginTop:4,lineHeight:1.5}}>{s.implication}</div>
+                      <div style={{fontSize:11,color:"#a0a8b8",marginTop:5,lineHeight:1.55}}>{s.implication}</div>
                     </div>
                   ))}
                 </div>
@@ -1318,67 +1315,74 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             </div>
           )}
 
-          {/* Risk radar */}
-          {data.risk_radar&&(
-            <div className="rc-card" style={{"--conic-color":data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}>
-              <div className="conic-border"/>
-              <div style={{padding:"16px 18px"}}> 
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-                  <div style={{width:5,height:5,borderRadius:"50%",background:data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"}}/>
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>RISK RADAR</span>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:14}}>
-                  <div style={{position:"relative",width:48,height:48,flexShrink:0}}>
-                    <svg width="48" height="48" viewBox="0 0 48 48">
-                      <circle cx="24" cy="24" r="18" fill="none" stroke="#222" strokeWidth="3"/>
-                      <circle cx="24" cy="24" r="18" fill="none" stroke={data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e"} strokeWidth="3" strokeDasharray={`${(data.risk_radar.score/100)*113} 113`} strokeLinecap="round" transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:"#e5e7eb"}}>{data.risk_radar.score}</div>
+          {/* Risk radar — score is /10 */}
+          {data.risk_radar&&(()=>{
+            const score = data.risk_radar.score;
+            const rc = score>7?"#ef4444":score>4?"#f97316":"#22c55e";
+            const circ = 2*Math.PI*16; // r=16
+            return (
+              <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid ${rc}55`,borderRadius:10,overflow:"hidden"}}>
+                <div style={{padding:"14px 16px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+                    <div style={{width:4,height:4,borderRadius:"50%",background:rc}}/>
+                    <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>RISK RADAR</span>
                   </div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:600,color:data.risk_radar.score>70?"#ef4444":data.risk_radar.score>40?"#f97316":"#22c55e",marginBottom:6}}>{data.risk_radar.label}</div>
-                    {(data.risk_radar.factors_text||"").split(",").concat(data.risk_radar.factors||[]).filter(Boolean).slice(0,4).map((f,i)=>(
-                      <div key={i} style={{display:"flex",alignItems:"center",gap:5,marginBottom:3}}>
-                        <div style={{width:2,height:2,borderRadius:"50%",background:"#333",flexShrink:0}}/>
-                        <span style={{fontSize:10,color:"#6b7280"}}>{f.trim()}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:16}}>
+                    <div style={{position:"relative",width:52,height:52,flexShrink:0}}>
+                      <svg width="52" height="52" viewBox="0 0 52 52">
+                        <circle cx="26" cy="26" r="16" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5"/>
+                        <circle cx="26" cy="26" r="16" fill="none" stroke={rc} strokeWidth="2.5"
+                          strokeDasharray={`${(score/10)*circ} ${circ}`}
+                          strokeLinecap="round" transform="rotate(-90 26 26)"/>
+                      </svg>
+                      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+                        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:"#e5e7eb",lineHeight:1}}>{score}</span>
+                        <span style={{fontSize:7,color:"#444",marginTop:1}}>/ 10</span>
                       </div>
-                    ))}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:12,fontWeight:600,color:rc,marginBottom:8}}>{data.risk_radar.label}</div>
+                      {(data.risk_radar.factors_text||"").split(",").concat(data.risk_radar.factors||[]).filter(Boolean).slice(0,4).map((f,i)=>(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:5,marginBottom:4}}>
+                          <div style={{width:2,height:2,borderRadius:"50%",background:"#444",flexShrink:0}}/>
+                          <span style={{fontSize:10,color:"#6b7280"}}>{f.trim()}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
-          {/* Yield implication */}
+          {/* Yield */}
           {data.yield_analysis?.implication&&(
-            <div className="rc-card" style={{"--conic-color":acc}}>
-              <div style={{padding:"16px 18px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                  <div style={{width:5,height:5,borderRadius:"50%",background:acc}}/>
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>YIELD IMPLICATIE</span>
+            <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid ${acc}44`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"14px 16px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+                  <div style={{width:4,height:4,borderRadius:"50%",background:acc}}/>
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>YIELD IMPLICATIE</span>
                 </div>
-                <div style={{fontSize:11,color:"#a0a8b8",lineHeight:1.6}}>{data.yield_analysis.implication}</div>
+                <div style={{fontSize:11,color:"#a0a8b8",lineHeight:1.65}}>{data.yield_analysis.implication}</div>
               </div>
             </div>
           )}
 
-          {/* ── MACRO CONTEXT — compact onderaan ── */}
-          <div className="rc-card" style={{"--conic-color":yieldColors[data.macro_regime]||acc}}>
-            <div className="conic-border"/>
-            <div style={{padding:"16px 18px"}}>
+          {/* Macro context */}
+          <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid ${yieldColors[data.macro_regime]||acc}55`,borderRadius:10,overflow:"hidden"}}>
+            <div style={{padding:"14px 16px"}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-                <div style={{width:5,height:5,borderRadius:"50%",background:yieldColors[data.macro_regime]||acc,boxShadow:`0 0 5px ${yieldColors[data.macro_regime]||acc}`}}/>
-                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#555"}}>MACRO CONTEXT</span>
-                <span style={{fontSize:11,fontWeight:700,color:yieldColors[data.macro_regime]||acc,marginLeft:"auto"}}>{data.macro_regime||"—"}</span>
+                <div style={{width:4,height:4,borderRadius:"50%",background:yieldColors[data.macro_regime]||acc}}/>
+                <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>MACRO CONTEXT</span>
+                <span style={{fontSize:11,fontWeight:600,color:yieldColors[data.macro_regime]||acc,marginLeft:"auto"}}>{data.macro_regime||"—"}</span>
               </div>
               {data.dominant_driver&&(
-                <div style={{fontSize:11,color:"#6b7280",marginBottom:8,paddingBottom:8,borderBottom:"1px solid #222"}}>
-                  <span style={{color:"#555",fontSize:9,letterSpacing:"0.08em"}}>DRIVER · </span>
-                  {data.dominant_driver}
+                <div style={{fontSize:11,color:"#6b7280",marginBottom:10,paddingBottom:10,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                  <span style={{color:"#444",fontSize:9,letterSpacing:"0.08em"}}>DRIVER · </span>{data.dominant_driver}
                 </div>
               )}
               {data.yield_analysis&&(
-                <div style={{display:"flex",gap:14,flexWrap:"wrap",marginBottom:data.desk_view?8:0}}>
+                <div style={{display:"flex",gap:16,flexWrap:"wrap",marginBottom:data.desk_view?10:0}}>
                   {[{l:"US10Y",v:data.yield_analysis.us10y_level},{l:"US2Y",v:data.yield_analysis.us2y_level},{l:"SPREAD",v:data.yield_analysis.spread}].map(({l,v})=>v&&(
                     <div key={l}>
                       <div style={{fontSize:8,color:"#444",letterSpacing:"0.1em",marginBottom:2}}>{l}</div>
@@ -1388,7 +1392,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                 </div>
               )}
               {data.desk_view&&(
-                <div style={{fontSize:11,color:"#6b7280",lineHeight:1.6,paddingTop:8,borderTop:"1px solid #222"}}>{data.desk_view}</div>
+                <div style={{fontSize:11,color:"#6b7280",lineHeight:1.65,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.04)"}}>{data.desk_view}</div>
               )}
             </div>
           </div>
