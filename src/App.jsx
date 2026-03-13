@@ -1607,8 +1607,8 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               </div>
               <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":"#f59e0b30"}}>MEER ›</button>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:7,overflowY:"auto",maxHeight:340}}>
-              {newsItems.length>0 ? newsItems.slice(0,4).map((n,i)=>{
+            <div style={{display:"flex",flexDirection:"column",gap:7,overflowY:"auto",maxHeight:520}}>
+              {newsItems.length>0 ? newsItems.slice(0,7).map((n,i)=>{
                 const url = n.link||n.url||"";
                 return (
                   <div key={i} onClick={()=>url&&window.open(url,"_blank")}
@@ -2871,7 +2871,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
           .grid-2col{grid-template-columns:1fr 1fr}
-          .home-main-grid{grid-template-columns:280px 380px}
+          .home-main-grid{grid-template-columns:280px auto 380px}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
