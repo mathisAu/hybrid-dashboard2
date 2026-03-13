@@ -2422,6 +2422,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     });
     setAResult(combined);
     setAStatus("done");
+    runPresession();
   };
 
 
