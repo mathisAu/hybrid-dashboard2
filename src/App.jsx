@@ -1726,10 +1726,10 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>MARKT OVERZICHT</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {(aResult ? [
-                {label:"MARKT SENTIMENT", value:overallSentiment, color:sentimentColor, sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
+                {label:"MARKT SENTIMENT", value:overallSentiment, color:"#f0f1f3", sub:""},
                 {label:"GEM. CONFIDENCE",  value:avgConf+"%",     color:acc,           sub:"Over alle assets"},
-                {label:"ASSETS",           value:assets.length,   color:"#6366f1",     sub:"Geanalyseerd"},
-                {label:"BREAKING NEWS",    value:breakingNews.length, color:"#f59e0b", sub:"Vandaag gefilterd"},
+                {label:"ASSETS",           value:assets.length,   color:acc,           sub:"Geanalyseerd"},
+                {label:"BREAKING NEWS",    value:breakingNews.length, color:acc,       sub:"Vandaag gefilterd"},
               ] : [{},{},{},{}]).map(({label,value,color,sub},i)=>(
                 <div key={i} className="rc-card" style={{"--conic-color":color||acc,position:"relative"}}>
                   <div className="conic-border"/>
@@ -1758,9 +1758,9 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
             <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>NAVIGATIE</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
-                {id:"analyse",  icon:"▦", title:"Asset Analyse", desc:"Bias · confidence · hold score · AI samenvatting", color:acc},
-                {id:"intel",    icon:"◉", title:"Market Intel",  desc:"Nieuws · yield · macro regime · cross-asset",     color:"#6366f1"},
-                {id:"calendar", icon:"≡", title:"Tools & Links", desc:"ForexFactory · TradingView · Investing.com",       color:"#f59e0b"},
+                {id:"analyse",  icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>, title:"Asset Analyse", desc:"Bias · confidence · hold score · AI samenvatting", color:acc},
+                {id:"intel",    icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>, title:"Market Intel",  desc:"Nieuws · yield · macro regime · cross-asset",     color:"#6366f1"},
+                {id:"calendar", icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>, title:"Tools & Links", desc:"ForexFactory · TradingView · Investing.com",       color:"#f59e0b"},
               ].map(({id,icon,title,desc,color})=>(
                 <button key={id} onClick={()=>onNavigate(id)}
                   className="rc-card card-hover"
@@ -1769,7 +1769,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
                   <div className="conic-border"/>
                   <div style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12,position:"relative",zIndex:1}}>
                     <div style={{width:28,height:28,borderRadius:7,background:`${color}18`,border:`1px solid ${color}30`,
-                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color,flexShrink:0}}>
+                      display:"flex",alignItems:"center",justifyContent:"center",color,flexShrink:0}}>
                       {icon}
                     </div>
                     <div style={{flex:1,minWidth:0}}>
@@ -1792,7 +1792,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         <DailyBriefing aResult={aResult} assets={assets} acc={acc} rssItems={rssItems} />
 
         {/* ── RECHTER KOLOM: NEWS ── */}
-        <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
+        <div className="rc-card" style={{"--conic-color":"#f59e0b", height:"100%"}}>
           <div className="conic-border"/>
           <div style={{padding:"20px 22px",position:"relative",zIndex:1,display:"flex",flexDirection:"column",gap:0}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
