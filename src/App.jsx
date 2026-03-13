@@ -3358,7 +3358,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   </div>
                 );
               })()}
-            </div>
+            </div>}
 
 
           </>
