@@ -1,5 +1,28 @@
 import { Redis } from "@upstash/redis";
 const redis = Redis.fromEnv();
+
+// ── Admin token verificatie (zelfde logica als auth.js) ──────────────────────
+const ADMIN_SECRET = process.env.ADMIN_SESSION_SECRET || "change-this-in-vercel";
+
+async function signAdminToken(payload) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(ADMIN_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  return Buffer.from(sig).toString("hex");
+}
+
+async function verifyAdminToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const parts = token.split(":");
+  if (parts.length !== 3) return false;
+  const [prefix, ts, sig] = parts;
+  if (prefix !== "admin") return false;
+  if (Date.now() - parseInt(ts) > 12 * 60 * 60 * 1000) return false;
+  const expected = await signAdminToken(`admin:${ts}`);
+  return expected === sig;
+}
 const RATE_LIMIT_WINDOW = 60;
 const RATE_LIMIT_MAX    = 5;
 const CACHE_TTL         = 30 * 60;
@@ -32,24 +55,25 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
   // ── Sessie-check ──────────────────────────────────────────────────────────
-  const sessionUserId   = req.body?._sessionUserId;
-  const sessionRole     = req.body?._sessionRole;
-  const sessionApproved = req.body?._sessionApproved;
+  const sessionUserId  = req.body?._sessionUserId;
+  const sessionToken   = req.body?._adminToken;   // gesigneerd HMAC token
+  let authorized = false;
 
-  if (sessionRole === "admin" && sessionApproved === true) {
-    // admin — ok
-  } else if (sessionUserId) {
+  // Admin: verifieer HMAC token server-side — client-claims worden NOOIT vertrouwd
+  if (sessionToken) {
+    authorized = await verifyAdminToken(sessionToken);
+    if (!authorized) return res.status(401).json({ error: "Ongeldig admin token" });
+  }
+  // Gewone user: controleer via Redis
+  else if (sessionUserId) {
     try {
       const userRaw = await redis.hget("ht:users", sessionUserId);
       const user = typeof userRaw === "string" ? JSON.parse(userRaw) : userRaw;
-      if (!user || !user.approved) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-    } catch (_) {
-      return res.status(401).json({ error: "Session check failed" });
-    }
+      if (user && user.approved) authorized = true;
+    } catch (_) {}
+    if (!authorized) return res.status(403).json({ error: "Geen toegang" });
   } else {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ error: "Niet ingelogd" });
   }
 
   // ── Rate limiting per IP ──────────────────────────────────────────────────
@@ -77,7 +101,7 @@ export default async function handler(req, res) {
 
   // ── Anthropic API call ────────────────────────────────────────────────────
   try {
-    const { _cacheKey: _ck, _sessionUserId: _su, ...anthropicBody } = body;
+    const { _cacheKey: _ck, _sessionUserId: _su, _sessionRole: _sr, _sessionApproved: _sa, _adminToken: _at, ...anthropicBody } = body;
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
