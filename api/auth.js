@@ -336,14 +336,16 @@ export default async function handler(req, res) {
 
     // ── LIST USERS ────────────────────────────────────────────────────────────
     if (action === "listUsers") {
-      if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
+      const tokenOk = await verifyAdminToken(body.adminToken || "");
+      if (!tokenOk && body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       const users = await getAllUsers();
       return json(res, 200, { users: users.map(safeUser) });
     }
 
     // ── APPROVE USER ──────────────────────────────────────────────────────────
     if (action === "approveUser") {
-      if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
+      const tokenOk = await verifyAdminToken(body.adminToken || "");
+      if (!tokenOk && body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       const users = await getAllUsers();
       const user  = users.find(u => u.id === body.id);
       if (!user) return err(res, "Gebruiker niet gevonden.");
@@ -359,7 +361,8 @@ export default async function handler(req, res) {
 
     // ── DENY USER ─────────────────────────────────────────────────────────────
     if (action === "denyUser") {
-      if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
+      const tokenOk = await verifyAdminToken(body.adminToken || "");
+      if (!tokenOk && body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       const users = await getAllUsers();
       const user  = users.find(u => u.id === body.id);
       if (!user) return err(res, "Gebruiker niet gevonden.");
@@ -375,7 +378,8 @@ export default async function handler(req, res) {
 
     // ── DELETE USER ───────────────────────────────────────────────────────────
     if (action === "deleteUser") {
-      if (body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
+      const tokenOk = await verifyAdminToken(body.adminToken || "");
+      if (!tokenOk && body.adminKey !== ADMIN_KEY) return err(res, "Unauthorized", 403);
       await redis.hdel(USERS_KEY, body.id);
       return json(res, 200, { ok: true });
     }
