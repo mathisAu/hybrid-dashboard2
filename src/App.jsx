@@ -2654,7 +2654,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @property --nav-angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         @keyframes conicSpin{to{--angle:360deg}}
         @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-        .ticker-track{display:flex;width:max-content;animation:tickerScroll 120s linear infinite}
+        .ticker-track{display:flex;width:max-content;animation:tickerScroll 90s linear infinite}
         .ticker-track:hover{animation-play-state:paused}
         @property --angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
