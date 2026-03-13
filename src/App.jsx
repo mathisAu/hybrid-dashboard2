@@ -3327,9 +3327,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{fontSize:13,color:"#6b7280",lineHeight:1.7,maxWidth:500}}>
                         Hybrid analyseert alle 5 assets tegelijk — bias richting, confidence score, Pulse timing en institutionele flow.
                       </div>
-                      <button onClick={runHybrid} disabled={aStatus==="loading"} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${accent}40`,flexShrink:0}}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M8 5l11 7-11 7V5z" fill="currentColor"/></svg>
-                        HYBRID STARTEN
+                      <button onClick={runAnalysis} disabled={aStatus==="loading"} className="btn-primary btn-always-spin" style={{padding:"11px 28px",fontSize:12,color:"#fff","--btn-glow":`${accent}40`,flexShrink:0}}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{animation:aStatus==="loading"?"spin 1s linear infinite":"none"}}><path d="M8 5l11 7-11 7V5z" fill="currentColor"/></svg>
+                        {aStatus==="loading"?"LADEN...":"ANALYSE STARTEN"}
                       </button>
                     </div>
                   </div>
