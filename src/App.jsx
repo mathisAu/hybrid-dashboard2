@@ -1141,7 +1141,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
   );
 }
 
-function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, onNewsClick, accent }) {
+function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, onNewsClick, accent, rssItems, rssLoading, onRefreshRss }) {
   const acc = accent || "#089981";
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -1296,6 +1296,41 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
               </div>
             </div>
           </div>
+
+          {/* FLASH NEWS — RSS feed */}
+          {(rssItems||[]).length>0&&(
+            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"20px 22px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
+                  <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#e2e4e9"}}>FLASH NEWS</span>
+                  <span style={{fontSize:9,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>{(rssItems||[]).length} items</span>
+                  <button onClick={onRefreshRss} disabled={rssLoading} className="btn-primary" style={{marginLeft:"auto",padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`,opacity:rssLoading?0.5:1}}>
+                    <span style={{display:"inline-block",animation:rssLoading?"spin 0.8s linear infinite":"none"}}>↺</span>
+                  </button>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {(rssItems||[]).slice(0,8).map((item,i)=>(
+                    <div key={i}
+                      onClick={()=>item.link&&window.open(item.link,"_blank")}
+                      style={{padding:"6px 10px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22",cursor:item.link?"pointer":"default",display:"flex",alignItems:"center",gap:8,transition:"background 0.15s"}}
+                      onMouseEnter={e=>e.currentTarget.style.background="#161618"}
+                      onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
+                      <div style={{width:2,height:24,flexShrink:0,background:"rgba(245,158,11,0.5)",borderRadius:1}}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
+                          <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{item.source}</span>
+                          <span style={{fontSize:8,color:"#444",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(item.time)}</span>
+                        </div>
+                        <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{item.headline}</div>
+                      </div>
+                      {item.link&&<span style={{fontSize:10,color:"#444",flexShrink:0}}>›</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* RIGHT: signalen */}
@@ -3326,111 +3361,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               ))}
             </div>}
 
-            {/* BREAKING NEWS + RSS FEED */}
-            <div className="grid-marktvisie" style={{marginTop:8,display:"grid",gap:10}}>
-            <div style={{background:"#1c1c1c",border:"1px solid #2a2a2a",borderRadius:10,overflow:"hidden",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
-              <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  {breakingNews.length>0&&<div style={{width:6,height:6,borderRadius:"50%",background:"#ef4444",boxShadow:"0 0 7px #ef4444",animation:"pulse 1.5s infinite"}}/>}
-                  <span style={{fontSize:10,fontWeight:700,color:breakingNews.length>0?"#ef4444":"#374151",letterSpacing:"0.12em"}}>BREAKING NEWS</span>
-                </div>
-                <span style={{fontSize:9,color:"#2d3748"}}>Finnhub · Reuters · Bloomberg · ForexFactory</span>
-                {bnLoading&&<span style={{fontSize:9,color:"#6b7280",marginLeft:"auto",display:"flex",alignItems:"center",gap:4}}><span style={{animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span></span>}
-                {!bnLoading&&breakingNews.length>0&&<button onClick={fetchBreakingNews} className="btn-primary" title="Verversen" style={{marginLeft:"auto",padding:"5px 10px",fontSize:12,color:"#fff","--btn-glow":`${accent}30`}}>↺</button>}
-              </div>
-              <div style={{maxHeight:380,overflowY:"auto",padding:"6px 10px 10px",display:"flex",flexDirection:"column",gap:4}}>
-                {breakingNews.length===0&&!bnLoading&&!aResult&&(
-                  <div style={{display:"flex",flexDirection:"column",gap:4,padding:"6px 0"}}>
-                    {[["85%","60%"],["70%","80%"],["90%","50%"],["65%","75%"],["80%","55%"]].map(([w1,w2],i)=>(
-                      <div key={i} style={{display:"flex",gap:0,alignItems:"stretch",borderRadius:6,border:"1px solid rgba(255,255,255,0.04)",background:"rgba(255,255,255,0.015)"}}>
-                        <div style={{width:3,flexShrink:0,borderRadius:"6px 0 0 6px",background:"rgba(255,255,255,0.05)"}}/>
-                        <div style={{flex:1,padding:"10px 12px"}}>
-                          <div style={{display:"flex",gap:5,marginBottom:8,alignItems:"center"}}>
-                            <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.05)",width:28}}/>
-                            <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:44}}/>
-                          </div>
-                          <div style={{height:7,borderRadius:3,background:"rgba(255,255,255,0.04)",width:w1,marginBottom:6}}/>
-                          <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.025)",width:w2}}/>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {breakingNews.length===0&&!bnLoading&&aResult&&(
-                  <div style={{color:"#4b5563",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen nieuws gevonden</div>
-                )}
-                {[...breakingNews].sort((a,b)=>b.time-a.time).map((n,i)=>{
-                  const isHigh = n.impact==="high";
-                  const isBull = n.direction==="bullish";
-                  const isBear = n.direction==="bearish";
-                  const dirCol = isBull?"#22c55e":isBear?"#ef4444":"#4b5563";
-                  return (
-                    <div key={i}
-                      onClick={()=>setNewsImpact(n)}
-                      className="news-item-hover"
-                      style={{display:"flex",gap:0,alignItems:"stretch",borderRadius:6,border:`1px solid ${n.isNew&&i<3?"rgba(239,68,68,0.2)":isHigh?"rgba(239,68,68,0.1)":"rgba(255,255,255,0.06)"}`,background:n.isNew&&i<3?"rgba(239,68,68,0.04)":"rgba(255,255,255,0.02)",cursor:"pointer"}}>
-                      <div style={{width:3,flexShrink:0,borderRadius:"6px 0 0 6px",background:isBull?"#22c55e":isBear?"#ef4444":"rgba(255,255,255,0.1)"}}/>
-                      <div style={{flex:1,padding:"10px 12px",minWidth:0}}>
-                        <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6,flexWrap:"wrap"}}>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#6b7280",letterSpacing:"0.04em",flexShrink:0}}>{n.timeStr||fmtDT(n.time)}</span>
-                          <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",background:"rgba(255,255,255,0.06)",borderRadius:3,padding:"1px 6px",letterSpacing:"0.06em",flexShrink:0}}>{n.source}</span>
-                          {isHigh&&<span style={{fontSize:8,fontWeight:700,color:"#ef4444",background:"rgba(239,68,68,0.15)",borderRadius:3,padding:"1px 6px",letterSpacing:"0.08em"}}>HIGH</span>}
-                          {n.isNew&&i<3&&<span style={{fontSize:8,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,0.15)",borderRadius:3,padding:"1px 6px",letterSpacing:"0.08em"}}>NEW</span>}
-                          {(isBull||isBear)&&<span style={{fontSize:10,color:dirCol,fontWeight:700,marginLeft:"auto",flexShrink:0}}>{isBull?"▲":"▼"}</span>}
-                        </div>
-                        <div style={{fontSize:12,color:"#e2e4e9",lineHeight:1.55,fontWeight:400}}>{n.headline}</div>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:"#4b5563",fontSize:14,flexShrink:0}}>›</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {/* RSS FEED */}
-            <div style={{background:"#1c1c1c",border:"1px solid #2a2a2a",borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
-              <div style={{padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:10,fontWeight:700,color:rssItems.length>0?"#9ca3af":"#374151",letterSpacing:"0.1em"}}>NEWS FEED</span>
-                <span style={{fontSize:9,color:"#2d3748"}}>Reuters · FF · FXStreet</span>
-                {rssLoading&&<span style={{fontSize:9,color:"#6b7280",marginLeft:"auto",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
-                {!rssLoading&&rssItems.length>0&&<button onClick={fetchRssFeeds} className="btn-primary" style={{marginLeft:"auto",padding:"5px 10px",fontSize:9,color:"#fff","--btn-glow":`${accent}30`}}>↺</button>}
-              </div>
-              <div style={{flex:1,overflowY:"auto",maxHeight:380,padding:"6px 10px 10px",display:"flex",flexDirection:"column",gap:4}}>
-                {rssItems.length===0&&!rssLoading&&!aResult&&(
-                  <div style={{display:"flex",flexDirection:"column",gap:4,padding:"6px 0"}}>
-                    {[["80%","65%"],["90%","50%"],["70%","80%"],["85%","60%"],["75%","70%"]].map(([w1,w2],i)=>(
-                      <div key={i} style={{borderRadius:6,border:"1px solid rgba(255,255,255,0.04)",background:"rgba(255,255,255,0.015)",padding:"10px 12px"}}>
-                        <div style={{display:"flex",gap:5,marginBottom:7,alignItems:"center"}}>
-                          <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.05)",width:36}}/>
-                          <div style={{height:4,borderRadius:3,background:"rgba(255,255,255,0.03)",width:24}}/>
-                        </div>
-                        <div style={{height:7,borderRadius:3,background:"rgba(255,255,255,0.04)",width:w1,marginBottom:5}}/>
-                        <div style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.025)",width:w2}}/>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {rssItems.length===0&&!rssLoading&&aResult&&(
-                  <div style={{color:"#4b5563",fontSize:11,textAlign:"center",padding:"32px 0",letterSpacing:"0.06em"}}>Geen feed items</div>
-                )}
-                {rssItems.map((item,i)=>(
-                  <div key={i}
-                    className="news-item-hover"
-                    onClick={()=>item.link&&window.open(item.link,"_blank")}
-                    style={{borderRadius:6,border:"1px solid rgba(245,158,11,0.1)",background:"rgba(245,158,11,0.02)",cursor:"pointer",display:"flex",alignItems:"stretch",gap:0}}>
-                    <div style={{width:3,flexShrink:0,borderRadius:"6px 0 0 6px",background:"rgba(245,158,11,0.4)"}}/>
-                    <div style={{flex:1,padding:"10px 12px",minWidth:0}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5,gap:6}}>
-                        <span style={{fontSize:9,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em",flexShrink:0}}>{item.source}</span>
-                        <span style={{fontSize:8,color:"#6b7280",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{fmtDT(item.time)}</span>
-                      </div>
-                      <div style={{fontSize:12,color:"#e2e4e9",lineHeight:1.55}}>{item.headline}</div>
-                    </div>
-                    <div style={{display:"flex",alignItems:"center",padding:"0 8px",color:"#4b5563",fontSize:14,flexShrink:0}}>›</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
           </>
         )}
 
@@ -3443,7 +3373,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               
             </div>
             {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
-            <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} onRunHybrid={runHybrid} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)} accent={accent}/>
+            <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} onRunHybrid={runHybrid} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)} accent={accent} rssItems={rssItems} rssLoading={rssLoading} onRefreshRss={fetchRssFeeds}/>
           </>
         )}
 
