@@ -1497,15 +1497,15 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
       {/* ── HERO — verplaatst naar waar Home·LIVE stond ── */}
       <div style={{padding:"4px 0 0"}}>
-        <div style={{fontSize:10,color:"#6b7280",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>
+        <div style={{fontSize:11,color:"#6b7280",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
           {dateStr.toUpperCase()} · {timeStr} AMS
         </div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
           <div>
-            <h1 style={{fontSize:22,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:5}}>
+            <h1 style={{fontSize:30,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
               HybridTrader <span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:11,color:"#c8cdd8",lineHeight:1.5,maxWidth:420}}>
+            <p style={{fontSize:13,color:"#c8cdd8",lineHeight:1.6,maxWidth:520}}>
               {(()=>{ const tl = T[getLang()]||T.nl; const s = getSession(); return <>{tl.welcomeBack} <span style={{color:acc,fontWeight:600}}>{s?.name||"Trader"}</span> — institutioneel macro-analyse systeem voor de London session.</>; })()}
             </p>
           </div>
@@ -1524,7 +1524,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
       </div>
 
       {/* ── HOOFD LAYOUT: links kolom + rechts news ── */}
-      <div className="home-main-grid" style={{display:"grid",gap:18,alignItems:"start"}}>
+      <div className="home-main-grid" style={{display:"grid",gap:18,alignItems:"start",marginTop:8}}>
 
         {/* ── LINKER KOLOM ── */}
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -2871,7 +2871,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
           .grid-2col{grid-template-columns:1fr 1fr}
-          .home-main-grid{grid-template-columns:1fr 320px}
+          .home-main-grid{grid-template-columns:280px 1fr}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
