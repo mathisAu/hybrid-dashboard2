@@ -1587,7 +1587,9 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
       const text = d.content?.map(b => b.text||"").join("").trim();
       try {
         const clean = text.replace(/```json|```/g, "").trim();
-        setSummaries(JSON.parse(clean));
+        const parsed = JSON.parse(clean);
+        setSummaries(parsed);
+        try { localStorage.setItem("ht_briefing_summaries", JSON.stringify(parsed)); } catch(_) {}
       } catch(_) { setError("Verwerken mislukt."); }
     })
     .catch(() => setError("Ophalen mislukt."))
@@ -1869,7 +1871,9 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSe
   const [aStatus,       setAStatus]       = useState("idle");
   const [iStatus,       setIStatus]       = useState("idle");
   const [aResult,       setAResult]       = useState(null);
-  const [briefingSummaries, setBriefingSummaries] = useState({});
+  const [briefingSummaries, setBriefingSummaries] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("ht_briefing_summaries") || "{}"); } catch(_) { return {}; }
+  });
   const [iResult,       setIResult]       = useState(null);
   // Refs zodat runHybrid altijd de meest recente waarden kan lezen voor de save
   const aResultRef   = useRef(null);
@@ -2689,6 +2693,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     setAResult(combined);
     setAStatus("done");
     setBriefingSummaries({});  // For You opnieuw genereren na Hybrid run
+    try { localStorage.removeItem("ht_briefing_summaries"); } catch(_) {}
     runPresession();
   };
 
