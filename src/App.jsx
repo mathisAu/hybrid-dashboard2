@@ -1423,117 +1423,102 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
-      {/* Hero header — no box */}
-      <div style={{padding:"8px 0 4px",position:"relative"}}>
-        <div style={{position:"absolute",top:-40,right:0,width:320,height:200,borderRadius:"50%",background:`radial-gradient(circle,${acc}0f,transparent 70%)`,pointerEvents:"none"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:20,position:"relative"}}>
+      {/* ── HERO CARD ── */}
+      <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:12,padding:"20px 24px",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-60,right:-20,width:280,height:180,borderRadius:"50%",background:`radial-gradient(circle,${acc}0d,transparent 70%)`,pointerEvents:"none"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16,position:"relative"}}>
           <div>
-            <div style={{fontSize:11,color:"#4b5563",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
+            <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>
               {dateStr.toUpperCase()} · {timeStr} AMS
             </div>
-            <h1 style={{fontSize:28,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:8}}>
-              HybridTrader<br/><span style={{color:acc}}>Dashboard</span>
+            <h1 style={{fontSize:22,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:6}}>
+              HybridTrader <span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:13,color:"#6b7280",lineHeight:1.6,maxWidth:380}}>
-              {(()=>{ const tl = T[getLang()]||T.nl; const s = getSession(); return <>{tl.welcomeBack} <span style={{color:"#e2e4e9",fontWeight:600}}>{s?.name||"Trader"}</span> — jouw institutioneel macro-analyse systeem voor de London session.</>; })()}
+            <p style={{fontSize:11,color:"#e2e4e9",lineHeight:1.55,maxWidth:380}}>
+              {(()=>{ const tl = T[getLang()]||T.nl; const s = getSession(); return <>{tl.welcomeBack} <span style={{color:acc,fontWeight:600}}>{s?.name||"Trader"}</span> — institutioneel macro-analyse systeem voor de London session.</>; })()}
             </p>
             {presession&&(
-              <div style={{marginTop:14,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"5px 12px"}}>
-                  <div style={{width:6,height:6,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:11,color:"#9ca3af",fontWeight:500}}>{presession.session}</span>
-                  <span style={{fontSize:11,fontWeight:700,color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b"}}>{presession.mood}</span>
+              <div style={{marginTop:10,display:"flex",alignItems:"center",gap:6}}>
+                <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.04)",border:`1px solid ${acc}22`,borderRadius:20,padding:"4px 10px"}}>
+                  <div style={{width:5,height:5,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+                  <span style={{fontSize:10,color:"#e2e4e9",fontWeight:500}}>{presession.session}</span>
+                  <span style={{fontSize:10,fontWeight:700,color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b"}}>{presession.mood}</span>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Run button */}
-          <div style={{display:"flex",flexDirection:"column",gap:10,alignItems:"flex-end",paddingTop:8}}>
+          <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
             <button onClick={onRunHybrid} disabled={isRunning}
               className="btn-primary btn-always-spin"
-              style={{padding:"12px 28px",fontSize:13,color:"#fff",opacity:isRunning?0.6:1,"--btn-glow":`${acc}40`}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>
-                {isRunning
-                  ? <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                  : <path d="M5 3l14 9-14 9V3z" fill="currentColor"/>}
+              style={{padding:"9px 20px",fontSize:11,color:"#fff",opacity:isRunning?0.6:1,"--btn-glow":`${acc}40`}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{animation:isRunning?"spin 1s linear infinite":"none"}}>
+                {isRunning ? <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/> : <path d="M5 3l14 9-14 9V3z" fill="currentColor"/>}
               </svg>
               {isRunning?"LADEN...":"HYBRID LADEN"}
             </button>
-            {lastRefresh&&(
-              <span style={{fontSize:10,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>
-                Laatste update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}
-              </span>
-            )}
+            {lastRefresh&&<span style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>Update: {lastRefresh.toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"})}</span>}
           </div>
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* ── STATS ROW ── */}
       {aResult&&(
-        <div className="grid-stats" style={{display:"grid",gap:12}}>
+        <div className="grid-stats" style={{display:"grid",gap:14}}>
           {[
             {label:"Markt Sentiment",value:overallSentiment,color:sentimentColor,sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
             {label:"Gem. Confidence",value:avgConf+"%",color:acc,sub:"Over alle assets"},
             {label:"Assets Geanalyseerd",value:assets.length,color:"#6366f1",sub:"Live bijgewerkt"},
             {label:"Breaking News",value:breakingNews.length,color:"#f59e0b",sub:"Vandaag gefilterd"},
           ].map(({label,value,color,sub})=>(
-            <div key={label} className="rc-card card-hover" style={{"--conic-color":color}}>
-              <div className="conic-border"/>
-              <div style={{padding:"20px 22px"}}>
-                <div style={{fontSize:9,color:"#555",letterSpacing:"0.1em",marginBottom:10}}>{label.toUpperCase()}</div>
-                <div style={{fontSize:26,fontWeight:700,color,marginBottom:4,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
-                <div style={{fontSize:10,color:"#444"}}>{sub}</div>
-              </div>
+            <div key={label} style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,padding:"16px 18px"}}>
+              <div style={{fontSize:9,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:8,opacity:0.5}}>{label.toUpperCase()}</div>
+              <div style={{fontSize:22,fontWeight:700,color,marginBottom:3,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
+              <div style={{fontSize:10,color:"#e2e4e9",opacity:0.4}}>{sub}</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Quick nav cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+      {/* ── NAV CARDS ── */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         {[
-          {id:"analyse",icon:"▦",title:"Asset Analyse",desc:"Volledige bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.",color:acc},
-          {id:"intel",  icon:"◉",title:"Market Intel",desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen via Anthropic web search.",color:"#6366f1"},
-          {id:"calendar",icon:"≡",title:"Tools & Kalender",desc:"ForexFactory, TradingView, Investing.com en andere handige trading resources.",color:"#f59e0b"},
+          {id:"analyse", icon:"▦", title:"Asset Analyse", desc:"Bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.", color:acc},
+          {id:"intel",   icon:"◉", title:"Market Intel",  desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen.", color:"#6366f1"},
+          {id:"calendar",icon:"≡", title:"Tools & Links", desc:"ForexFactory, TradingView, Investing.com en andere trading resources.", color:"#f59e0b"},
         ].map(({id,icon,title,desc,color})=>(
           <button key={id} onClick={()=>onNavigate(id)}
-            className="rc-card card-hover"
-            style={{"--conic-color":color,cursor:"pointer",width:"100%",textAlign:"left",border:"none"}}>
-            <div className="conic-border"/>
-            <div style={{position:"relative",zIndex:1,padding:"24px",display:"flex",flexDirection:"column",gap:12}}>
-              <div style={{width:40,height:40,borderRadius:12,background:`${color}18`,border:`1px solid ${color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color}}>
-                {icon}
-              </div>
-              <div>
-                <div style={{fontSize:14,fontWeight:700,color:"#e2e4e9",marginBottom:6}}>{title}</div>
-                <div style={{fontSize:11,color:"#6b7280",lineHeight:1.6}}>{desc}</div>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:5,color,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",marginTop:"auto",letterSpacing:"0.06em"}}>
-                OPEN <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              </div>
+            style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,cursor:"pointer",width:"100%",textAlign:"left",padding:"18px 20px",display:"flex",flexDirection:"column",gap:10,transition:"border-color 0.2s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=`${acc}55`}
+            onMouseLeave={e=>e.currentTarget.style.borderColor=`${acc}22`}>
+            <div style={{width:32,height:32,borderRadius:8,background:`${color}15`,border:`1px solid ${color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color}}>
+              {icon}
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:700,color:"#f0f1f3",marginBottom:4}}>{title}</div>
+              <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.55,opacity:0.6}}>{desc}</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:4,color,fontSize:9,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",marginTop:"auto"}}>
+              OPEN <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Recent news strip */}
+      {/* ── NEWS FEED ── */}
       {(rssItems.length>0||breakingNews.length>0)&&(
-        <div className="rc-card" style={{"--conic-color":acc}}>
-          <div className="conic-border"/>
-          <div style={{padding:"16px 20px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:7}}>
-              <div style={{width:5,height:5,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-              <span style={{fontSize:9,fontWeight:700,color:"#9ca3af",letterSpacing:"0.14em"}}>NEWS FEED</span>
+        <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,padding:"18px 20px"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+              <span style={{fontSize:9,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",opacity:0.6}}>NEWS FEED</span>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               {rssLoading&&<span style={{fontSize:10,color:"#6b7280",animation:"spin 0.8s linear infinite",display:"inline-block"}}>⟳</span>}
-              {!rssLoading&&onRefreshRss&&<button onClick={onRefreshRss} className="btn-primary" style={{padding:"4px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>↺</button>}
-              <button onClick={()=>onNavigate("analyse")} className="btn-primary" style={{padding:"4px 12px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>MEER ›</button>
+              {!rssLoading&&onRefreshRss&&<button onClick={onRefreshRss} className="btn-primary" style={{padding:"3px 9px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>↺</button>}
+              <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`}}>MEER ›</button>
             </div>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:2}}>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
             {(rssItems.length>0?rssItems:breakingNews).slice(0,5).map((n,i)=>{
               const headline = n.headline;
               const source = n.source;
@@ -1541,22 +1526,22 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
               const url = n.link||n.url||"";
               return (
                 <div key={i} onClick={()=>url&&window.open(url,"_blank")}
-                  className="news-item-hover"
-                  style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:6,border:"1px solid transparent",cursor:url?"pointer":"default"}}>
-                  <div style={{width:2,height:32,flexShrink:0,background:"rgba(245,158,11,0.4)",borderRadius:1}}/>
+                  style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22",cursor:url?"pointer":"default",transition:"background 0.15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.background="#161618"}
+                  onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
+                  <div style={{width:2,height:28,flexShrink:0,background:`${acc}55`,borderRadius:1}}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
-                      <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{source}</span>
-                      <span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
+                      <span style={{fontSize:8,fontWeight:700,color:acc,letterSpacing:"0.06em"}}>{source}</span>
+                      <span style={{fontSize:8,color:"#444",fontFamily:"'JetBrains Mono',monospace"}}>{time}</span>
                     </div>
-                    <div style={{fontSize:11,color:"#c9cdd4",lineHeight:1.45,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{headline}</div>
+                    <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{headline}</div>
                   </div>
-                  {url&&<span style={{fontSize:10,color:"#2d3748",flexShrink:0}}>›</span>}
+                  {url&&<span style={{fontSize:10,color:"#444",flexShrink:0}}>›</span>}
                 </div>
               );
             })}
           </div>
-          </div>{/* end inner padding */}
         </div>
       )}
     </div>
