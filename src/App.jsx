@@ -648,7 +648,9 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   const [closing, setClosing] = React.useState(false);
   const handleClose = () => {
     setClosing(true);
-    setTimeout(onClose, 320);
+  };
+  const handleAnimEnd = (e) => {
+    if(closing && e.animationName === "slideOut") onClose();
   };
   const bias = resolveBias(data?.bias, data?.confidence);
   const bc = biasColors[bias] || biasColors.Neutraal;
@@ -735,7 +737,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   return (
     <div style={{position:"fixed",inset:0,zIndex:200,background:closing?"rgba(0,0,0,0)":"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto",transition:closing?"background 0.3s ease":"none"}}
       onClick={e=>{if(e.target===e.currentTarget)handleClose();}}>
-      <div style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative",animation:closing?"slideOut 0.32s cubic-bezier(0.4,0,0.2,1) both":"slideIn 0.55s cubic-bezier(0.4,0,0.2,1) both"}}>
+      <div onAnimationEnd={handleAnimEnd} style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative",animation:closing?"slideOut 0.32s cubic-bezier(0.4,0,0.2,1) both":"slideIn 0.55s cubic-bezier(0.4,0,0.2,1) both"}}>
 
         {/* Deep dive page glow */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -1148,6 +1150,10 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 
 function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, onNewsClick, accent, rssItems, rssLoading, onRefreshRss }) {
   const [showFlash, setShowFlash] = React.useState(false);
+  const [flashClosing, setFlashClosing] = React.useState(false);
+  const openFlash = () => { setFlashClosing(false); setShowFlash(true); };
+  const closeFlash = () => { setFlashClosing(true); };
+  const onFlashAnimEnd = (e) => { if(flashClosing && e.animationName==="slideOut") setShowFlash(false); };
   const acc = accent || "#089981";
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -1255,7 +1261,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           {/* Ticker bar */}
           {!showFlash&&(
             <div style={{background:"rgba(10,10,12,0.7)",backdropFilter:"blur(10px)",border:`1px solid ${acc}22`,borderRadius:8,overflow:"hidden",display:"flex",alignItems:"center",height:28}}>
-              <button onClick={()=>setShowFlash(true)} style={{flexShrink:0,padding:"0 10px",borderRight:`1px solid ${acc}22`,display:"flex",alignItems:"center",gap:5,background:"none",border:"none",cursor:"pointer"}}>
+              <button onClick={openFlash} style={{flexShrink:0,padding:"0 10px",borderRight:`1px solid ${acc}22`,display:"flex",alignItems:"center",gap:5,background:"none",border:"none",cursor:"pointer"}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
                 <span style={{fontSize:8,fontWeight:700,letterSpacing:"0.14em",color:"#f59e0b",whiteSpace:"nowrap"}}>FLASH ›</span>
               </button>
@@ -1277,10 +1283,10 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Flash deep dive */}
           {showFlash&&(
-            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+            <div onAnimationEnd={onFlashAnimEnd} style={{animation:flashClosing?"slideOut 0.32s cubic-bezier(0.4,0,0.2,1) both":"slideIn 0.45s cubic-bezier(0.4,0,0.2,1) both",background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
               <div style={{padding:"14px 18px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
-                  <button onClick={()=>setShowFlash(false)} style={{background:"none",border:`1px solid ${acc}33`,borderRadius:6,color:acc,fontSize:9,fontWeight:700,cursor:"pointer",padding:"3px 8px",letterSpacing:"0.08em"}}>← TERUG</button>
+                  <button onClick={closeFlash} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}40`}}>← TERUG</button>
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#f59e0b"}}>FLASH NEWS</span>
                   <span style={{fontSize:9,color:"#555",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{(rssItems||[]).length} items · auto-update 5min</span>
