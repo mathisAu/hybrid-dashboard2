@@ -1482,33 +1482,25 @@ function DailyBriefing({ aResult, assets, acc }) {
   const [error,    setError]    = React.useState(null);
   const prevAResult = React.useRef(null);
 
-  React.useEffect(() => {
-    if (!aResult || aResult === prevAResult.current) return;
-    prevAResult.current = aResult;
-
+  const runBriefing = React.useCallback((result) => {
+    if (!result) return;
     const topAssets = assets
-      .map(a => ({ id: a.id, label: a.label || a.id, ...aResult.assets?.[a.id] }))
+      .map(a => ({ id: a.id, label: a.label || a.id, ...result.assets?.[a.id] }))
       .filter(a => a.bias)
       .sort((a,b) => (b.confidence||0) - (a.confidence||0))
       .slice(0, 2);
 
-    const allBiases = assets.map(a => aResult.assets?.[a.id]?.bias).filter(Boolean);
+    const allBiases = assets.map(a => result.assets?.[a.id]?.bias).filter(Boolean);
     const bullCount = allBiases.filter(b => b.toLowerCase().includes("bull")).length;
     const bearCount = allBiases.filter(b => b.toLowerCase().includes("bear")).length;
     const sentiment = bullCount > bearCount ? "Bullish" : bearCount > bullCount ? "Bearish" : "Gemengd";
-    const avgConf   = Math.round(assets.reduce((s,a) => s + (aResult.assets?.[a.id]?.confidence||0), 0) / assets.length);
+    const avgConf   = Math.round(assets.reduce((s,a) => s + (result.assets?.[a.id]?.confidence||0), 0) / assets.length);
 
-    const prompt = `Je bent een institutionele trading analyst. Geef een KORTE dagelijkse briefing in het Nederlands (max 5 zinnen) op basis van deze data:
-
-Markt sentiment: ${sentiment} (gem. confidence: ${avgConf}%)
-Top tradable assets:
-${topAssets.map(a => `- ${a.label}: ${a.bias}, confidence ${a.confidence||"?"}%, hold score ${a.holdScore||"?"}`).join("\n")}
-Macro samenvatting: ${aResult.macro?.summary || "niet beschikbaar"}
-
-Geef: 1) één zin over het overall markt sentiment, 2) welke 1-2 assets de meeste kans bieden vandaag en waarom kort, 3) één zin wat de trader vandaag moet weten of vermijden. Wees direct, institutioneel en bondig. Geen bullet points, gewoon lopende tekst.`;
+    const prompt = `Je bent een institutionele trading analyst. Geef een KORTE dagelijkse briefing in het Nederlands (max 5 zinnen) op basis van deze data:\n\nMarkt sentiment: ${sentiment} (gem. confidence: ${avgConf}%)\nTop tradable assets:\n${topAssets.map(a => `- ${a.label}: ${a.bias}, confidence ${a.confidence||"?"}%, hold score ${a.holdScore||"?"}`).join("\n")}\nMacro samenvatting: ${result.macro?.summary || "niet beschikbaar"}\n\nGeef: 1) één zin over het overall markt sentiment, 2) welke 1-2 assets de meeste kans bieden vandaag en waarom kort, 3) één zin wat de trader vandaag moet weten of vermijden. Wees direct, institutioneel en bondig. Geen bullet points, gewoon lopende tekst.`;
 
     setLoading(true);
     setError(null);
+    setBriefing(null);
 
     fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1527,7 +1519,13 @@ Geef: 1) één zin over het overall markt sentiment, 2) welke 1-2 assets de mees
     })
     .catch(() => setError("Briefing ophalen mislukt."))
     .finally(() => setLoading(false));
-  }, [aResult]);
+  }, [assets]);
+
+  React.useEffect(() => {
+    if (!aResult || aResult === prevAResult.current) return;
+    prevAResult.current = aResult;
+    runBriefing(aResult);
+  }, [aResult, runBriefing]);
 
   const color = acc;
 
@@ -1550,7 +1548,17 @@ Geef: 1) één zin over het overall markt sentiment, 2) welke 1-2 assets de mees
       border:`1px solid ${color}22`,borderRadius:12,padding:16,alignSelf:"start",
       boxShadow:`0 0 0 1px ${color}10, 0 4px 24px ${color}08`}}>
 
-      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>FOR YOU · DAILY BRIEFING</div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · DAILY BRIEFING</div>
+        <button
+          onClick={()=>runBriefing(aResult)}
+          disabled={loading||!aResult}
+          className="btn-primary"
+          style={{padding:"3px 8px",fontSize:10,color:"#fff",opacity:(loading||!aResult)?0.4:1,"--btn-glow":`${color}40`,display:"flex",alignItems:"center",gap:4}}
+        >
+          <span style={{display:"inline-block",animation:loading?"spin 0.8s linear infinite":"none",fontSize:11}}>↺</span>
+        </button>
+      </div>
 
       {/* binnenste card met conic glow */}
       <div className="rc-card" style={{"--conic-color":color,position:"relative"}}>
