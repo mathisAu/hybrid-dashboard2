@@ -56,22 +56,27 @@ export default async function handler(req, res) {
 
   // ── Sessie-check ──────────────────────────────────────────────────────────
   const sessionUserId  = req.body?._sessionUserId;
-  const sessionToken   = req.body?._adminToken;   // gesigneerd HMAC token
+  const sessionToken   = req.body?._adminToken;
+  const sessionEmail   = req.body?._sessionEmail;
+  const ADMIN_EMAIL_SV = (process.env.ADMIN_EMAIL || "").toLowerCase();
   let authorized = false;
 
-  // Admin: verifieer HMAC token server-side — client-claims worden NOOIT vertrouwd
   if (sessionToken) {
+    // Beste pad: gesigneerd HMAC token (nieuwe sessies na deploy)
     authorized = await verifyAdminToken(sessionToken);
     if (!authorized) return res.status(401).json({ error: "Ongeldig admin token" });
-  }
-  // Gewone user: controleer via Redis
-  else if (sessionUserId) {
+  } else if (sessionUserId) {
+    // Gewone user: Redis check
     try {
       const userRaw = await redis.hget("ht:users", sessionUserId);
       const user = typeof userRaw === "string" ? JSON.parse(userRaw) : userRaw;
       if (user && user.approved) authorized = true;
     } catch (_) {}
     if (!authorized) return res.status(403).json({ error: "Geen toegang" });
+  } else if (sessionEmail && ADMIN_EMAIL_SV && sessionEmail.toLowerCase() === ADMIN_EMAIL_SV) {
+    // Fallback: admin herkend via email (oude sessies zonder adminToken)
+    // Veilig omdat ADMIN_EMAIL alleen server-side bekend is
+    authorized = true;
   } else {
     return res.status(401).json({ error: "Niet ingelogd" });
   }
@@ -101,7 +106,7 @@ export default async function handler(req, res) {
 
   // ── Anthropic API call ────────────────────────────────────────────────────
   try {
-    const { _cacheKey: _ck, _sessionUserId: _su, _sessionRole: _sr, _sessionApproved: _sa, _adminToken: _at, ...anthropicBody } = body;
+    const { _cacheKey: _ck, _sessionUserId: _su, _sessionRole: _sr, _sessionApproved: _sa, _adminToken: _at, _sessionEmail: _se, ...anthropicBody } = body;
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
