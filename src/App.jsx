@@ -2871,7 +2871,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
           .grid-marktvisie{grid-template-columns:1fr 340px}
           .grid-2col{grid-template-columns:1fr 1fr}
-          .home-main-grid{grid-template-columns:280px auto 380px}
+          .home-main-grid{grid-template-columns:280px 1fr 380px}
           .grid-deepdive{grid-template-columns:300px 1fr 280px}
         }
       `}</style>
