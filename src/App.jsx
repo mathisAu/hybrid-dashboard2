@@ -1219,9 +1219,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
   const NewsItem = ({n}) => (
     <div onClick={()=>onNewsClick&&onNewsClick({headline:n.headline,source:n.source,url:n.url})}
-      style={{padding:"9px 12px",borderRadius:7,background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.05)",cursor:"pointer",transition:"background 0.15s"}}
-      onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}
-      onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.025)"}>
+      style={{padding:"11px 14px",borderRadius:7,background:"#181819",border:"1px solid #222",cursor:"pointer",transition:"background 0.15s"}}
+      onMouseEnter={e=>e.currentTarget.style.background="#1e1e20"}
+      onMouseLeave={e=>e.currentTarget.style.background="#181819"}>
       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5,flexWrap:"wrap"}}>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#4a4a4a",fontWeight:600}}>{n.time||"—"}</span>
         <Badge label={n.source} color="#4a4a4a"/>
@@ -1256,16 +1256,16 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div className="grid-intel-2col" style={{display:"grid",gap:18,alignItems:"start"}}>
+      <div className="grid-intel-2col" style={{display:"grid",gap:22,alignItems:"start"}}>
 
         {/* LEFT: nieuws */}
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
           {/* HIGH IMPACT */}
           {highNews.length>0&&(
-            <div style={{background:"rgba(239,68,68,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(239,68,68,0.12)",borderTop:"1px solid rgba(239,68,68,0.35)",borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+            <div style={{background:"#111113",border:"1px solid rgba(239,68,68,0.25)",borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"18px 20px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
                   <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
@@ -1278,9 +1278,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           )}
 
           {/* ALL NEWS */}
-          <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid rgba(245,158,11,0.3)`,borderRadius:10,overflow:"hidden"}}>
-            <div style={{padding:"14px 16px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+          <div style={{background:"#111113",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,overflow:"hidden"}}>
+            <div style={{padding:"18px 20px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b"}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>NIEUWS FEED</span>
                 <span style={{fontSize:9,color:"#3a3a3a",marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
@@ -1297,15 +1297,15 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Cross-asset */}
           {data.cross_asset_signals&&data.cross_asset_signals.length>0&&(
-            <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:"1px solid rgba(99,102,241,0.35)",borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+            <div style={{background:"#111113",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"18px 20px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#6366f1"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>CROSS-ASSET SIGNALEN</span>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {data.cross_asset_signals.map((s,i)=>(
-                    <div key={i} style={{padding:"8px 11px",borderRadius:7,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.05)"}}>
+                    <div key={i} style={{padding:"10px 12px",borderRadius:7,background:"#181819",border:"1px solid #222"}}>
                       <Badge label={s.signal} color={s.type==="anomalie"?"#ef4444":"#6366f1"}/>
                       <div style={{fontSize:11,color:"#a0a8b8",marginTop:5,lineHeight:1.55}}>{s.implication}</div>
                     </div>
@@ -1321,9 +1321,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             const rc = score>7?"#ef4444":score>4?"#f97316":"#22c55e";
             const circ = 2*Math.PI*16; // r=16
             return (
-              <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid ${rc}55`,borderRadius:10,overflow:"hidden"}}>
-                <div style={{padding:"14px 16px"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
+              <div style={{background:"#111113",border:`1px solid ${rc}33`,borderRadius:10,overflow:"hidden"}}>
+                <div style={{padding:"18px 20px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
                     <div style={{width:4,height:4,borderRadius:"50%",background:rc}}/>
                     <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>RISK RADAR</span>
                   </div>
@@ -1357,8 +1357,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
           {/* Yield */}
           {data.yield_analysis?.implication&&(
-            <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid ${acc}44`,borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"14px 16px"}}>
+            <div style={{background:"#111113",border:`1px solid ${acc}30`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"18px 20px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
                   <div style={{width:4,height:4,borderRadius:"50%",background:acc}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>YIELD IMPLICATIE</span>
@@ -1369,8 +1369,8 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
           )}
 
           {/* Macro context */}
-          <div style={{background:"rgba(16,16,18,0.6)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.05)",borderTop:`1px solid ${yieldColors[data.macro_regime]||acc}55`,borderRadius:10,overflow:"hidden"}}>
-            <div style={{padding:"14px 16px"}}>
+          <div style={{background:"#111113",border:`1px solid ${(yieldColors[data.macro_regime]||acc)}33`,borderRadius:10,overflow:"hidden"}}>
+            <div style={{padding:"18px 20px"}}>
               <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:yieldColors[data.macro_regime]||acc}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#777"}}>MACRO CONTEXT</span>
