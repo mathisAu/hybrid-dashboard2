@@ -589,7 +589,7 @@ Geef impact op XAU/USD, US30, US100, EUR/USD, GBP/USD. JSON:
   ];
 
   return (
-    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div onClick={handleClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div onClick={e=>e.stopPropagation()} style={{background:"#0d0e13",border:"1px solid #1f2023",borderRadius:10,padding:20,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.8)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,gap:10}}>
           <div style={{fontSize:10,color:"#9ca3af",lineHeight:1.5,flex:1}}>{news.headline}</div>
@@ -645,6 +645,11 @@ function YieldTooltip({ regime, explanation }) {
 }
 
 function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accent }) {
+  const [closing, setClosing] = React.useState(false);
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(onClose, 320);
+  };
   const bias = resolveBias(data?.bias, data?.confidence);
   const bc = biasColors[bias] || biasColors.Neutraal;
   const acc = accent || DEFAULT_ACCENT;
@@ -728,8 +733,8 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto",animation:"pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both"}}
-      onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto",animation:closing?"pageOut 0.3s cubic-bezier(0.4,0,0.2,1) both":"pageIn 0.55s cubic-bezier(0.4,0,0.2,1) both"}}
+      onClick={e=>{if(e.target===e.currentTarget)handleClose();}}>
       <div style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
 
         {/* Deep dive page glow */}
