@@ -1792,7 +1792,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         <DailyBriefing aResult={aResult} assets={assets} acc={acc} rssItems={rssItems} />
 
         {/* ── RECHTER KOLOM: NEWS ── */}
-        <div className="rc-card" style={{"--conic-color":"#f59e0b", height:"100%"}}>
+        <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
           <div className="conic-border"/>
           <div style={{padding:"20px 22px",position:"relative",zIndex:1,display:"flex",flexDirection:"column",gap:0}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
