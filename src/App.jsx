@@ -735,7 +735,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
         {/* Deep dive page glow */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
           <div style={{position:"absolute",top:"-20%",left:"15%",width:"70%",height:"65%",background:`radial-gradient(ellipse at center,${acc}1a 0%,transparent 65%)`,filter:"blur(60px)"}}/>
-          <div style={{position:"absolute",bottom:"-5%",right:"0%",width:"45%",height:"50%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.12) 0%,transparent 65%)",filter:"blur(55px)"}}/>
+          
           <div style={{position:"absolute",top:"40%",left:"-10%",width:"35%",height:"40%",background:`radial-gradient(ellipse at center,${acc}0e 0%,transparent 65%)`,filter:"blur(65px)"}}/>
         </div>
 
@@ -1423,31 +1423,30 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
-      {/* ── HERO CARD ── */}
-      <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:12,padding:"20px 24px",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-60,right:-20,width:280,height:180,borderRadius:"50%",background:`radial-gradient(circle,${acc}0d,transparent 70%)`,pointerEvents:"none"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16,position:"relative"}}>
+      {/* ── HERO ZWEVEND — geen box ── */}
+      <div style={{padding:"10px 2px 0",position:"relative"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
           <div>
             <div style={{fontSize:10,color:"#4b5563",letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>
               {dateStr.toUpperCase()} · {timeStr} AMS
             </div>
-            <h1 style={{fontSize:22,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:6}}>
+            <h1 style={{fontSize:24,fontWeight:800,letterSpacing:"-0.02em",color:"#f1f2f4",lineHeight:1.1,marginBottom:6}}>
               HybridTrader <span style={{color:acc}}>Dashboard</span>
             </h1>
-            <p style={{fontSize:11,color:"#e2e4e9",lineHeight:1.55,maxWidth:380}}>
+            <p style={{fontSize:11,color:"#c8cdd8",lineHeight:1.55,maxWidth:400}}>
               {(()=>{ const tl = T[getLang()]||T.nl; const s = getSession(); return <>{tl.welcomeBack} <span style={{color:acc,fontWeight:600}}>{s?.name||"Trader"}</span> — institutioneel macro-analyse systeem voor de London session.</>; })()}
             </p>
             {presession&&(
               <div style={{marginTop:10,display:"flex",alignItems:"center",gap:6}}>
-                <div style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.04)",border:`1px solid ${acc}22`,borderRadius:20,padding:"4px 10px"}}>
+                <div style={{display:"inline-flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.03)",border:`1px solid ${acc}22`,borderRadius:20,padding:"4px 10px"}}>
                   <div style={{width:5,height:5,borderRadius:"50%",background:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:10,color:"#e2e4e9",fontWeight:500}}>{presession.session}</span>
+                  <span style={{fontSize:10,color:"#c8cdd8",fontWeight:500}}>{presession.session}</span>
                   <span style={{fontSize:10,fontWeight:700,color:presession.mood?.toLowerCase().includes("bull")?"#22c55e":presession.mood?.toLowerCase().includes("bear")?"#ef4444":"#f59e0b"}}>{presession.mood}</span>
                 </div>
               </div>
             )}
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
+          <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end",paddingTop:4}}>
             <button onClick={onRunHybrid} disabled={isRunning}
               className="btn-primary btn-always-spin"
               style={{padding:"9px 20px",fontSize:11,color:"#fff",opacity:isRunning?0.6:1,"--btn-glow":`${acc}40`}}>
@@ -2616,17 +2615,16 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* ── Clean dark card ── */
         .rc-card{
           position:relative;
-          background:rgba(16,16,18,0.75);
-          backdrop-filter:blur(12px);
-          -webkit-backdrop-filter:blur(12px);
-          border:1px solid rgba(255,255,255,0.05);
-          border-top:1px solid var(--conic-color, rgba(8,153,129,0.4));
-          border-radius:12px;
+          background:rgba(10,10,12,0.55);
+          backdrop-filter:blur(14px);
+          -webkit-backdrop-filter:blur(14px);
+          border:1px solid rgba(8,153,129,0.18);
+          border-radius:10px;
           overflow:hidden;
           transition:transform 0.22s cubic-bezier(0.4,0,0.2,1),box-shadow 0.22s ease,border-color 0.22s ease;
         }
         .rc-card .rc-glow{ display:none; }
-        .rc-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.6);border-top-color:var(--conic-color,rgba(8,153,129,0.7))}
+        .rc-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.6);border-color:rgba(8,153,129,0.45)}
         .rc-card .conic-border{border-radius:10px}
         .rc-card .conic-border::before{border-radius:10px}
         .rc-card:hover .conic-border{opacity:1}
@@ -2898,7 +2896,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
         {`${accent}` && <div style={{position:"fixed",top:0,left:sidebarW,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
           <div style={{position:"absolute",top:"-5%",left:"5%",width:"90%",height:"60%",background:`radial-gradient(ellipse at center,${accent}28 0%,transparent 60%)`,filter:"blur(70px)"}}/>
-          <div style={{position:"absolute",bottom:"-10%",right:"-5%",width:"55%",height:"60%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.18) 0%,transparent 60%)",filter:"blur(65px)"}}/>
+          
           <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"50%",background:`radial-gradient(ellipse at center,${accent}14 0%,transparent 65%)`,filter:"blur(75px)"}}/>
         </div>}
 
@@ -3428,7 +3426,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             {/* Intel page glow */}
             <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
               <div style={{position:"absolute",top:"10%",left:"20%",width:"60%",height:"50%",background:`radial-gradient(ellipse at center,${accent}0d 0%,transparent 65%)`,filter:"blur(80px)"}}/>
-              <div style={{position:"absolute",bottom:"5%",right:"5%",width:"40%",height:"40%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.07) 0%,transparent 65%)",filter:"blur(70px)"}}/>
+              
             </div>
             {iStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{iError}</div>}
             <MarketIntelPage data={iResult} loading={iStatus==="loading"} onRefresh={runIntel} onRunHybrid={runHybrid} status={iStatus} dots={dots} onNewsClick={n=>setNewsImpact(n)} accent={accent}/>
