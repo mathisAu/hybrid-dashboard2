@@ -1243,6 +1243,34 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
+      {/* ── FLASH TICKER ── */}
+      {(rssItems||[]).length>0&&(
+        <div style={{background:"rgba(10,10,12,0.7)",backdropFilter:"blur(10px)",border:`1px solid ${acc}22`,borderRadius:8,overflow:"hidden",display:"flex",alignItems:"center",height:28}}>
+          <div style={{flexShrink:0,padding:"0 10px",borderRight:`1px solid ${acc}22`,display:"flex",alignItems:"center",gap:5}}>
+            <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+            <span style={{fontSize:8,fontWeight:700,letterSpacing:"0.14em",color:"#f59e0b",whiteSpace:"nowrap"}}>FLASH</span>
+          </div>
+          <div style={{flex:1,overflow:"hidden",position:"relative"}}>
+            <div className="ticker-track">
+              {[...(rssItems||[]),...(rssItems||[])].map((item,i)=>(
+                <span key={i}
+                  onClick={()=>item.link&&window.open(item.link,"_blank")}
+                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"0 20px",cursor:item.link?"pointer":"default",whiteSpace:"nowrap"}}>
+                  <span style={{fontSize:8,fontWeight:700,color:"#f59e0b"}}>{item.source}</span>
+                  <span style={{fontSize:10,color:"#e2e4e9"}}>{item.headline}</span>
+                  <span style={{color:`${acc}44`,fontSize:10,marginLeft:4}}>·</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <button onClick={onRefreshRss} disabled={rssLoading} style={{flexShrink:0,background:"none",border:"none",cursor:"pointer",padding:"0 10px",color:"#444",fontSize:11,transition:"color 0.15s",borderLeft:`1px solid ${acc}22`}}
+            onMouseEnter={e=>e.currentTarget.style.color=acc}
+            onMouseLeave={e=>e.currentTarget.style.color="#444"}>
+            <span style={{display:"inline-block",animation:rssLoading?"spin 0.8s linear infinite":"none"}}>↺</span>
+          </button>
+        </div>
+      )}
+
       {/* ── TOP BAR ── */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
@@ -1297,40 +1325,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
             </div>
           </div>
 
-          {/* FLASH NEWS — RSS feed */}
-          {(rssItems||[]).length>0&&(
-            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
-              <div style={{padding:"20px 22px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:16}}>
-                  <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#e2e4e9"}}>FLASH NEWS</span>
-                  <span style={{fontSize:9,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>{(rssItems||[]).length} items</span>
-                  <button onClick={onRefreshRss} disabled={rssLoading} className="btn-primary" style={{marginLeft:"auto",padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`,opacity:rssLoading?0.5:1}}>
-                    <span style={{display:"inline-block",animation:rssLoading?"spin 0.8s linear infinite":"none"}}>↺</span>
-                  </button>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                  {(rssItems||[]).slice(0,8).map((item,i)=>(
-                    <div key={i}
-                      onClick={()=>item.link&&window.open(item.link,"_blank")}
-                      style={{padding:"6px 10px",borderRadius:6,background:"#0f0f11",border:"1px solid #1e1e22",cursor:item.link?"pointer":"default",display:"flex",alignItems:"center",gap:8,transition:"background 0.15s"}}
-                      onMouseEnter={e=>e.currentTarget.style.background="#161618"}
-                      onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
-                      <div style={{width:2,height:24,flexShrink:0,background:"rgba(245,158,11,0.5)",borderRadius:1}}/>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2}}>
-                          <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{item.source}</span>
-                          <span style={{fontSize:8,color:"#444",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(item.time)}</span>
-                        </div>
-                        <div style={{fontSize:10,color:"#e2e4e9",lineHeight:1.4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{item.headline}</div>
-                      </div>
-                      {item.link&&<span style={{fontSize:10,color:"#444",flexShrink:0}}>›</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* RIGHT: signalen */}
@@ -2658,6 +2653,9 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes navConicSpin{to{--nav-angle:360deg}}
         @property --nav-angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         @keyframes conicSpin{to{--angle:360deg}}
+        @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        .ticker-track{display:flex;width:max-content;animation:tickerScroll 40s linear infinite}
+        .ticker-track:hover{animation-play-state:paused}
         @property --angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
 
