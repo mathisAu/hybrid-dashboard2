@@ -777,7 +777,7 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
         </div>
 
         {/* ── MAIN GRID ── */}
-        <div style={{padding:"24px 32px",maxWidth:1500,margin:"0 auto",display:"grid",gridTemplateColumns:"300px 1fr 280px",gap:16,position:"relative",zIndex:1}}>
+        <div className="grid-deepdive page-pad" style={{display:"grid",gap:16,position:"relative",zIndex:1,maxWidth:1500,margin:"0 auto"}}>
 
           {/* ════ COL 1: SCORES ════ */}
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -1167,7 +1167,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* What intel loads */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+      <div className="grid-nav" style={{display:"grid",gap:12}}>
         {[
           {icon:"📰", title:"Nieuws & Events",     desc:"Breaking news, macro events en katalysatoren die de markt bewegen vandaag.",          color:acc},
           {icon:"📊", title:"Macro Regime",         desc:"Yield curve analyse, DXY regime, VIX niveau en risk-on/off classificatie.",           color:"#6366f1"},
@@ -1227,9 +1227,9 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
       {/* ── MACRO CONTEXT ── clean card */}
       <div className="rc-card" style={{"--conic-color":yieldColors[data.macro_regime]||acc}}>
-        <div style={{position:"relative",zIndex:1,padding:"20px 24px"}}>
+        <div style={{padding:"16px 18px"}}>
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.16em",color:"#6b7280",marginBottom:16}}>MACRO CONTEXT</div>
-          <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:"12px 32px",alignItems:"start"}}>
+          <div className="grid-intel-macro" style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:"12px 24px",alignItems:"start"}}>
             {/* Left: regime + driver */}
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               <div>
@@ -1267,7 +1267,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
       </div>
 
       {/* ── TWO COLUMN: News + Signals ── */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 360px",gap:16,alignItems:"start"}}>
+      <div className="grid-intel-2col" style={{display:"grid",gap:16,alignItems:"start"}}>
 
         {/* News feed */}
         <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
@@ -1433,7 +1433,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
       {/* Stats row */}
       {aResult&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+        <div className="grid-stats" style={{display:"grid",gap:12}}>
           {[
             {label:"Markt Sentiment",value:overallSentiment,color:sentimentColor,sub:`${bullCount}B / ${bearCount}Be / ${allBiases.length-bullCount-bearCount}N`},
             {label:"Gem. Confidence",value:avgConf+"%",color:acc,sub:"Over alle assets"},
@@ -1526,6 +1526,20 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 }
 
 function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSessionUpdate, onLogout, onShowSettings }) {
+  // ── Responsive breakpoints ───────────────────────────────────────────────
+  const [vw, setVw] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const isMobile    = vw < 640;
+  const isTablet    = vw >= 640 && vw < 1024;
+  const isDesktop   = vw >= 1024;
+  const useBottomNav = !isDesktop;
+  const sidebarW    = isDesktop ? 80 : 0;
+  // ────────────────────────────────────────────────────────────────────────
+
   const [page,          setPage]          = useState("home");
   const [pageKey,       setPageKey]       = useState(0);
   const switchPage = (newPage) => { if(newPage===page) return; setPageKey(k=>k+1); setPage(newPage); };
@@ -2681,10 +2695,44 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .confidence-bar{transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
         .ticker-scroll{animation:tickerMove 30s linear infinite}
         @keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+        /* ── Responsive ─────────────────────────────────────────────────────── */
+        /* Mobile: < 640px */
+        @media(max-width:639px){
+          .grid-stats{grid-template-columns:1fr 1fr!important}
+          .grid-nav{grid-template-columns:1fr!important}
+          .grid-intel-2col{grid-template-columns:1fr!important}
+          .grid-intel-macro{grid-template-columns:1fr!important}
+          .grid-analyse-5{grid-template-columns:1fr 1fr!important}
+          .grid-marktvisie{grid-template-columns:1fr!important}
+          .grid-deepdive{grid-template-columns:1fr!important}
+          .page-pad{padding:12px!important}
+          .header-title{display:none}
+          .rc-card{border-radius:8px!important}
+        }
+        /* Tablet: 640–1023px */
+        @media(min-width:640px) and (max-width:1023px){
+          .grid-stats{grid-template-columns:1fr 1fr!important}
+          .grid-nav{grid-template-columns:1fr 1fr 1fr!important}
+          .grid-intel-2col{grid-template-columns:1fr!important}
+          .grid-analyse-5{grid-template-columns:1fr 1fr!important}
+          .grid-marktvisie{grid-template-columns:1fr!important}
+          .grid-deepdive{grid-template-columns:1fr!important}
+          .page-pad{padding:16px!important}
+        }
+        /* Desktop: >= 1024px */
+        @media(min-width:1024px){
+          .grid-stats{grid-template-columns:repeat(4,1fr)}
+          .grid-nav{grid-template-columns:1fr 1fr 1fr}
+          .grid-intel-2col{grid-template-columns:1fr 360px}
+          .grid-analyse-5{grid-template-columns:repeat(5,1fr)}
+          .grid-marktvisie{grid-template-columns:1fr 340px}
+          .grid-deepdive{grid-template-columns:300px 1fr 280px}
+        }
       `}</style>
 
-      {/* ── SIDEBAR ── */}
-      <div style={{
+      {/* ── SIDEBAR (desktop only) ── */}
+      {isDesktop && <div style={{
       width:80,
       minHeight:"100vh",
       background:"rgba(8,9,14,0.5)",
@@ -2760,10 +2808,44 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             );
           })()}
         </div>
-      </div>
+      </div>}
+
+      {/* ── BOTTOM NAV (mobile + tablet) ── */}
+      {useBottomNav && (
+        <div style={{
+          position:"fixed",bottom:0,left:0,right:0,
+          height:60,
+          background:"rgba(10,10,10,0.95)",
+          backdropFilter:"blur(20px)",
+          WebkitBackdropFilter:"blur(20px)",
+          borderTop:"1px solid #2a2a2a",
+          display:"flex",alignItems:"stretch",
+          zIndex:100,
+        }}>
+          {[
+            {id:"home",    label:"Home",    icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>},
+            {id:"analyse", label:"Analyse", icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>},
+            {id:"intel",   label:"Intel",   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+            {id:"calendar",label:"Tools",   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>},
+          ].map(({id,label,icon})=>(
+            <button key={id} onClick={()=>switchPage(id)}
+              style={{
+                flex:1,border:"none",background:"transparent",
+                display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,
+                color:page===id?accent:"#555",
+                cursor:"pointer",transition:"color 0.15s",
+                padding:"6px 0",
+              }}>
+              <div style={{color:"inherit"}}>{icon}</div>
+              <div style={{fontSize:9,fontWeight:600,letterSpacing:"0.04em",color:"inherit"}}>{label}</div>
+              {page===id && <div style={{position:"absolute",bottom:0,width:24,height:2,background:accent,borderRadius:"2px 2px 0 0"}}/>}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div style={{marginLeft:80,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"transparent"}}>
+      <div style={{marginLeft:sidebarW,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",background:"transparent",paddingBottom:useBottomNav?60:0}}>
 
       {/* ProfileModal — fullscreen overlay outside sidebar */}
       {showProfile && (
@@ -2788,7 +2870,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         </div>
       )}
 
-        {`${accent}` && <div style={{position:"fixed",top:0,left:80,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
+        {`${accent}` && <div style={{position:"fixed",top:0,left:sidebarW,right:0,bottom:0,pointerEvents:"none",zIndex:0}}>
           <div style={{position:"absolute",top:"-5%",left:"5%",width:"90%",height:"60%",background:`radial-gradient(ellipse at center,${accent}28 0%,transparent 60%)`,filter:"blur(70px)"}}/>
           <div style={{position:"absolute",bottom:"-10%",right:"-5%",width:"55%",height:"60%",background:"radial-gradient(ellipse at center,rgba(99,102,241,0.18) 0%,transparent 60%)",filter:"blur(65px)"}}/>
           <div style={{position:"absolute",top:"35%",left:"-5%",width:"40%",height:"50%",background:`radial-gradient(ellipse at center,${accent}14 0%,transparent 65%)`,filter:"blur(75px)"}}/>
@@ -2796,8 +2878,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* ── LOADING OVERLAY ── */}
       {isRunning&&(
-        <div style={{position:"fixed",inset:0,marginLeft:80,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,padding:"32px 40px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06)",minWidth:340,maxWidth:420}}>
+        <div style={{position:"fixed",inset:0,marginLeft:0,background:"rgba(6,6,8,0.85)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,padding:"28px 24px",boxShadow:"0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06)",minWidth:"min(340px,90vw)",maxWidth:"min(420px,95vw)"}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
               <div style={{width:36,height:36,borderRadius:10,background:`${accent}22`,display:"flex",alignItems:"center",justifyContent:"center"}}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{animation:"spin 1s linear infinite"}}><path d="M12 2a10 10 0 0 1 10 10" stroke={accent} strokeWidth="2.5" strokeLinecap="round"/></svg>
@@ -2841,12 +2923,12 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
       )}
 
       {/* ── CONTENT ── */}
-      <div key={pageKey} className="page-enter" style={{padding:"28px 32px",maxWidth:1440,margin:"0 auto",width:"100%",position:"relative",zIndex:1}}>
+      <div key={pageKey} className="page-enter page-pad" style={{padding:"20px 24px",maxWidth:1440,margin:"0 auto",width:"100%",position:"relative",zIndex:1}}>
 
         {/* ── Inline page header ── */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
           <div>
-            <div style={{fontSize:22,fontWeight:800,letterSpacing:"-0.03em",color:"#e2e4e9",lineHeight:1}}>
+            <div className="header-title" style={{fontSize:22,fontWeight:800,letterSpacing:"-0.03em",color:"#e2e4e9",lineHeight:1}}>
               {page==="home"?"Home":page==="analyse"?"Analyse":page==="intel"?"Intel":page==="admin"?"Admin":"Kalender"}
             </div>
             <div style={{fontSize:10,color:"#6b7280",marginTop:5,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>
@@ -2956,7 +3038,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
             {/* FOR YOU — AI Marktbriefing zoals MarketReader */}
             {marktvisie?.macro_samenvatting&&(
-              <div style={{marginBottom:14,display:"grid",gridTemplateColumns:"1fr 340px",gap:12}}>
+              <div className="grid-marktvisie" style={{marginBottom:14,display:"grid",gap:12}}>
                 {/* Linker kolom: macro samenvatting + asset visies */}
                 <div style={{background:`${accent}06`,border:`1px solid ${accent}20`,borderRadius:10,padding:"16px 20px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
@@ -3181,7 +3263,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     </div>
                   </div>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
+                <div className="grid-analyse-5" style={{display:"grid",gap:10}}>
                   {["XAU/USD","US30","US100","EUR/USD","GBP/USD"].map((sym,i)=>(
                     <div key={sym} style={{background:"#0d0e13",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"14px 16px"}}>
                       <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>{sym}</div>
@@ -3207,7 +3289,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             </div>}
 
             {/* BREAKING NEWS + RSS FEED */}
-            <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 340px",gap:10}}>
+            <div className="grid-marktvisie" style={{marginTop:8,display:"grid",gap:10}}>
             <div style={{background:"#1c1c1c",border:"1px solid #2a2a2a",borderRadius:10,overflow:"hidden",boxShadow:"0 2px 14px rgba(0,0,0,0.3)"}}>
               <div style={{padding:"10px 16px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
