@@ -1502,14 +1502,10 @@ function DailyBriefing({ aResult, assets, acc }) {
     setError(null);
     setBriefing(null);
 
-    fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    anthropicFetch({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         messages: [{ role: "user", content: prompt }]
-      })
     })
     .then(r => r.json())
     .then(d => {
