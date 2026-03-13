@@ -492,8 +492,8 @@ function resolveBias(bias, confidence) {
 }
 
 const biasColors = {
-  Bullish:  { bg:"rgba(34,197,94,0.18)",  border:"rgba(34,197,94,0.7)",   text:"#4ade80" },
-  Bearish:  { bg:"rgba(239,68,68,0.18)",  border:"rgba(239,68,68,0.7)",   text:"#f87171" },
+  Bullish:  { bg:"rgba(34,197,94,0.08)",  border:"rgba(34,197,94,0.5)",   text:"#86efac" },
+  Bearish:  { bg:"rgba(239,68,68,0.08)",  border:"rgba(239,68,68,0.5)",   text:"#fca5a5" },
   Neutraal: { bg:"rgba(75,85,99,0.12)",   border:"rgba(75,85,99,0.35)",   text:"#9ca3af" },
   Fragiel:  { bg:"rgba(8,153,129,0.08)",  border:"rgba(8,153,129,0.35)",  text:"#0dd9b6" },
 };
@@ -1456,7 +1456,7 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                 </div>
               )}
               {data.desk_view&&(
-                <div style={{fontSize:11,color:"#e2e4e9",lineHeight:1.65,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.04)"}}>{data.desk_view}</div>
+                <div style={{fontSize:11,color:"#e2e4e9",lineHeight:1.65,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.04)",wordBreak:"break-word"}}>{data.desk_view}</div>
               )}
             </div>
           </div>
@@ -1546,7 +1546,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
       )}
 
       {/* ── NAV CARDS ── */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+      <div className="grid-nav" style={{display:"grid",gap:14}}>
         {[
           {id:"analyse", icon:"▦", title:"Asset Analyse", desc:"Bias-analyse voor alle 5 pairs met confidence, hold score en AI samenvatting.", color:acc},
           {id:"intel",   icon:"◉", title:"Market Intel",  desc:"Live nieuws, yield analyse, macro regime en cross-asset signalen.", color:"#6366f1"},
@@ -2808,6 +2808,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* Mobile: < 640px */
         @media(max-width:639px){
           .sessie-grid{grid-template-columns:1fr!important;gap:12px!important}
+          .hero-row{flex-direction:column!important}
+          .hero-row>div:last-child{align-items:flex-start!important}
           .grid-stats{grid-template-columns:1fr 1fr!important}
           .grid-nav{grid-template-columns:1fr 1fr!important}
           .grid-intel-2col{grid-template-columns:1fr!important}
@@ -3102,7 +3104,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     <span style={{fontSize:9,fontWeight:700,color:"#555",letterSpacing:"0.12em"}}>MACRO CONTEXT</span>
                     {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
                   </div>
-                  <div style={{display:"flex",gap:20,alignItems:"stretch",flexWrap:"wrap"}}>
+                  <div className="macro-bar-items" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:14,alignItems:"start"}}>
                     {/* Yield regime */}
                     {aResult.yield_regime&&(
                       <div style={{display:"flex",flexDirection:"column",gap:5}}>
@@ -3128,8 +3130,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:c}}>{v}</span>
                       </div>
                     ))}
-                    {/* Market context text */}
-
                   </div>
                 </div>
               </div>
@@ -3159,7 +3159,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
                       {Object.entries(marktvisie.assets).map(([id,v])=>{
                         return (
-                          <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px",borderLeft:"2px solid #1f2937"}}>
+                          <div key={id} style={{display:"flex",gap:8,alignItems:"flex-start",background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px",borderLeft:"2px solid #1f2937",minWidth:0,overflow:"hidden"}}>
                             <span style={{fontSize:10,fontWeight:700,color:"#6b7280",background:"rgba(255,255,255,0.04)",borderRadius:4,padding:"1px 8px",flexShrink:0,minWidth:64,textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>{id}</span>
                             <span style={{fontSize:10,color:"#9ca3af",lineHeight:1.6,flex:1}}>{v.visie}</span>
                             <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0,marginTop:1}}>
