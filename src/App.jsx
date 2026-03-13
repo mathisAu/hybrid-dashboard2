@@ -2686,6 +2686,10 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @keyframes navConicSpin{to{--nav-angle:360deg}}
         @property --nav-angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         @keyframes conicSpin{to{--angle:360deg}}
+        @keyframes deepDiveIn{
+          0%{opacity:0;transform:translateY(18px) scale(0.98)}
+          100%{opacity:1;transform:translateY(0) scale(1)}
+        }
         @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
         .ticker-track{display:flex;width:max-content;animation:tickerScroll 120s linear infinite}
         .ticker-track:hover{animation-play-state:paused}
@@ -3236,7 +3240,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
             {aResult&&(
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 {/* Asset cards grid */}
-                <div className="grid-analyse-5" style={{display:"grid",gap:10}}>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
                   {assets.map((asset,i)=>(
                     <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i}
                       loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
@@ -3247,28 +3251,99 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
                   ))}
                 </div>
-                {/* Macro context + yield regime — volle breedte balk onder assets */}
-                <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"14px 18px",display:"flex",flexDirection:"column",gap:10}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                    <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.5,flexShrink:0}}/>
-                    <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
-                    {/* Yield regime inline */}
-                    {aResult.yield_regime&&<YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>}
-                    {/* DXY / VIX / US10Y */}
+                {/* Macro context + Sessie info — naast elkaar onder assets */}
+                <div className="grid-2col" style={{display:"grid",gap:12}}>
+
+                  {/* Macro context kaart */}
+                  <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"18px 20px",display:"flex",flexDirection:"column",gap:12}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.5}}/>
+                      <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
+                      {aResult.yield_regime&&<YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>}
+                      {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
+                    </div>
+                    {aResult.market_context ? (
+                      <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.75}}>{aResult.market_context}</div>
+                    ) : (
+                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                        <div style={{fontSize:10,color:"#3a3a3a",fontStyle:"italic",marginBottom:4}}>Laad Intel voor macro context</div>
+                        {["75%","55%","80%","60%","70%"].map((w,i)=>(
+                          <div key={i} style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:w}}/>
+                        ))}
+                      </div>
+                    )}
+                    {/* DXY / VIX / US10Y inline */}
                     {[
                       {l:"DXY",v:livePrices.DXY?.change||aResult.dxy_change,c:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"},
                       {l:"VIX",v:livePrices.VIX?.price||aResult.vix_level,c:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"},
                       {l:"US10Y",v:livePrices.US10Y?.price||aResult.us10y,c:accent},
-                    ].filter(x=>x.v).map(({l,v,c})=>(
-                      <span key={l} style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:c,fontWeight:700}}>{l}: {v}</span>
-                    ))}
-                    {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
+                    ].filter(x=>x.v).length>0&&(
+                      <div style={{display:"flex",gap:12,flexWrap:"wrap",paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+                        {[
+                          {l:"DXY",v:livePrices.DXY?.change||aResult.dxy_change,c:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"},
+                          {l:"VIX",v:livePrices.VIX?.price||aResult.vix_level,c:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"},
+                          {l:"US10Y",v:livePrices.US10Y?.price||aResult.us10y,c:accent},
+                        ].filter(x=>x.v).map(({l,v,c})=>(
+                          <div key={l} style={{display:"flex",flexDirection:"column",gap:2}}>
+                            <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.1em"}}>{l}</span>
+                            <span style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:c,fontWeight:700}}>{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {aResult.market_context ? (
-                    <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.7}}>{aResult.market_context}</div>
-                  ) : (
-                    <div style={{fontSize:10,color:"#555",fontStyle:"italic"}}>Laad Intel voor macro context.</div>
-                  )}
+
+                  {/* Sessie info kaart */}
+                  {(()=>{
+                    if(!presession) return (
+                      <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"18px 20px",display:"flex",flexDirection:"column",gap:12}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <div style={{width:3,height:3,borderRadius:"50%",background:"#6366f1",opacity:0.5}}/>
+                          <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                          <div style={{fontSize:10,color:"#3a3a3a",fontStyle:"italic",marginBottom:4}}>Sessie breakdown nog niet geladen</div>
+                          {["60%","80%","45%","70%"].map((w,i)=>(
+                            <div key={i} style={{height:6,borderRadius:3,background:"rgba(255,255,255,0.04)",width:w}}/>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                    const moodLow=(presession.mood||"").toLowerCase();
+                    const mc=moodLow.includes("bull")?"#22c55e":moodLow.includes("bear")?"#ef4444":"#f59e0b";
+                    const moodIcon=moodLow.includes("bull")?"↑":moodLow.includes("bear")?"↓":"→";
+                    return (
+                      <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid #6366f118`,borderRadius:10,padding:"18px 20px",display:"flex",flexDirection:"column",gap:12}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <div style={{width:3,height:3,borderRadius:"50%",background:"#6366f1",opacity:0.5}}/>
+                          <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
+                          {presession.session&&<span style={{fontSize:9,color:"#6366f1",fontWeight:700,marginLeft:4}}>{presession.session}</span>}
+                          {presession.session_time&&<span style={{fontSize:9,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>{presession.session_time}</span>}
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{width:32,height:32,borderRadius:8,background:`${mc}15`,border:`1px solid ${mc}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:mc,flexShrink:0}}>{moodIcon}</div>
+                          <div>
+                            <div style={{fontSize:12,fontWeight:700,color:mc}}>{presession.mood}</div>
+                            {presession.mood_score&&<div style={{fontSize:9,color:"#6b7280",fontFamily:"'JetBrains Mono',monospace"}}>{presession.mood_score}%</div>}
+                          </div>
+                          {presession.volatility_outlook&&<span style={{fontSize:9,color:"#6b7280",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:4,padding:"2px 8px",marginLeft:"auto"}}>VOL: {presession.volatility_outlook.toUpperCase()}</span>}
+                        </div>
+                        {presession.market_narrative&&<div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.65}}>{presession.market_narrative}</div>}
+                        {presession.key_events_today?.length>0&&(
+                          <div style={{display:"flex",flexDirection:"column",gap:4,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+                            <div style={{fontSize:8,color:"#4b5563",letterSpacing:"0.1em",marginBottom:2}}>KEY EVENTS</div>
+                            {presession.key_events_today.slice(0,3).map((e,i)=>(
+                              <div key={i} style={{display:"flex",gap:6,alignItems:"flex-start"}}>
+                                <div style={{width:3,height:3,borderRadius:"50%",background:accent,flexShrink:0,marginTop:4,opacity:0.5}}/>
+                                <span style={{fontSize:10,color:"#a0a8b8",lineHeight:1.4}}>{e}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                 </div>
               </div>
             )}
@@ -3493,14 +3568,16 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
 
       {/* DEEP DIVE */}
       {deepAsset&&(
-        <DeepDiveModal
-          asset={deepAsset.asset}
-          data={deepAsset.data}
-          onClose={()=>setDeepAsset(null)}
-          onRefreshAsset={()=>refreshSingleAsset(deepAsset.asset)}
-          refreshing={deepRefreshing}
-          accent={accent}
-        />
+        <div style={{animation:"deepDiveIn 0.28s cubic-bezier(0.22,1,0.36,1)"}}>
+          <DeepDiveModal
+            asset={deepAsset.asset}
+            data={deepAsset.data}
+            onClose={()=>setDeepAsset(null)}
+            onRefreshAsset={()=>refreshSingleAsset(deepAsset.asset)}
+            refreshing={deepRefreshing}
+            accent={accent}
+          />
+        </div>
       )}
 
       {newsImpact&&(
