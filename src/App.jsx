@@ -644,14 +644,10 @@ function YieldTooltip({ regime, explanation }) {
   );
 }
 
-function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accent }) {
-  const [closing, setClosing] = React.useState(false);
-  const handleClose = () => {
-    setClosing(true);
-  };
-  const handleAnimEnd = (e) => {
-    if(closing && e.animationName === "slideOut") onClose();
-  };
+function DeepDiveModal({ asset, data, onClose, forceClosing, onRefreshAsset, refreshing, accent }) {
+  const closing = forceClosing;
+  const handleClose = onClose;
+  const handleAnimEnd = () => {};
   const bias = resolveBias(data?.bias, data?.confidence);
   const bc = biasColors[bias] || biasColors.Neutraal;
   const acc = accent || DEFAULT_ACCENT;
@@ -1662,6 +1658,11 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSe
   const [iError,        setIError]        = useState("");
   const [dots,          setDots]          = useState(0);
   const [deepAsset,     setDeepAsset]     = useState(null);
+  const [deepAssetClosing, setDeepAssetClosing] = useState(false);
+  const closeDeepAsset = () => {
+    setDeepAssetClosing(true);
+    setTimeout(() => { setDeepAsset(null); setDeepAssetClosing(false); }, 340);
+  };
   const [deepRefreshing,setDeepRefreshing]= useState(false);
   const [refreshingAssets, setRefreshingAssets] = useState(new Set());
   const [calFilter,     setCalFilter]     = useState("all");
@@ -3486,7 +3487,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         <DeepDiveModal
           asset={deepAsset.asset}
           data={deepAsset.data}
-          onClose={()=>setDeepAsset(null)}
+          onClose={closeDeepAsset}
+          forceClosing={deepAssetClosing}
           onRefreshAsset={()=>refreshSingleAsset(deepAsset.asset)}
           refreshing={deepRefreshing}
           accent={accent}
