@@ -733,9 +733,9 @@ function DeepDiveModal({ asset, data, onClose, onRefreshAsset, refreshing, accen
   );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto",animation:closing?"pageOut 0.3s cubic-bezier(0.4,0,0.2,1) both":"pageIn 0.55s cubic-bezier(0.4,0,0.2,1) both"}}
+    <div style={{position:"fixed",inset:0,zIndex:200,background:closing?"rgba(0,0,0,0)":"rgba(0,0,0,0.92)",backdropFilter:"blur(10px)",overflowY:"auto",transition:closing?"background 0.3s ease":"none"}}
       onClick={e=>{if(e.target===e.currentTarget)handleClose();}}>
-      <div style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative"}}>
+      <div style={{background:"#070708",minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative",animation:closing?"slideOut 0.32s cubic-bezier(0.4,0,0.2,1) both":"slideIn 0.55s cubic-bezier(0.4,0,0.2,1) both"}}>
 
         {/* Deep dive page glow */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -2671,6 +2671,8 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         .step-anim{animation:loadStep 0.3s ease both}
         .page-enter{animation:pageIn 0.35s cubic-bezier(0.4,0,0.2,1) both}
         @keyframes pageIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+        @keyframes slideIn{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+        @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-22px)}}
         .page-exit{animation:pageOut 0.2s cubic-bezier(0.4,0,0.2,1) both}
         @keyframes pageOut{to{opacity:0;transform:translateX(-12px)}}
         .deep-enter{animation:deepIn 0.38s cubic-bezier(0.16,1,0.3,1) both}
