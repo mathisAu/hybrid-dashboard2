@@ -2688,6 +2688,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
     });
     setAResult(combined);
     setAStatus("done");
+    setBriefingSummaries({});  // For You opnieuw genereren na Hybrid run
     runPresession();
   };
 
