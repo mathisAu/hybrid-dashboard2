@@ -1517,7 +1517,7 @@ function SessionCountdown({ acc }) {
   return (
     <div style={{background:"rgba(6,6,8,0.7)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
       border:`1px solid ${color}14`,borderRadius:12,padding:"16px"}}>
-      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>SESSIE TIMER</div>
+      <div style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>SESSIE TIMER</div>
       <div className="rc-card" style={{"--conic-color":phaseColor,position:"relative"}}>
         <div className="conic-border"/>
         <div style={{padding:"14px 16px",position:"relative",zIndex:1}}>
@@ -1609,7 +1609,7 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
   if (!aResult && !loading) return (
     <div style={{background:"rgba(6,6,8,0.55)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
       border:`1px solid ${color}14`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:10,alignSelf:"start"}}>
-      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · MARKT BRIEFING</div>
+      <div style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · MARKT BRIEFING</div>
       {[1,2,3,4,5].map(i => (
         <div key={i} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"12px 14px",display:"flex",flexDirection:"column",gap:7}}>
           <div style={{height:7,borderRadius:3,background:"rgba(255,255,255,0.06)",width:"35%"}}/>
@@ -1628,7 +1628,7 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
       boxShadow:`0 0 0 1px ${color}10, 0 4px 24px ${color}08`}}>
 
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-        <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · MARKT BRIEFING</div>
+        <div style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>FOR YOU · MARKT BRIEFING</div>
         <button onClick={()=>runBriefing(aResult)} disabled={loading||!aResult} className="btn-primary"
           style={{padding:"3px 8px",fontSize:10,color:"#fff",opacity:(loading||!aResult)?0.4:1,"--btn-glow":`${color}40`,display:"flex",alignItems:"center"}}>
           <span style={{display:"inline-block",animation:loading?"spin 0.8s linear infinite":"none",fontSize:11}}>↺</span>
@@ -1723,10 +1723,10 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
           {/* STATS BOX */}
           <div style={{background:"rgba(6,6,8,0.7)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:`1px solid ${acc}14`,borderRadius:12,padding:"16px"}}>
-            <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>MARKT OVERZICHT</div>
+            <div style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>MARKT OVERZICHT</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {(aResult ? [
-                {label:"MARKT SENTIMENT", value:overallSentiment, color:"#f0f1f3", sub:""},
+                {label:"MARKT SENTIMENT", value:overallSentiment, color:sentimentColor, sub:""},
                 {label:"GEM. CONFIDENCE",  value:avgConf+"%",     color:acc,           sub:"Over alle assets"},
                 {label:"ASSETS",           value:assets.length,   color:acc,           sub:"Geanalyseerd"},
                 {label:"BREAKING NEWS",    value:breakingNews.length, color:acc,       sub:"Vandaag gefilterd"},
@@ -1736,7 +1736,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
                   <div style={{padding:"10px 12px",position:"relative",zIndex:1}}>
                     {label ? (
                       <>
-                        <div style={{fontSize:7,color:"#4b5563",letterSpacing:"0.1em",marginBottom:5,fontFamily:"'JetBrains Mono',monospace"}}>{label}</div>
+                        <div style={{fontSize:7,color:"#e2e4e9",letterSpacing:"0.1em",marginBottom:5,fontFamily:"'JetBrains Mono',monospace"}}>{label}</div>
                         <div style={{fontSize:18,fontWeight:800,color,marginBottom:2,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{value}</div>
                         <div style={{fontSize:8,color:"#6b7280"}}>{sub}</div>
                       </>
@@ -1755,7 +1755,7 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
           {/* NAV BOX — buitenste wrapper donkerder + doorzichtig */}
           <div style={{background:"rgba(6,6,8,0.7)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:`1px solid ${acc}14`,borderRadius:12,padding:"16px"}}>
-            <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>NAVIGATIE</div>
+            <div style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>NAVIGATIE</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
                 {id:"analyse",  icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg>, title:"Asset Analyse", desc:"Bias · confidence · hold score · AI samenvatting", color:acc},
@@ -1792,13 +1792,13 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
         <DailyBriefing aResult={aResult} assets={assets} acc={acc} rssItems={rssItems} />
 
         {/* ── RECHTER KOLOM: NEWS ── */}
-        <div className="rc-card" style={{"--conic-color":"#f59e0b", height:"100%"}}>
+        <div className="rc-card" style={{"--conic-color":"#f59e0b"}}>
           <div className="conic-border"/>
           <div style={{padding:"20px 22px",position:"relative",zIndex:1,display:"flex",flexDirection:"column",gap:0}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-                <span style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",opacity:0.7}}>NEWS FEED</span>
+                <span style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>NEWS FEED</span>
                 {rssLoading&&<span style={{fontSize:10,color:"#6b7280",animation:"spin 0.8s linear infinite",display:"inline-block",marginLeft:4}}>⟳</span>}
               </div>
               <button onClick={()=>onNavigate("intel")} className="btn-primary" style={{padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":"#f59e0b30"}}>MEER ›</button>
@@ -3487,7 +3487,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                   <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"18px 20px",display:"flex",flexDirection:"column",gap:12}}>
                     <div style={{display:"flex",alignItems:"center",gap:6}}>
                       <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.5}}/>
-                      <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
+                      <span style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
                       {aResult.yield_regime&&<YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>}
                       {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(aResult.timestamp)}</span>}
                       <button onClick={runIntel} disabled={iStatus==="loading"||iStatus==="loading-intel"} className="btn-primary" title="Intel verversen" style={{marginLeft:"auto",padding:"3px 8px",fontSize:11,color:"#fff","--btn-glow":`${accent}40`,opacity:(iStatus==="loading"||iStatus==="loading-intel")?0.5:1}}>
@@ -3531,7 +3531,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"18px 20px",display:"flex",flexDirection:"column",gap:12}}>
                         <div style={{display:"flex",alignItems:"center",gap:6}}>
                           <div style={{width:3,height:3,borderRadius:"50%",background:"#6366f1",opacity:0.5}}/>
-                          <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
+                          <span style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
                           <button onClick={runPresession} disabled={psStatus==="loading"} className="btn-primary" title="Sessie verversen" style={{marginLeft:"auto",padding:"3px 8px",fontSize:11,color:"#fff","--btn-glow":"#6366f140",opacity:psStatus==="loading"?0.5:1}}>
                             <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
                           </button>
@@ -3551,7 +3551,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid #6366f118`,borderRadius:10,padding:"18px 20px",display:"flex",flexDirection:"column",gap:12}}>
                         <div style={{display:"flex",alignItems:"center",gap:6}}>
                           <div style={{width:3,height:3,borderRadius:"50%",background:"#6366f1",opacity:0.5}}/>
-                          <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
+                          <span style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
                           {presession.session&&<span style={{fontSize:9,color:"#6366f1",fontWeight:700,marginLeft:4}}>{presession.session}</span>}
                           {presession.session_time&&<span style={{fontSize:9,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>{presession.session_time}</span>}
                           <button onClick={runPresession} disabled={psStatus==="loading"} className="btn-primary" title="Sessie verversen" style={{marginLeft:"auto",padding:"3px 8px",fontSize:11,color:"#fff","--btn-glow":"#6366f140",opacity:psStatus==="loading"?0.5:1}}>
@@ -4554,7 +4554,7 @@ function AdminPanel({ accent }) {
       <div style={{background:"linear-gradient(160deg,#0f1116,#0c0d12)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,overflow:"hidden"}}>
         <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1fr 1fr 1.6fr",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"10px 16px"}}>
           {[t.colName,t.colEmail,t.colStatus,t.colDate,t.colActions].map(h=>(
-            <div key={h} style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{h}</div>
+            <div key={h} style={{fontSize:8,fontWeight:700,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{h}</div>
           ))}
         </div>
         {loading ? (
@@ -4677,7 +4677,7 @@ function ProfileModal({ session, accent, setAccent, onLogout, onClose, onSession
         <div style={{padding:"20px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexShrink:0}}>
           <div>
             <div style={{fontSize:16,fontWeight:800,color:"#f1f2f4",letterSpacing:"-0.01em"}}>{t.settings}</div>
-            <div style={{fontSize:9,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:3}}>{t.profileDashboard}</div>
+            <div style={{fontSize:9,color:"#e2e4e9",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginTop:3}}>{t.profileDashboard}</div>
           </div>
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,color:"#6b7280",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,flexShrink:0}}>×</button>
         </div>
