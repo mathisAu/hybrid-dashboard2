@@ -3257,7 +3257,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                       <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
                       {aResult.yield_regime&&<YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>}
                       {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace"}}>{fmtDT(aResult.timestamp)}</span>}
-                      <button onClick={runIntel} disabled={iStatus==="loading"||iStatus==="loading-intel"} style={{marginLeft:"auto",background:"none",border:"none",cursor:"pointer",color:"#444",fontSize:12,padding:"2px 4px",transition:"color 0.15s",lineHeight:1}} title="Intel verversen" onMouseEnter={e=>e.currentTarget.style.color=accent} onMouseLeave={e=>e.currentTarget.style.color="#444"}>
+                      <button onClick={runIntel} disabled={iStatus==="loading"||iStatus==="loading-intel"} className="btn-primary" title="Intel verversen" style={{marginLeft:"auto",padding:"3px 8px",fontSize:11,color:"#fff","--btn-glow":`${accent}40`,opacity:(iStatus==="loading"||iStatus==="loading-intel")?0.5:1}}>
                         <span style={{display:"inline-block",animation:(iStatus==="loading"||iStatus==="loading-intel")?"spin 0.8s linear infinite":"none"}}>↺</span>
                       </button>
                     </div>
@@ -3299,7 +3299,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                         <div style={{display:"flex",alignItems:"center",gap:6}}>
                           <div style={{width:3,height:3,borderRadius:"50%",background:"#6366f1",opacity:0.5}}/>
                           <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
-                          <button onClick={runPresession} disabled={psStatus==="loading"} style={{marginLeft:"auto",background:"none",border:"none",cursor:"pointer",color:"#444",fontSize:12,padding:"2px 4px",transition:"color 0.15s",lineHeight:1}} title="Sessie verversen" onMouseEnter={e=>e.currentTarget.style.color="#6366f1"} onMouseLeave={e=>e.currentTarget.style.color="#444"}>
+                          <button onClick={runPresession} disabled={psStatus==="loading"} className="btn-primary" title="Sessie verversen" style={{marginLeft:"auto",padding:"3px 8px",fontSize:11,color:"#fff","--btn-glow":"#6366f140",opacity:psStatus==="loading"?0.5:1}}>
                             <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
                           </button>
                         </div>
@@ -3321,7 +3321,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                           <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>SESSIE INFO</span>
                           {presession.session&&<span style={{fontSize:9,color:"#6366f1",fontWeight:700,marginLeft:4}}>{presession.session}</span>}
                           {presession.session_time&&<span style={{fontSize:9,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>{presession.session_time}</span>}
-                          <button onClick={runPresession} disabled={psStatus==="loading"} style={{marginLeft:"auto",background:"none",border:"none",cursor:"pointer",color:"#444",fontSize:12,padding:"2px 4px",transition:"color 0.15s",lineHeight:1}} title="Sessie verversen" onMouseEnter={e=>e.currentTarget.style.color="#6366f1"} onMouseLeave={e=>e.currentTarget.style.color="#444"}>
+                          <button onClick={runPresession} disabled={psStatus==="loading"} className="btn-primary" title="Sessie verversen" style={{marginLeft:"auto",padding:"3px 8px",fontSize:11,color:"#fff","--btn-glow":"#6366f140",opacity:psStatus==="loading"?0.5:1}}>
                             <span style={{display:"inline-block",animation:psStatus==="loading"?"spin 0.8s linear infinite":"none"}}>↺</span>
                           </button>
                         </div>
