@@ -3209,7 +3209,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
             )}
 
-            }
+            
             {/* ASSET GRID */}
             {!aResult&&aStatus!=="loading"&&(
               <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:20}}>
