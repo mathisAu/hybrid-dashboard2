@@ -1595,13 +1595,18 @@ Elke waarde = 3 zinnen, institutioneel, direct, gebaseerd op het nieuws.`;
     .finally(() => setLoading(false));
   }, [assets, rssItems]);
 
+  // Alleen automatisch laden als er nog geen summaries zijn (eerste keer na Hybrid run)
   React.useEffect(() => {
     if (!aResult) return;
     const key = JSON.stringify(aResult);
-    if (key === prevKey.current) return;
+    if (key === prevKey.current) return;  // zelfde data, niet opnieuw
+    if (Object.keys(summaries).length > 0) {
+      prevKey.current = key;  // update key maar genereer niet opnieuw
+      return;
+    }
     prevKey.current = key;
     runBriefing(aResult);
-  }, [aResult, runBriefing]);
+  }, [aResult]);  // bewust geen runBriefing/summaries in deps om loops te vermijden
 
   const color = acc;
 
