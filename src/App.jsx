@@ -2808,19 +2808,12 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* ── Responsive ─────────────────────────────────────────────────────── */
         /* Mobile: < 640px */
         @media(max-width:639px){
-          .sessie-grid{grid-template-columns:1fr!important;gap:12px!important}
-          .grid-2col{grid-template-columns:1fr!important}
+          .sessie-grid,.grid-stats,.grid-nav,.grid-intel-2col,.grid-intel-macro,.grid-analyse-5,.grid-marktvisie,.grid-deepdive,.grid-2col{grid-template-columns:1fr!important}
+          .sessie-grid{gap:12px!important}
+          .grid-stats{grid-template-columns:1fr 1fr!important}
           .hero-row{flex-direction:column!important}
           .hero-row>div:last-child{align-items:flex-start!important}
-          .grid-stats{grid-template-columns:1fr 1fr!important}
-          .grid-nav{grid-template-columns:1fr 1fr!important}
-          .grid-intel-2col{grid-template-columns:1fr!important}
-          .grid-intel-macro{grid-template-columns:1fr!important}
-          .grid-analyse-5{grid-template-columns:1fr 1fr!important}
-          .grid-marktvisie{grid-template-columns:1fr!important}
-          .grid-deepdive{grid-template-columns:1fr!important}
-          .grid-2col{grid-template-columns:1fr 1fr!important}
-          .page-pad{padding:12px!important}
+          .page-pad{padding:10px!important}
           .header-title{display:none}
           .rc-card{border-radius:8px!important}
         }
@@ -3100,44 +3093,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
           <>
             {aStatus==="error"&&<div style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:8,padding:"12px 18px",marginBottom:14,color:"#f87171",fontSize:12}}><span style={{fontWeight:700}}>FOUT — </span>{aError}</div>}
 
-            {/* Macro bar */}
-            {aResult&&(
-              <div className="rc-card" style={{"--conic-color":accent,marginBottom:16}}>
-                <div style={{padding:"16px 20px"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                    <span style={{fontSize:9,fontWeight:700,color:"#555",letterSpacing:"0.12em"}}>MACRO CONTEXT</span>
-                    {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
-                  </div>
-                  <div className="macro-bar-items" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:14,alignItems:"start"}}>
-                    {/* Yield regime */}
-                    {aResult.yield_regime&&(
-                      <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                        <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em"}}>YIELD REGIME</span>
-                        <YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>
-                      </div>
-                    )}
-                    {/* Session */}
-                    {aResult.session&&(
-                      <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                        <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em"}}>SESSIE</span>
-                        <span style={{fontSize:11,fontWeight:700,color:"#6366f1"}}>{aResult.session.toUpperCase()}</span>
-                      </div>
-                    )}
-                    {/* DXY / VIX / US10Y */}
-                    {[
-                      {l:"DXY",v:livePrices.DXY?.change||aResult.dxy_change,c:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"},
-                      {l:"VIX",v:livePrices.VIX?.price||aResult.vix_level,c:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"},
-                      {l:"US10Y",v:livePrices.US10Y?.price||aResult.us10y,c:accent},
-                    ].filter(x=>x.v).map(({l,v,c})=>(
-                      <div key={l} style={{display:"flex",flexDirection:"column",gap:5}}>
-                        <span style={{fontSize:8,color:"#4b5563",letterSpacing:"0.12em"}}>{l}</span>
-                        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,fontWeight:700,color:c}}>{v}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+
 
 
 
@@ -3277,34 +3233,45 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 </div>
               </div>
             )}
-            {aResult&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:10}}>
-              {assets.map((asset,i)=>(
-                <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i}
-                  loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
-                  updating={refreshingAssets.has(asset.id)}
-                  accent={accent} livePrice={livePrices[asset.id]||null}
-                  breakingNews={breakingNews}
-                  onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
-                  onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
-              ))}
-              {/* Macro context — altijd naast GBP/USD, ook als leeg */}
-              <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"16px 18px",display:"flex",flexDirection:"column",gap:10}}>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.5}}/>
-                  <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
+            {aResult&&(
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {/* Asset cards grid */}
+                <div className="grid-analyse-5" style={{display:"grid",gap:10}}>
+                  {assets.map((asset,i)=>(
+                    <AssetCard key={asset.id} asset={asset} data={aResult?.assets?.[asset.id]||null} index={i}
+                      loading={aStatus==="loading"&&!aResult?.assets?.[asset.id]}
+                      updating={refreshingAssets.has(asset.id)}
+                      accent={accent} livePrice={livePrices[asset.id]||null}
+                      breakingNews={breakingNews}
+                      onClick={()=>setDeepAsset({asset, data:aResult?.assets?.[asset.id]})}
+                      onUpdate={async(a)=>{ await refreshSingleAsset(a); }}/>
+                  ))}
                 </div>
-                {aResult.market_context ? (
-                  <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.7}}>{aResult.market_context}</div>
-                ) : (
-                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                    <div style={{fontSize:10,color:"#555",lineHeight:1.6,fontStyle:"italic"}}>Laad Intel voor macro context.</div>
-                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.04)",width:"80%"}}/>
-                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"60%"}}/>
-                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.03)",width:"70%"}}/>
+                {/* Macro context + yield regime — volle breedte balk onder assets */}
+                <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${accent}18`,borderRadius:10,padding:"14px 18px",display:"flex",flexDirection:"column",gap:10}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                    <div style={{width:3,height:3,borderRadius:"50%",background:accent,opacity:0.5,flexShrink:0}}/>
+                    <span style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>MACRO CONTEXT</span>
+                    {/* Yield regime inline */}
+                    {aResult.yield_regime&&<YieldTooltip regime={aResult.yield_regime} explanation={aResult.yield_regime_explanation}/>}
+                    {/* DXY / VIX / US10Y */}
+                    {[
+                      {l:"DXY",v:livePrices.DXY?.change||aResult.dxy_change,c:livePrices.DXY?.direction==="up"?"#22c55e":"#ef4444"},
+                      {l:"VIX",v:livePrices.VIX?.price||aResult.vix_level,c:parseFloat(livePrices.VIX?.price||aResult.vix_level)>20?"#ef4444":"#9ca3af"},
+                      {l:"US10Y",v:livePrices.US10Y?.price||aResult.us10y,c:accent},
+                    ].filter(x=>x.v).map(({l,v,c})=>(
+                      <span key={l} style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:c,fontWeight:700}}>{l}: {v}</span>
+                    ))}
+                    {aResult.timestamp&&<span style={{fontSize:8,color:"#2d3748",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{fmtDT(aResult.timestamp)}</span>}
                   </div>
-                )}
+                  {aResult.market_context ? (
+                    <div style={{fontSize:11,color:"#c8cdd8",lineHeight:1.7}}>{aResult.market_context}</div>
+                  ) : (
+                    <div style={{fontSize:10,color:"#555",fontStyle:"italic"}}>Laad Intel voor macro context.</div>
+                  )}
+                </div>
               </div>
-            </div>}
+            )}
 
 
             {/* SESSIE BREAKDOWN */}
