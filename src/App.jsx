@@ -1108,7 +1108,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
                 <span style={{fontSize:11,fontWeight:600,color:"#9aa5bc"}}>{hold}/100</span>
               </div>
               <div style={{height:4,background:"#141414",borderRadius:2,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${hold}%`,background:"#a78bfa",borderRadius:2,transition:"width 0.6s ease"}}/>
+                <div style={{height:"100%",width:`${hold}%`,background:"linear-gradient(90deg,#4ade80,#86efac)",borderRadius:2,transition:"width 0.6s ease"}}/>
               </div>
             </div>
 
@@ -1142,6 +1142,7 @@ function AssetCard({ asset, data, index, loading, updating: updatingProp, onClic
 }
 
 function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, onNewsClick, accent, rssItems, rssLoading, onRefreshRss }) {
+  const [showFlash, setShowFlash] = React.useState(false);
   const acc = accent || "#089981";
   if (!data && !loading) return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -1243,32 +1244,65 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
-      {/* ── FLASH TICKER ── */}
+      {/* ── FLASH TICKER + DEEP DIVE ── */}
       {(rssItems||[]).length>0&&(
-        <div style={{background:"rgba(10,10,12,0.7)",backdropFilter:"blur(10px)",border:`1px solid ${acc}22`,borderRadius:8,overflow:"hidden",display:"flex",alignItems:"center",height:28}}>
-          <div style={{flexShrink:0,padding:"0 10px",borderRight:`1px solid ${acc}22`,display:"flex",alignItems:"center",gap:5}}>
-            <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
-            <span style={{fontSize:8,fontWeight:700,letterSpacing:"0.14em",color:"#f59e0b",whiteSpace:"nowrap"}}>FLASH</span>
-          </div>
-          <div style={{flex:1,overflow:"hidden",position:"relative"}}>
-            <div className="ticker-track">
-              {[...(rssItems||[]),...(rssItems||[])].map((item,i)=>(
-                <span key={i}
-                  onClick={()=>item.link&&window.open(item.link,"_blank")}
-                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"0 20px",cursor:item.link?"pointer":"default",whiteSpace:"nowrap"}}>
-                  <span style={{fontSize:8,fontWeight:700,color:"#f59e0b"}}>{item.source}</span>
-                  <span style={{fontSize:10,color:"#e2e4e9"}}>{item.headline}</span>
-                  <span style={{color:`${acc}44`,fontSize:10,marginLeft:4}}>·</span>
-                </span>
-              ))}
+        <>
+          {/* Ticker bar */}
+          {!showFlash&&(
+            <div style={{background:"rgba(10,10,12,0.7)",backdropFilter:"blur(10px)",border:`1px solid ${acc}22`,borderRadius:8,overflow:"hidden",display:"flex",alignItems:"center",height:28}}>
+              <button onClick={()=>setShowFlash(true)} style={{flexShrink:0,padding:"0 10px",borderRight:`1px solid ${acc}22`,display:"flex",alignItems:"center",gap:5,background:"none",border:"none",cursor:"pointer"}}>
+                <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+                <span style={{fontSize:8,fontWeight:700,letterSpacing:"0.14em",color:"#f59e0b",whiteSpace:"nowrap"}}>FLASH ›</span>
+              </button>
+              <div style={{flex:1,overflow:"hidden",position:"relative"}}>
+                <div className="ticker-track">
+                  {[...(rssItems||[]),...(rssItems||[])].map((item,i)=>(
+                    <span key={i}
+                      onClick={()=>item.link&&window.open(item.link,"_blank")}
+                      style={{display:"inline-flex",alignItems:"center",gap:6,padding:"0 20px",cursor:item.link?"pointer":"default",whiteSpace:"nowrap"}}>
+                      <span style={{fontSize:8,fontWeight:700,color:"#f59e0b"}}>{item.source}</span>
+                      <span style={{fontSize:10,color:"#e2e4e9"}}>{item.headline}</span>
+                      <span style={{color:`${acc}44`,fontSize:10,marginLeft:4}}>·</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-          <button onClick={onRefreshRss} disabled={rssLoading} style={{flexShrink:0,background:"none",border:"none",cursor:"pointer",padding:"0 10px",color:"#444",fontSize:11,transition:"color 0.15s",borderLeft:`1px solid ${acc}22`}}
-            onMouseEnter={e=>e.currentTarget.style.color=acc}
-            onMouseLeave={e=>e.currentTarget.style.color="#444"}>
-            <span style={{display:"inline-block",animation:rssLoading?"spin 0.8s linear infinite":"none"}}>↺</span>
-          </button>
-        </div>
+          )}
+
+          {/* Flash deep dive */}
+          {showFlash&&(
+            <div style={{background:"rgba(10,10,12,0.55)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:`1px solid ${acc}22`,borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"14px 18px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+                  <button onClick={()=>setShowFlash(false)} style={{background:"none",border:`1px solid ${acc}33`,borderRadius:6,color:acc,fontSize:9,fontWeight:700,cursor:"pointer",padding:"3px 8px",letterSpacing:"0.08em"}}>← TERUG</button>
+                  <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b",animation:"pulseDot 2s ease-in-out infinite"}}/>
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#f59e0b"}}>FLASH NEWS</span>
+                  <span style={{fontSize:9,color:"#555",fontFamily:"'JetBrains Mono',monospace",marginLeft:"auto"}}>{(rssItems||[]).length} items · auto-update 5min</span>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {(rssItems||[]).map((item,i)=>(
+                    <div key={i}
+                      onClick={()=>item.link&&window.open(item.link,"_blank")}
+                      style={{padding:"8px 12px",borderRadius:7,background:"#0f0f11",border:"1px solid #1e1e22",cursor:item.link?"pointer":"default",display:"flex",alignItems:"center",gap:8,transition:"background 0.15s"}}
+                      onMouseEnter={e=>e.currentTarget.style.background="#161618"}
+                      onMouseLeave={e=>e.currentTarget.style.background="#0f0f11"}>
+                      <div style={{width:2,height:28,flexShrink:0,background:"rgba(245,158,11,0.5)",borderRadius:1}}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
+                          <span style={{fontSize:8,fontWeight:700,color:"#f59e0b",letterSpacing:"0.06em"}}>{item.source}</span>
+                          <span style={{fontSize:8,color:"#555",fontFamily:"'JetBrains Mono',monospace"}}>{item.timeStr||""}</span>
+                        </div>
+                        <div style={{fontSize:11,color:"#e2e4e9",lineHeight:1.45}}>{item.headline}</div>
+                      </div>
+                      {item.link&&<span style={{fontSize:12,color:"#555",flexShrink:0}}>›</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* ── TOP BAR ── */}
@@ -1297,9 +1331,6 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                   <div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444"}}/>
                   <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#ef4444"}}>HIGH IMPACT</span>
                   <span style={{fontSize:9,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>{highNews.length} items</span>
-                  <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{marginLeft:"auto",padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`,opacity:status==="loading-intel"?0.5:1}}>
-                    <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
-                  </button>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {highNews.map((n,i)=><NewsItem key={i} n={n}/>)}
@@ -1315,9 +1346,6 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
                 <div style={{width:4,height:4,borderRadius:"50%",background:"#f59e0b"}}/>
                 <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.14em",color:"#e2e4e9"}}>NIEUWS FEED</span>
                 <span style={{fontSize:9,color:"#3a3a3a",fontFamily:"'JetBrains Mono',monospace"}}>{normalNews.length} items</span>
-                <button onClick={onRefresh} disabled={status==="loading-intel"} className="btn-primary" style={{marginLeft:"auto",padding:"3px 10px",fontSize:9,color:"#fff","--btn-glow":`${acc}30`,opacity:status==="loading-intel"?0.5:1}}>
-                  <span style={{display:"inline-block",animation:status==="loading-intel"?"spin 0.8s linear infinite":"none"}}>↺</span>
-                </button>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {normalNews.map((n,i)=><NewsItem key={i} n={n}/>)}
@@ -1675,7 +1703,11 @@ function HybridDashboard({ injectedAccent, onAccentChange, injectedSession, onSe
   },[aStatus,iStatus,psStatus]);
 
   // ── RSS feeds ophalen bij opstarten ───────────────────────────────────────
-  useEffect(() => { fetchRssFeeds(); }, []);
+  useEffect(() => {
+    fetchRssFeeds();
+    const rssInterval = setInterval(fetchRssFeeds, 5 * 60 * 1000); // elke 5 min
+    return () => clearInterval(rssInterval);
+  }, []);
 
   // ── Auto-load gedeelde staat bij opstarten ──────────────────────────────────
   useEffect(() => {
@@ -2655,7 +2687,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         @property --nav-angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         @keyframes conicSpin{to{--angle:360deg}}
         @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-        .ticker-track{display:flex;width:max-content;animation:tickerScroll 90s linear infinite}
+        .ticker-track{display:flex;width:max-content;animation:tickerScroll 120s linear infinite}
         .ticker-track:hover{animation-play-state:paused}
         @property --angle{syntax:"<angle>";initial-value:0deg;inherits:false}
         .news-item-hover:hover{background:rgba(255,255,255,0.03)!important}
@@ -2772,7 +2804,7 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
         /* Mobile: < 640px */
         @media(max-width:639px){
           .grid-stats{grid-template-columns:1fr 1fr!important}
-          .grid-nav{grid-template-columns:1fr!important}
+          .grid-nav{grid-template-columns:1fr 1fr!important}
           .grid-intel-2col{grid-template-columns:1fr!important}
           .grid-intel-macro{grid-template-columns:1fr!important}
           .grid-analyse-5{grid-template-columns:1fr 1fr!important}
@@ -3210,7 +3242,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
               </div>
             )}
 
-            
             {/* ASSET GRID */}
             {!aResult&&aStatus!=="loading"&&(
               <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:20}}>
@@ -3360,7 +3391,6 @@ Voer v6.3 analyse uit voor ALLE ${assets.length} assets. Alleen JSON:
                 );
               })()}
             </div>}
-
 
           </>
         )}
