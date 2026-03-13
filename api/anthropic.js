@@ -13,7 +13,16 @@ function getIp(req) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://hybridtrader.vercel.app");
+  const allowedOrigins = [
+    "https://hybridtrader.vercel.app",
+    "https://hybrid-dashboard2.vercel.app",
+    "https://hybriddashboard.com",
+    "https://www.hybriddashboard.com",
+  ];
+  const origin = req.headers.origin || "";
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
@@ -23,18 +32,24 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
   // ── Sessie-check ──────────────────────────────────────────────────────────
-  const sessionUserId = req.body?._sessionUserId;
-  if (!sessionUserId) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  try {
-    const userRaw = await redis.hget("ht:users", sessionUserId);
-    const user = typeof userRaw === "string" ? JSON.parse(userRaw) : userRaw;
-    if (!user || !user.approved) {
-      return res.status(403).json({ error: "Access denied" });
+  const sessionUserId   = req.body?._sessionUserId;
+  const sessionRole     = req.body?._sessionRole;
+  const sessionApproved = req.body?._sessionApproved;
+
+  if (sessionRole === "admin" && sessionApproved === true) {
+    // admin — ok
+  } else if (sessionUserId) {
+    try {
+      const userRaw = await redis.hget("ht:users", sessionUserId);
+      const user = typeof userRaw === "string" ? JSON.parse(userRaw) : userRaw;
+      if (!user || !user.approved) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+    } catch (_) {
+      return res.status(401).json({ error: "Session check failed" });
     }
-  } catch (_) {
-    return res.status(401).json({ error: "Session check failed" });
+  } else {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   // ── Rate limiting per IP ──────────────────────────────────────────────────
