@@ -1476,6 +1476,113 @@ function MarketIntelPage({ data, loading, onRefresh, onRunHybrid, status, dots, 
 
 
 // ── HOME PAGE ─────────────────────────────────────────────────────────────────
+function DailyBriefing({ aResult, assets, acc }) {
+  const [briefing, setBriefing] = React.useState(null);
+  const [loading,  setLoading]  = React.useState(false);
+  const [error,    setError]    = React.useState(null);
+  const prevAResult = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!aResult || aResult === prevAResult.current) return;
+    prevAResult.current = aResult;
+
+    const topAssets = assets
+      .map(a => ({ id: a.id, label: a.label || a.id, ...aResult.assets?.[a.id] }))
+      .filter(a => a.bias)
+      .sort((a,b) => (b.confidence||0) - (a.confidence||0))
+      .slice(0, 2);
+
+    const allBiases = assets.map(a => aResult.assets?.[a.id]?.bias).filter(Boolean);
+    const bullCount = allBiases.filter(b => b.toLowerCase().includes("bull")).length;
+    const bearCount = allBiases.filter(b => b.toLowerCase().includes("bear")).length;
+    const sentiment = bullCount > bearCount ? "Bullish" : bearCount > bullCount ? "Bearish" : "Gemengd";
+    const avgConf   = Math.round(assets.reduce((s,a) => s + (aResult.assets?.[a.id]?.confidence||0), 0) / assets.length);
+
+    const prompt = `Je bent een institutionele trading analyst. Geef een KORTE dagelijkse briefing in het Nederlands (max 5 zinnen) op basis van deze data:
+
+Markt sentiment: ${sentiment} (gem. confidence: ${avgConf}%)
+Top tradable assets:
+${topAssets.map(a => `- ${a.label}: ${a.bias}, confidence ${a.confidence||"?"}%, hold score ${a.holdScore||"?"}`).join("\n")}
+Macro samenvatting: ${aResult.macro?.summary || "niet beschikbaar"}
+
+Geef: 1) één zin over het overall markt sentiment, 2) welke 1-2 assets de meeste kans bieden vandaag en waarom kort, 3) één zin wat de trader vandaag moet weten of vermijden. Wees direct, institutioneel en bondig. Geen bullet points, gewoon lopende tekst.`;
+
+    setLoading(true);
+    setError(null);
+
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    })
+    .then(r => r.json())
+    .then(d => {
+      const text = d.content?.map(b => b.text||"").join("").trim();
+      if (text) setBriefing(text);
+      else setError("Geen briefing ontvangen.");
+    })
+    .catch(() => setError("Briefing ophalen mislukt."))
+    .finally(() => setLoading(false));
+  }, [aResult]);
+
+  const color = acc;
+
+  // ── Ghost state (geen data) ──
+  if (!aResult && !loading) return (
+    <div style={{background:`rgba(6,6,8,0.55)`,backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+      border:`1px solid ${color}14`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:12,alignSelf:"start"}}>
+      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:4}}>FOR YOU · DAILY BRIEFING</div>
+      {/* ghost lines */}
+      {[80,100,65,90,50].map((w,i) => (
+        <div key={i} style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.04)",width:`${w}%`}}/>
+      ))}
+      <div style={{marginTop:4,fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace"}}>Voer eerst een Hybrid run uit</div>
+    </div>
+  );
+
+  return (
+    /* buitenste wrapper — donkerder + subtiele glow rand (zelfde stijl als Nav box) */
+    <div style={{background:`rgba(6,6,8,0.55)`,backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+      border:`1px solid ${color}22`,borderRadius:12,padding:16,alignSelf:"start",
+      boxShadow:`0 0 0 1px ${color}10, 0 4px 24px ${color}08`}}>
+
+      <div style={{fontSize:8,fontWeight:700,color:"#4b5563",letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace",marginBottom:12}}>FOR YOU · DAILY BRIEFING</div>
+
+      {/* binnenste card met conic glow */}
+      <div className="rc-card" style={{"--conic-color":color,position:"relative"}}>
+        <div className="conic-border"/>
+        <div style={{padding:"16px 18px",position:"relative",zIndex:1}}>
+
+          {loading && (
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {[90,75,85,60].map((w,i) => (
+                <div key={i} style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.06)",width:`${w}%`,
+                  animation:"pulse 1.5s ease-in-out infinite",animationDelay:`${i*0.15}s`}}/>
+              ))}
+              <div style={{fontSize:9,color:"#4b5563",fontFamily:"'JetBrains Mono',monospace",marginTop:4}}>Briefing genereren…</div>
+            </div>
+          )}
+
+          {error && !loading && (
+            <div style={{fontSize:11,color:"#ef4444",fontFamily:"'JetBrains Mono',monospace"}}>{error}</div>
+          )}
+
+          {briefing && !loading && (
+            <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.7,fontFamily:"'Inter',sans-serif"}}>
+              {briefing}
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybridStatus, onRunHybrid, onNavigate, accent, breakingNews, rssItems, onRefreshRss, rssLoading }) {
   const acc = accent || DEFAULT_ACCENT;
   const isRunning = hybridStatus!=="idle"&&hybridStatus!=="done";
@@ -1595,8 +1702,8 @@ function HomePage({ assets, livePrices, aResult, presession, lastRefresh, hybrid
 
         </div>
 
-        {/* ── MIDDEN SPACER ── */}
-        <div/>
+        {/* ── MIDDEN KOLOM: DAILY BRIEFING ── */}
+        <DailyBriefing aResult={aResult} assets={assets} acc={acc} />
 
         {/* ── RECHTER KOLOM: NEWS ── */}
         <div className="rc-card" style={{"--conic-color":"#f59e0b", height:"100%"}}>
